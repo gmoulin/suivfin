@@ -12,10 +12,10 @@ USE `suivfin` ;
 DROP TABLE IF EXISTS `suivfin`.`type` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`type` (
-  `typeID` INT NOT NULL AUTO_INCREMENT ,
-  `typeName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`typeID`) ,
-  UNIQUE INDEX `typeNameIDX` (`typeName` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `typeNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
@@ -25,12 +25,12 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`currency` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`currency` (
-  `currencyID` INT NOT NULL AUTO_INCREMENT ,
-  `currencyName` VARCHAR(255) NOT NULL ,
-  `currencySymbol` VARCHAR(4) NOT NULL ,
-  PRIMARY KEY (`currencyID`) ,
-  UNIQUE INDEX `currencyNameIDX` (`currencyName` ASC) ,
-  INDEX `currencySymbol` (`currencySymbol` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  `symbol` VARCHAR(4) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `currencyNameIDX` (`name` ASC) ,
+  INDEX `currencySymbol` (`symbol` ASC) )
 ENGINE = MyISAM;
 
 
@@ -40,10 +40,10 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`method` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`method` (
-  `methodID` INT NOT NULL AUTO_INCREMENT ,
-  `methodName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`methodID`) ,
-  UNIQUE INDEX `methodNameIDX` (`methodName` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `methodNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
@@ -53,10 +53,10 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`origin` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`origin` (
-  `originID` INT NOT NULL AUTO_INCREMENT ,
-  `originName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`originID`) ,
-  UNIQUE INDEX `originNameIDX` (`originName` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `originNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
@@ -66,10 +66,10 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`status` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`status` (
-  `statusID` INT NOT NULL AUTO_INCREMENT ,
-  `statusName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`statusID`) ,
-  UNIQUE INDEX `statusNameIDX` (`statusName` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `statusNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
@@ -79,10 +79,10 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`owner` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`owner` (
-  `ownerID` INT NOT NULL AUTO_INCREMENT ,
-  `ownerName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`ownerID`) ,
-  UNIQUE INDEX `ownerNameIDX` (`ownerName` ASC) )
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `ownerNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
@@ -92,76 +92,96 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`location` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`location` (
-  `locationID` INT NOT NULL ,
-  `locationName` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`locationID`) ,
-  UNIQUE INDEX `locationNameIDX` (`locationName` ASC) )
+  `id` INT NOT NULL ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `locationNameIDX` (`name` ASC) )
 ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
--- Table `suivfin`.`flux`
+-- Table `suivfin`.`recipient`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `suivfin`.`flux` ;
+DROP TABLE IF EXISTS `suivfin`.`recipient` ;
 
-CREATE  TABLE IF NOT EXISTS `suivfin`.`flux` (
-  `fluxID` INT NOT NULL AUTO_INCREMENT ,
-  `fluxDate` DATETIME NOT NULL ,
-  `fluxUpdate` DATETIME NOT NULL ,
-  `fluxTypeFK` INT NOT NULL ,
-  `fluxAmount` FLOAT NOT NULL ,
-  `fluxCurrencyFK` INT NOT NULL ,
-  `fluxMethodFK` INT NOT NULL ,
-  `fluxLabel` VARCHAR(255) NOT NULL ,
-  `fluxRecipient` VARCHAR(255) NOT NULL ,
-  `fluxOriginFK` INT NOT NULL ,
-  `fluxRecurrent` TINYINT(1)  NOT NULL ,
-  `fluxStatusFK` INT NOT NULL ,
-  `fluxOwnerFK` INT NOT NULL ,
-  `fluxComment` TEXT NULL ,
-  `fluxLocationFK` INT NOT NULL ,
-  PRIMARY KEY (`fluxID`) ,
-  INDEX `fluxDateIDX` (`fluxDate` ASC) ,
-  INDEX `fluxTypeFK` (`fluxTypeFK` ASC) ,
-  INDEX `fluxCurrencyFK` (`fluxCurrencyFK` ASC) ,
-  INDEX `fluxMethodFK` (`fluxMethodFK` ASC) ,
-  INDEX `fluxOriginFK` (`fluxOriginFK` ASC) ,
-  INDEX `fluxStatusFK` (`fluxStatusFK` ASC) ,
-  INDEX `fluxOwnerFK` (`fluxOwnerFK` ASC) ,
-  INDEX `fluxLocationFK` (`fluxLocationFK` ASC) ,
-  CONSTRAINT `fluxTypeFK`
-    FOREIGN KEY (`fluxTypeFK` )
-    REFERENCES `suivfin`.`type` (`typeID` )
+CREATE  TABLE IF NOT EXISTS `suivfin`.`recipient` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `recipientNameIDX` (`name` ASC) )
+ENGINE = MyISAM;
+
+
+-- -----------------------------------------------------
+-- Table `suivfin`.`payment`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `suivfin`.`payment` ;
+
+CREATE  TABLE IF NOT EXISTS `suivfin`.`payment` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `label` VARCHAR(255) NOT NULL ,
+  `paymentDate` DATE NOT NULL ,
+  `amount` FLOAT NOT NULL ,
+  `comment` TEXT NULL ,
+  `recurrent` TINYINT(1)  NOT NULL ,
+  `recipientFK` INT NOT NULL ,
+  `typeFK` INT NOT NULL ,
+  `currencyFK` INT NOT NULL ,
+  `methodFK` INT NOT NULL ,
+  `originFK` INT NOT NULL ,
+  `statusFK` INT NOT NULL ,
+  `ownerFK` INT NOT NULL ,
+  `locationFK` INT NOT NULL ,
+  `creationDate` DATETIME NOT NULL ,
+  `modificationDate` DATETIME NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `paymentDateIDX` (`creationDate` ASC) ,
+  INDEX `paymentTypeFK` (`typeFK` ASC) ,
+  INDEX `paymentCurrencyFK` (`currencyFK` ASC) ,
+  INDEX `paymentMethodFK` (`methodFK` ASC) ,
+  INDEX `paymentOriginFK` (`originFK` ASC) ,
+  INDEX `paymentStatusFK` (`statusFK` ASC) ,
+  INDEX `paymentOwnerFK` (`ownerFK` ASC) ,
+  INDEX `paymentLocationFK` (`locationFK` ASC) ,
+  INDEX `paymentRecipientFK` (`recipientFK` ASC) ,
+  CONSTRAINT `paymentTypeFK`
+    FOREIGN KEY (`typeFK` )
+    REFERENCES `suivfin`.`type` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxCurrencyFK`
-    FOREIGN KEY (`fluxCurrencyFK` )
-    REFERENCES `suivfin`.`currency` (`currencyID` )
+  CONSTRAINT `paymentCurrencyFK`
+    FOREIGN KEY (`currencyFK` )
+    REFERENCES `suivfin`.`currency` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxMethodFK`
-    FOREIGN KEY (`fluxMethodFK` )
-    REFERENCES `suivfin`.`method` (`methodID` )
+  CONSTRAINT `paymentMethodFK`
+    FOREIGN KEY (`methodFK` )
+    REFERENCES `suivfin`.`method` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxOriginFK`
-    FOREIGN KEY (`fluxOriginFK` )
-    REFERENCES `suivfin`.`origin` (`originID` )
+  CONSTRAINT `paymentOriginFK`
+    FOREIGN KEY (`originFK` )
+    REFERENCES `suivfin`.`origin` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxStatusFK`
-    FOREIGN KEY (`fluxStatusFK` )
-    REFERENCES `suivfin`.`status` (`statusID` )
+  CONSTRAINT `paymentStatusFK`
+    FOREIGN KEY (`statusFK` )
+    REFERENCES `suivfin`.`status` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxOwnerFK`
-    FOREIGN KEY (`fluxOwnerFK` )
-    REFERENCES `suivfin`.`owner` (`ownerID` )
+  CONSTRAINT `paymentOwnerFK`
+    FOREIGN KEY (`ownerFK` )
+    REFERENCES `suivfin`.`owner` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fluxLocationFK`
-    FOREIGN KEY (`fluxLocationFK` )
-    REFERENCES `suivfin`.`location` (`locationID` )
+  CONSTRAINT `paymentLocationFK`
+    FOREIGN KEY (`locationFK` )
+    REFERENCES `suivfin`.`location` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `paymentRecipientFK`
+    FOREIGN KEY (`recipientFK` )
+    REFERENCES `suivfin`.`recipient` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = MyISAM
@@ -174,27 +194,28 @@ COMMENT = 'contient les entrées et sorties d\'argent';
 DROP TABLE IF EXISTS `suivfin`.`balance` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`balance` (
-  `balanceID` INT NOT NULL ,
-  `balanceCurrencyFK` INT NOT NULL ,
-  `balanceOriginFK` INT NOT NULL ,
-  `balanceTypeFK` INT NOT NULL ,
-  PRIMARY KEY (`balanceID`) ,
-  INDEX `balanceCurrencyFK` (`balanceCurrencyFK` ASC) ,
-  INDEX `balanceOriginFK` (`balanceOriginFK` ASC) ,
-  INDEX `balanceTypeFK` (`balanceTypeFK` ASC) ,
+  `id` INT NOT NULL ,
+  `currencyFK` INT NOT NULL ,
+  `originFK` INT NOT NULL ,
+  `typeFK` INT NOT NULL ,
+  `lastUpdate` DATE NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `balanceCurrencyFK` (`currencyFK` ASC) ,
+  INDEX `balanceOriginFK` (`originFK` ASC) ,
+  INDEX `balanceTypeFK` (`typeFK` ASC) ,
   CONSTRAINT `balanceCurrencyFK`
-    FOREIGN KEY (`balanceCurrencyFK` )
-    REFERENCES `suivfin`.`currency` (`currencyID` )
+    FOREIGN KEY (`currencyFK` )
+    REFERENCES `suivfin`.`currency` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `balanceOriginFK`
-    FOREIGN KEY (`balanceOriginFK` )
-    REFERENCES `suivfin`.`origin` (`originID` )
+    FOREIGN KEY (`originFK` )
+    REFERENCES `suivfin`.`origin` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `balanceTypeFK`
-    FOREIGN KEY (`balanceTypeFK` )
-    REFERENCES `suivfin`.`type` (`typeID` )
+    FOREIGN KEY (`typeFK` )
+    REFERENCES `suivfin`.`type` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = MyISAM;
@@ -206,17 +227,31 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`evolution` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`evolution` (
-  `evolutionID` INT NOT NULL AUTO_INCREMENT ,
-  `evolutionDate` DATETIME NOT NULL ,
-  `evolutionBalanceFK` INT NOT NULL ,
-  PRIMARY KEY (`evolutionID`) ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `evolutionDate` DATE NOT NULL ,
+  `balanceFK` INT NOT NULL ,
+  `amount` FLOAT NOT NULL ,
+  PRIMARY KEY (`id`) ,
   UNIQUE INDEX `evolutionDateIDX` (`evolutionDate` ASC) ,
-  INDEX `evolutionBalanceFK` (`evolutionBalanceFK` ASC) ,
+  INDEX `evolutionBalanceFK` (`balanceFK` ASC) ,
   CONSTRAINT `evolutionBalanceFK`
-    FOREIGN KEY (`evolutionBalanceFK` )
-    REFERENCES `suivfin`.`balance` (`balanceID` )
+    FOREIGN KEY (`balanceFK` )
+    REFERENCES `suivfin`.`balance` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+ENGINE = MyISAM;
+
+
+-- -----------------------------------------------------
+-- Table `suivfin`.`list_timestamp`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `suivfin`.`list_timestamp` ;
+
+CREATE  TABLE IF NOT EXISTS `suivfin`.`list_timestamp` (
+  `id` VARCHAR(255) NOT NULL ,
+  `timestamp` DATETIME NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `timestampIDX` (`timestamp` ASC) )
 ENGINE = MyISAM;
 
 
@@ -230,10 +265,9 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`type` (`typeID`, `typeName`) VALUES ('1', 'dépôt');
-INSERT INTO `suivfin`.`type` (`typeID`, `typeName`) VALUES ('2', 'retrait');
-INSERT INTO `suivfin`.`type` (`typeID`, `typeName`) VALUES ('3', 'dépense permanente');
-INSERT INTO `suivfin`.`type` (`typeID`, `typeName`) VALUES ('4', 'dépense diverse');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('1', 'dépôt');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('2', 'dépense');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('3', 'transfert');
 
 COMMIT;
 
@@ -242,8 +276,8 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`currency` (`currencyID`, `currencyName`, `currencySymbol`) VALUES ('1', 'Euro', '€');
-INSERT INTO `suivfin`.`currency` (`currencyID`, `currencyName`, `currencySymbol`) VALUES ('2', 'Franc', 'CHF');
+INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES ('1', 'Euro', '€');
+INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES ('2', 'Franc', 'CHF');
 
 COMMIT;
 
@@ -252,11 +286,11 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`method` (`methodID`, `methodName`) VALUES ('1', 'liquide');
-INSERT INTO `suivfin`.`method` (`methodID`, `methodName`) VALUES ('2', 'prélèvement');
-INSERT INTO `suivfin`.`method` (`methodID`, `methodName`) VALUES ('3', 'virement');
-INSERT INTO `suivfin`.`method` (`methodID`, `methodName`) VALUES ('4', 'carte');
-INSERT INTO `suivfin`.`method` (`methodID`, `methodName`) VALUES ('5', 'chèque');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('1', 'liquide');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('2', 'prélèvement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('3', 'virement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('4', 'carte');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('5', 'chèque');
 
 COMMIT;
 
@@ -265,14 +299,14 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('1', 'liquide €');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('2', 'liquide CHF');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('3', 'BNP Commun');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('4', 'BNP Guillaume');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('5', 'BNP Kariade');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('6', 'Postfinance Commun');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('7', 'Postfinance Guillaume');
-INSERT INTO `suivfin`.`origin` (`originID`, `originName`) VALUES ('8', 'Postfinance Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('1', 'liquide €');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('2', 'liquide CHF');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('3', 'BNP Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('4', 'BNP Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('5', 'BNP Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('6', 'Postfinance Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('7', 'Postfinance Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('8', 'Postfinance Kariade');
 
 COMMIT;
 
@@ -281,10 +315,10 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`status` (`statusID`, `statusName`) VALUES ('1', 'Vérifié');
-INSERT INTO `suivfin`.`status` (`statusID`, `statusName`) VALUES ('2', 'Prévisible');
-INSERT INTO `suivfin`.`status` (`statusID`, `statusName`) VALUES ('3', 'A vérifier');
-INSERT INTO `suivfin`.`status` (`statusID`, `statusName`) VALUES ('4', 'A payer');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('1', 'Vérifié');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('2', 'Prévisible');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('3', 'À vérifier');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('4', 'À payer');
 
 COMMIT;
 
@@ -293,9 +327,9 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`owner` (`ownerID`, `ownerName`) VALUES ('1', 'Guillaume');
-INSERT INTO `suivfin`.`owner` (`ownerID`, `ownerName`) VALUES ('2', 'Kariade');
-INSERT INTO `suivfin`.`owner` (`ownerID`, `ownerName`) VALUES ('3', 'Commun');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('1', 'Guillaume');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('2', 'Kariade');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('3', 'Commun');
 
 COMMIT;
 
@@ -304,11 +338,11 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('1', 'Genève');
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('2', 'Carouge');
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('3', 'Saint-Julien-en-Genevois');
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('4', 'Collonge-sous-Salève');
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('5', 'Annemasse');
-INSERT INTO `suivfin`.`location` (`locationID`, `locationName`) VALUES ('6', 'Etrembière');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('1', 'Genève');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('2', 'Carouge');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('3', 'Saint-Julien-en-Genevois');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('4', 'Collonge-sous-Salève');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('5', 'Annemasse');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('6', 'Etrembière');
 
 COMMIT;
