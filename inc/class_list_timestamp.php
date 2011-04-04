@@ -18,6 +18,8 @@ class list_timestamp extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
+
+		return $this;
 	}
 
 	/**

@@ -19,6 +19,8 @@ class payment extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
+
+		return $this;
 	}
 
 	/**
@@ -375,5 +377,22 @@ class payment extends common {
 		}
 	}
 
+	public function loadForCurrentMonth(){
+		try {
+			$q = $this->_db->prepare("
+				SELECT * FROM :table
+				WHERE paymentDate
+				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+				AND DATE_FORMAT(LAST_DAY(CURDATE(), '%Y-%m-%d')
+				ORDER BY paymentDate desc
+			");
+			$q->excute(array(
+				':id' => $this->_data['id'],
+			));
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
 }
 ?>

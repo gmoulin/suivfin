@@ -263,6 +263,31 @@ class common {
 	}
 
 	/**
+	 * @return array[key][entry]
+	 */
+	public function loadListForFilter(){
+		try {
+			$params[':table'] = $this->_table;
+
+			$loadList = $this->_db->prepare("
+				SELECT id, name FROM :table ORDER BY name
+			");
+
+			$loadList->execute($params);
+
+			$list = array();
+			while( $rs = $loadList->fetch() ){
+				$list[ $rs['id'] ] = $rs['name'];
+			}
+
+			return $list;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
 	 * save data in the database
 	 * insert for id = 0, else update
 	 */

@@ -10,12 +10,32 @@ try {
     $css = filemtime( LMS_PATH.'/css/style.css' );
 
     $js = filemtime( LMS_PATH.'/js/script.js' );
+
+
+	$payments = new payment()->loadForCurrentMonth();
+	$origins = new origin()->loadListForFilter();
+	$statuses = new status()->loadListForFilter();
+	$recipients = new recipient()->loadListForFilter();
+	$types = new type()->loadListForFilter();
+	$currencies = new currency()->loadListForFilter();
+	$methods = new method()->loadListForFilter();
+	$locations = new location()->loadListForFilter();
+
+
 } catch (Exception $e) {
 	echo $e->getMessage();
 	die;
 }
 ?>
 <?php include('html_header.php'); ?>
+
+<nav>
+	<ul>
+		<?php foreach( $owners as $id => $owner ){
+			echo '<li><a href="?owner='.$id.'" title="voir le suivi de '.$owner.'">'.$owner.'</a>';
+		?>
+	</ul>
+</nav>
 
 <form id="payment_form" action="" method="post">
 	<input type="hidden" name="id" value="">
@@ -127,7 +147,115 @@ try {
 				<datalist id="locationList"></datalist>
 			</li>
 		</ul>
+		<div class="formButtons">
+			<button type="submit" id="formSubmit" name="formSubmit" class="button formButton" data-icon="y" rel="">Enregistrer</button>
+			<button type="reset" id="formCancel" name="formCancel" class="button formButton" data-icon="x" rel="cancel">Annuler</button>
+		</div>
 	</fieldset>
 </form>
+
+<ul id="layouts">
+	<li><a href="#masonry" class="selected" >masonry</a></li>
+	<li><a href="#fitRows">fitRows</a></li>
+	<li><a href="#cellsByRow">cellsByRow</a></li>
+	<li><a href="#straightDown">straightDown</a></li>
+	<li><a href="#masonryHorizontal" class="horizontal" >masonryHorizontal</a></li>
+	<li><a href="#fitColumns" class="horizontal" >fitColumns</a></li>
+	<li><a href="#cellsByColumn" class="horizontal">cellsByColumn</a></li>
+</ul>
+
+<aside id="timeframe">
+	<label>Année</label>
+	<ul class="filter" data-group="year">
+		<?php for( $y = 2011; $y <= date('Y'); $y++ ){ ?>
+			<li><label for="year_<?php echo $y; ?>"></label><input type="checkbox" id="year_<?php echo $y; ?>" value=".<?php echo $y; ?>" <?php if( $y == date('Y') ){?>checked="checked"<?php } ?>></li>
+			<label>Mois</label>
+			<ul class="filter" data-group="month_<?php echo $y; ?>">
+				<?php for( $m = 1; $m <= 12; $m++ ){
+						$m = lpad($m, 2, '0', STR_PAD_LEFT);
+				?>
+					<li><label for="year_<?php echo $y; ?>_month_<?php echo $m; ?>"></label><input type="checkbox" id="year_<?php echo $y; ?>_month_<?php echo $m; ?>" value=".<?php echo $m.'-'.$y; ?>" <?php if( $y == date('Y') && $m == date('m') ){?>checked="checked"<?php } ?>></li>
+				<?php } ?>
+			</ul>
+
+		<? } ?>
+	</ul>
+</aside>
+
+<aside id="filter">
+	<label>Fréquence</label>
+	<ul class="filter">
+		<li><a href="#" class="selected" data-group="recurrent" data-filter="*">Tout</a></li>
+		<li><a href="#" data-group="recurrent" data-filter=".recurrent">Récurrent</a></li>
+		<li><a href="#" data-group="recurrent" data-filter=".punctual">Ponctuel</a></li>
+	</ul>
+	<label>Origine</label>
+	<ul class="filter">
+		<li><a href="#" class="selected" data-group="origin" data-filter="*">Tout</a></li>
+		<?php foreach( $origins as $id => $name ){
+			echo '<li><a href="#" data-group="origin" data-filter=".origin_'.$id.'">'.$name.'</a></li>';
+		} ?>
+	</ul>
+	<label>Status</label>
+	<ul class="filter">
+		<li><a href="#" class="selected" data-group="status" data-filter="*">Tout</a></li>
+		<?php foreach( $statuses as $id => $name ){
+			echo '<li><a href="#" data-group="status" data-filter=".status_'.$id.'">'.$name.'</a></li>';
+		} ?>
+	</ul>
+	<label for="recipient_filter">Bénéficiaire</label>
+	<select name="recipient" id="recipient_filter">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $recipients as $id => $name ){
+			echo '<option value=".recipient_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+	<label for="type_filter">Type</label>
+	<select name="type">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $types as $id => $name ){
+			echo '<option value=".type_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+	<label for="currency_filter">Monnaie</label>
+	<select name="currency" id="currency_filter">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $currencies as $id => $name ){
+			echo '<option value=".currency_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+	<label for="method_filter">Méthode</label>
+	<select name="method" id="method_filter">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $methods as $id => $name ){
+			echo '<option value=".method_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+	<label for="origin_filter">Origine</label>
+	<select name="origin" id="origin_filter">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $origins as $id => $name ){
+			echo '<option value=".origin_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+	<label for="location_filter">Location</label>
+	<select name="location" id="location_filter">
+		<option value="*" selected="selected">Tout</option>
+		<?php foreach( $locations as $id => $name ){
+			echo '<option value=".location_'.$id.'">'.$name.'</option>';
+		} ?>
+	</select>
+</aside>
+
+<aside id="sort">
+	<ul>
+		<li><a href="#date">date</a></li>
+		<li><a href="#recipient">bénéficiaire</a></li>
+		<li><a href="#method">méthode</a></li>
+		<li><a href="#origin">origine</a></li>
+		<li><a href="#status">statut</a></li>
+		<li><a href="#amount">montant</a></li>
+	</ul>
+</aside>
 
 <?php include('html_footer.php'); ?>

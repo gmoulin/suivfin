@@ -20,9 +20,6 @@ $(document).ready(function(){
 			if( xhr.responseText != '' ) inform("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
-	//tab change via menu and url#hash
-		window.addEventListener("hashchange", ownerSwitch, false);
-
 	//forms actions
 		$('.form').each(function(){
 			//add event listener for dynamic form validation
@@ -47,20 +44,115 @@ $(document).ready(function(){
 		});
 
 	$('datalist, select', '#payment_form').loadList();
+
+	$('#container').isotope({
+		// options
+		itemSelector: '.item',
+		layoutMode: 'fitRows',
+		sortBy: 'date',
+		sortAscending: 'false',
+		getSortData: {
+			date: function( $elem ){
+				return $elem.data('date');
+			},
+			recipient: function( $elem ){
+				return $elem.data('recipient');
+			},
+			method: function( $elem ){
+				return $elem.data('method');
+			},
+			origin: function( $elem ){
+				return $elem.data('origin');
+			},
+			status: function( $elem ){
+				return $elem.data('status');
+			},
+			amount: function( $elem ){
+				return parseFloat( $elem.data('amount') );
+			}
+		}
+	});
+
+	$('#sort a').click(function(e){
+		e.preventDefault();
+		// get href attribute, minus the '#'
+		var sortName = $(this).attr('href').substr(1);
+		$('#container').isotope({ sortBy: sortName });
+	});
+
+	var $container = $('#container'),
+		filters = {};
+
+	// filter buttons
+	$('#filter a').click(function(e){
+		e.preventDefault();
+
+		var $this = $(this),
+			isoFilters = [],
+			prop, selector;
+
+		// store filter value in object
+		// i.e. filters.color = 'red'
+		filters[ $this.data('group') ] = $this.data('filter');
+
+		for ( prop in filters ) {
+			isoFilters.push( filters[ prop ] )
+		}
+		selector = isoFilters.join('');
+		$container.isotope({ filter: selector });
+	});
+
+	// filter buttons
+	$('#filter select').change(function(e){
+		var $this = $(this),
+			isoFilters = [],
+			prop, selector;
+
+		// store filter value in object
+		// i.e. filters.color = 'red'
+		filters[ $this.attr('name') ] = $this.val();
+
+		for ( prop in filters ) {
+			isoFilters.push( filters[ prop ] )
+		}
+		selector = isoFilters.join('');
+		$container.isotope({ filter: selector });
+	});
+
+	// filter buttons
+	$('#timeframe :checkbox').click(function(e){
+		reloadPayments();
+	});
+
+
+	// change layout
+	var isHorizontal = false;
+	$('#layouts a').click(function(e){
+		e.preventDefault();
+		var mode = $(this).attr('href').substr(1);
+			wasHorizontal = isHorizontal;
+		isHorizontal = $(this).hasClass('horizontal');
+
+		if ( wasHorizontal !== isHorizontal ) {
+			// need to do some clean up for transitions and sizes
+			var style = isHorizontal ?
+				{ height: '80%', width: $container.width() } :
+				{ width: 'auto' };
+			// stop any animation on container height / width
+			$container.filter(':animated').stop();
+
+			$container.addClass('no-transition').css( style );
+			setTimeout(function(){
+				$container.removeClass('no-transition').isotope({ layoutMode : mode });
+			}, 100 )
+		} else {
+			// go ahead and apply new layout
+			$container.isotope({ layoutMode : mode });
+		}
+	});
+
+
 });
-
-
-/**
- * load the payments for the chosen owner
- */
-function ownerSwitch(){
-	console.log('ownerSwitch');
-
-	var target = window.location.hash.substr(1);
-
-	window.location.hash = '#' + target; //security if hash empty
-	getPayments();
-}
 
 /**
  * ajax load <datalist> and <select> content
@@ -136,8 +228,12 @@ function checkField(event){
 }
 
 
-
-
+function reloadPayments(){
+	$.post('ajax/loadPayments.php', 'timeframe=' + $('#timeframe').find(':checkbox:checked').serialize(), function(data){
+		//empty list then add new elements
+		$container.isotope('remove', $('.item', $container)).isotope( 'appended', $(data));
+	});
+}
 
 
 
