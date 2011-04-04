@@ -286,11 +286,10 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('1', 'liquide');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('2', 'prélèvement');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('3', 'virement');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('4', 'carte');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('5', 'chèque');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('1', 'prélèvement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('2', 'virement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('3', 'carte');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('4', 'chèque');
 
 COMMIT;
 

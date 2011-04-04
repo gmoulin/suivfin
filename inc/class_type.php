@@ -12,6 +12,8 @@
  */
 class type extends common {
 	protected $_table = 'type';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

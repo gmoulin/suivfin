@@ -12,6 +12,8 @@
  */
 class location extends common {
 	protected $_table = 'location';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

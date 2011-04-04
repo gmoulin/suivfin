@@ -12,6 +12,8 @@
  */
 class owner extends common {
 	protected $_table = 'owner';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

@@ -12,6 +12,8 @@
  */
 class recipient extends common {
 	protected $_table = 'recipient';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

@@ -12,6 +12,8 @@
  */
 class origin extends common {
 	protected $_table = 'origin';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

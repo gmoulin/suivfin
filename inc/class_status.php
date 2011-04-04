@@ -12,6 +12,8 @@
  */
 class status extends common {
 	protected $_table = 'status';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {

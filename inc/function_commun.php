@@ -4,8 +4,12 @@
  *
  * @param string $class_name
  */
-function __autoload( $class_name )  {
-	require_once LMS_PATH . "/inc/class_" . $class_name . ".php";
+function __autoload( $class_name ){
+	if( stripos($class_name, 'stash') !== false ){
+		StashAutoloader::autoload($class_name);
+	} else {
+		require_once LMS_PATH . "/inc/class_" . $class_name . ".php";
+	}
 }
 
 /**

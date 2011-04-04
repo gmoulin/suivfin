@@ -17,4 +17,10 @@ if( strpos('_DEV', $_SERVER['LOCATION']) !== false ){
 
 date_default_timezone_set('Europe/Zurich');
 require( LMS_PATH.'/inc/function_commun.php' );
+
+//stash cache
+include(SF_PATH.'/inc/Stash/Autoloader.class.php');
+
+define('STASH_EXPIRE', 60 * 60 * 24 * 14); //2 weeks
+define('STASH_PATH', SF_PATH.'/stash/');
 ?>

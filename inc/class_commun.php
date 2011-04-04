@@ -334,11 +334,8 @@ class common {
 				$this->_data['id'] = $this->_db->lastInsertId();
 			}
 
-			//cache timestamp
 			if( get_class( $this ) != 'list_timestamp' ){
-				$ts = new list_timestamp(get_class( $this ));
-				$ts->timestamp = 'NOW()';
-				$ts->save();
+				$this->_cleanCaches();
 			}
 
 			return true;
@@ -365,6 +362,8 @@ class common {
 				':table' => $this->_table,
 				':id' => $this->_data['id'],
 			));
+
+			$this->_cleanCaches();
 
 		} catch ( PDOException $e ){
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -473,5 +472,35 @@ class common {
 		}
 	}
 
+	/**
+	 * clean the caches for the class lists
+	 * @params array $_relatedStathes: list the related stashes which will be cleaned
+	 * @params array $_relatedTimestamps: list the related timestamps which need updating
+	 */
+	protected function _cleanCaches(){
+		//clear stash cache
+		$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+		$stash = new Stash($stashFileSystem);
+
+		$stash->setupKey(get_class(this));
+		$stash->clear();
+
+		if( isset($this->_relatedStathes) && !empty($this->_relatedStathes) ){
+			foreach( $this->_relatedStathes as $s ){
+				$stash->setupKey($s);
+				$stash->clear();
+			}
+		}
+
+		//update caches timestamps
+		$ts = new list_timestamp();
+		$ts->refresh(get_class(this));
+
+		if( isset($this->_relatedTimestamps) && !empty($this->_relatedTimestamps) ){
+			foreach( $this->_relatedTimestamps as $t ){
+				$ts->refresh($t);
+			}
+		}
+	}
 }
 ?>

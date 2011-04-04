@@ -12,6 +12,8 @@
  */
 class method extends common {
 	protected $_table = 'method';
+	protected $_relatedStashes = array();
+	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct() {
