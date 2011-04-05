@@ -18,20 +18,15 @@ class evolution extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
-
-		return $this;
 	}
 
 	public function deleteSinceDate( $date ){
 		try{
 			$deleteSinceDate = $this->_db->prepare("
-				DELETE FROM :table WHERE evolutionDate >= :date
+				DELETE FROM ".$this->_table." WHERE evolutionDate >= :date
 			");
 
-			$deleteSinceDate->execute(array(
-				':table' => $this->_table,
-				':date' => $date,
-			));
+			$deleteSinceDate->execute( array(':date' => $date) );
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

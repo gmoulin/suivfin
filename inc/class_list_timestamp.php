@@ -18,8 +18,6 @@ class list_timestamp extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
-
-		return $this;
 	}
 
 	/**
@@ -29,10 +27,10 @@ class list_timestamp extends common {
 	 */
 	public function save(){
 		try {
-			$sql = "REPLACE INTO :table (id, stamp) VALUES (':id', NOW())";
+			$sql = "REPLACE INTO ".$this->_table." (id, stamp) VALUES (':id', NOW())";
 			$q = $this->_db->prepare($sql);
 
-			$r = $q->execute(array(':table' => $this->_table, ':id' => $this->_data['id']);
+			$r = $q->execute( array(':id' => $this->_data['id']) );
 
 			if( $r != 1 ) throw new PDOException('Error while refreshing timestamp for list '.$this->_data['id']);
 
@@ -50,10 +48,10 @@ class list_timestamp extends common {
 		try {
 			//timestamp already present ?
 			$getByList = $this->db->prepare("
-				SELECT id FROM :table WHERE id LIKE :id
+				SELECT id FROM ".$this->_table." WHERE id LIKE :id
 			");
 
-			$getByList->execute(array(':table' => $this->_table, ':id' => '%'.$this->_data['id'].'%'));
+			$getByList->execute( array(':id' => '%'.$this->_data['id'].'%') );
 
 			while( $ts = $getByList->fetchObject() ){
 				$this->_data['id'] = $ts->id;

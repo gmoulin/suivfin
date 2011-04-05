@@ -19,8 +19,6 @@ class payment extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
-
-		return $this;
 	}
 
 	/**
@@ -101,7 +99,7 @@ class payment extends common {
 					} elseif( empty($name) ){
 						$errors[] = array('paiementDate', 'La date est requise.', 'required');
 					} else {
-						$regexp = array("options"=>array("regexp"=>"^([012][123456789]|[3][01])\/([0][123456789]|[1][12])\/[20][0-9]{2}$"))));
+						$regexp = array("options" => array("regexp" => "^([012][123456789]|[3][01])\/([0][123456789]|[1][12])\/[20][0-9]{2}$"));
 						$paiementDate = filter_var($paiementDate, FILTER_VALIDATE_REGEXP, $regexp);
 						if( $paiement === false ){
 							$errors[] = array('paiementDate', 'Date incorrecte.', 'error');
@@ -150,10 +148,10 @@ class payment extends common {
 					if( is_null($recipientFK) || $recipientFK === false ){
 						$errors[] = array('recipientFK', 'Bénéficiaire incorrecte.', 'error');
 					} else {
-						$recipientFK = filter_var($recipientFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $recipientFK === false ){ //not an id
+						$check = filter_var($recipientFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){ //not an id
 
-							//new method ?
+							//new recipient ?
 							$check = recipient::existsByLabel($recipientFK);
 							if( $check ) $formData['recipientFK'] = $check;
 							else {
@@ -165,7 +163,7 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = recipient::existsById($recipientFK)
+							$check = recipient::existsById($recipientFK);
 							if( $check ){
 								$formData['recipientFK'] = $check;
 							} else {
@@ -261,7 +259,7 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = method::existsById($methodFK)
+							$check = method::existsById($methodFK);
 							if( $check ){
 								$formData['methodFK'] = $check;
 							} else {
@@ -347,6 +345,8 @@ class payment extends common {
 	}
 
 	public function save(){
+		parent::save();
+
 		if( $this->hasAmountBeenModified ){
 			//update balance lastUpdate field for the batch
 			$eBalance = new balance();
@@ -377,19 +377,70 @@ class payment extends common {
 		}
 	}
 
+	/**
+	 * get all payments for the current month
+	 * @return array[][]
+	 */
 	public function loadForCurrentMonth(){
 		try {
 			$q = $this->_db->prepare("
-				SELECT * FROM :table
+				SELECT p.* FROM ".$this->_table." p
 				WHERE paymentDate
 				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
-				AND DATE_FORMAT(LAST_DAY(CURDATE(), '%Y-%m-%d')
+				AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
 				ORDER BY paymentDate desc
 			");
-			$q->excute(array(
-				':id' => $this->_data['id'],
-			));
+			$q->execute();
 
+			return $q->fetchAll();
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
+	 * get all payments for a given time frame
+	 * @return array[][]
+	 */
+	public function loadForTimeFrame( $frame ){
+		try {
+			//construct the query and parameters
+			$sql = "";
+			$params = array();
+
+			$q = $this->_db->prepare($sql);
+			$q->execute( $params );
+
+			return $q->fetchAll();
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
+	 * dupplicate all current month recurrent payments for next month
+	 */
+	public function initNextMonthPayment(){
+		try {
+			$q = $this->_db->prepare("
+				SELECT id FROM ".$this->_table."
+				WHERE paymentDate
+				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+				AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
+				AND recurrent = 1
+				ORDER BY paymentDate asc
+			");
+
+			$q->execute();
+
+			while( $obj = $q->fetch(PDO::FETCH_INTO) ){
+				$this->id = null;
+				$this->paymentDate = strtotime( date("Y-m-d", strtotime($this->paymentDate) . "+1 month") );
+				$this->statusFK = 2; //prévisible
+				$this->save();
+			}
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}

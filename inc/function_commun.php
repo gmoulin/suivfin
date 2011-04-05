@@ -8,7 +8,7 @@ function __autoload( $class_name ){
 	if( stripos($class_name, 'stash') !== false ){
 		StashAutoloader::autoload($class_name);
 	} else {
-		require_once LMS_PATH . "/inc/class_" . $class_name . ".php";
+		require_once SF_PATH . "/inc/class_" . $class_name . ".php";
 	}
 }
 

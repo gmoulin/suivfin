@@ -249,9 +249,9 @@ DROP TABLE IF EXISTS `suivfin`.`list_timestamp` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`list_timestamp` (
   `id` VARCHAR(255) NOT NULL ,
-  `timestamp` DATETIME NULL ,
+  `stamp` TIMESTAMP NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `timestampIDX` (`timestamp` ASC) )
+  INDEX `stampIDX` (`stamp` ASC) )
 ENGINE = MyISAM;
 
 
@@ -298,14 +298,12 @@ COMMIT;
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 USE `suivfin`;
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('1', 'liquide €');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('2', 'liquide CHF');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('3', 'BNP Commun');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('4', 'BNP Guillaume');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('5', 'BNP Kariade');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('6', 'Postfinance Commun');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('7', 'Postfinance Guillaume');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('8', 'Postfinance Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('1', 'BNP Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('2', 'BNP Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('3', 'BNP Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('4', 'Postfinance Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('5', 'Postfinance Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('6', 'Postfinance Kariade');
 
 COMMIT;
 

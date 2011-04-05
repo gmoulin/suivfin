@@ -16,7 +16,7 @@ if( strpos('_DEV', $_SERVER['LOCATION']) !== false ){
 }
 
 date_default_timezone_set('Europe/Zurich');
-require( LMS_PATH.'/inc/function_commun.php' );
+require( SF_PATH.'/inc/function_commun.php' );
 
 //stash cache
 include(SF_PATH.'/inc/Stash/Autoloader.class.php');

@@ -19,8 +19,6 @@ class origin extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
-
-		return $this;
 	}
 
 	/**
@@ -117,9 +115,7 @@ class origin extends common {
 		try {
 			if( parent::delete() === true ){
 				$q = $this->_db->prepare('DELETE FROM balance where originFK = :id');
-				$q->excute(array(
-					':id' => $this->_data['id'],
-				));
+				$q->excute( array(':id' => $this->_data['id']) );
 			}
 
 		} catch ( PDOException $e ) {

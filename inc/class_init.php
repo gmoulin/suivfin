@@ -20,8 +20,11 @@ class init {
 	private $_user;
 	private $_pass;
 
+	//account
+	private $_ownerID;
+
 	//constructor
-	private function __construct() {
+	private function __construct(){
 		try {
 			$this->initialize();
 
@@ -40,7 +43,7 @@ class init {
 	/**
 	 * @return singleton
 	 */
-	public static function getInstance() {
+	public static function getInstance(){
 
 		if( is_null( self::$_instance ) ) {
 			self::$_instance = new self();
@@ -57,9 +60,23 @@ class init {
 	}
 
 	/**
+	 * @return database handler
+	 */
+	public function getOwner(){
+		return $this->_ownerID;
+	}
+
+	/**
+	 * set database handler
+	 */
+	public function setOwner( $id ){
+		$this->_ownerID = $id;
+	}
+
+	/**
 	 * ini file parsing
 	 */
-	private function initialize() {
+	private function initialize(){
 		$suivfin_infos = parse_ini_file( SF_PATH . "/inc/suivfin.ini", true );
 
 		$this->_host	= $suivfin_infos['database']['host'];

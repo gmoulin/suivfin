@@ -18,18 +18,15 @@ class balance extends common {
 	public function __construct() {
 		//for "common" ($this->_db & co)
 		parent::__construct();
-
-		return $this;
 	}
 
 	public function loadByFKs( $currency, $origin, $type ){
 		try{
 			$loadByFKs = $this->_db->prepare("
-				SELECT * FROM :table WHERE currencyFK = :currency AND originFK = :origin AND typeFK = :type
+				SELECT * FROM ".$this->_table." WHERE currencyFK = :currency AND originFK = :origin AND typeFK = :type
 			");
 
 			$loadByFKs->execute(array(
-				':table' => $this->_table,
 				':currency' => $currency,
 				':origin' => $origin,
 				':type' => $type,
