@@ -50,8 +50,8 @@ try {
 					throw new Exception('Gestion des paiements : identitifant du paiement manquant.');
 				}
 
-				$id = filter_var($_POST['id'], FILTER_VALIDATE_INT, array('min_range' => 1));
-				if( $id === false ){
+				$check = filter_var($_POST['id'], FILTER_SANITIZE_STRING, array('min_range' => 1));
+				if( $check === false ){
 					throw new Exception('Gestion des paiements : identifiant incorrect.');
 				}
 
@@ -64,15 +64,59 @@ try {
 				$response = $oPayment;
 			break;
 		case 'list':
-			//@todo develop the filters
+				$frame = filter_has_var(INPUT_POST, 'timeframe');
+				if( is_null($frame) || $frame === false ){
+					throw new Exception('Gestion des paiements : liste des mois manquant.');
+				}
+
+				$frame = filter_var($_POST['timeframe'], FILTER_SANITIZE_STRING);
+				if( $frame === false ){
+					throw new Exception('Gestion des paiements : liste des mois incorrecte.');
+				}
+
+				$tmp = explode(',', $frame);
+				if( empty($tmp) ){
+					throw new Exception('Gestion des paiements : liste des mois incorrecte.');
+				}
+
 				$oPayement = new payment();
-				$response = $oPayement->loadList('paiementDate');
+				$payments = $oPayement->loadForTimeFrame($frame);
+
+				//get all related lists, normaly they are stashed
+				$oOrigin = new origin();
+				$origins = $oOrigin->loadListForFilter();
+
+				$oStatus = new status();
+				$statuses = $oStatus->loadListForFilter();
+
+				$oRecipient = new recipient();
+				$recipients = $oRecipient->loadListForFilter();
+
+				$oType = new type();
+				$types = $oType->loadListForFilter();
+
+				$oCurrency = new currency();
+				$currencies = $oCurrency->loadListForFilter();
+
+				$oMethod = new method();
+				$methods = $oMethod->loadListForFilter();
+
+				$oLocation = new location();
+				$locations = $oLocation->loadListForFilter();
+
+				$oOwner = new owner();
+				$owners = $oOwner->loadListForFilter();
+
+				//generate the payments details
+				$partial = true;
+				include(SF_PATH.'/list/payment.php');
+				die;
 			break;
 		/*
 		case 'graph':
 			//@todo develop the filters
 				$oPayement = new payment();
-				$response = $oArtist->loadList('paiementDate');
+				$response = $oArtist->loadList('paymentDate');
 			break;
 		*/
 		default:

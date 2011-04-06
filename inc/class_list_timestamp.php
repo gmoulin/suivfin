@@ -27,7 +27,7 @@ class list_timestamp extends common {
 	 */
 	public function save(){
 		try {
-			$sql = "REPLACE INTO ".$this->_table." (id, stamp) VALUES (':id', NOW())";
+			$sql = "REPLACE INTO ".$this->_table." (id, stamp) VALUES (:id, NOW())";
 			$q = $this->_db->prepare($sql);
 
 			$r = $q->execute( array(':id' => $this->_data['id']) );
@@ -47,7 +47,7 @@ class list_timestamp extends common {
 	public function refresh($id){
 		try {
 			//timestamp already present ?
-			$getByList = $this->db->prepare("
+			$getByList = $this->_db->prepare("
 				SELECT id FROM ".$this->_table." WHERE id LIKE :id
 			");
 
@@ -60,7 +60,7 @@ class list_timestamp extends common {
 
 			//always do the refresh for the exact name,
 			//with the "LIKE" a stamp can be found but not be the one needed, so the one needed is not created
-			$this->_data['id'] = $ts->id;
+			$this->_data['id'] = $id;
 			$this->save();
 
 			return true;

@@ -35,7 +35,7 @@ class payment extends common {
 			'action'		=> FILTER_SANITIZE_STRING,
 			'id'			=> FILTER_SANITIZE_NUMBER_INT,
 			'label'			=> FILTER_SANITIZE_STRING,
-			'paiementDate'	=> FILTER_SANITIZE_STRING,
+			'paymentDate'	=> FILTER_SANITIZE_STRING,
 			'amount'		=> FILTER_SANITIZE_NUMBER_FLOAT,
 			'comment'		=> FILTER_SANITIZE_STRING,
 			'recurrent'		=> FILTER_SANITIZE_NUMBER_INT,
@@ -48,13 +48,13 @@ class payment extends common {
 			'ownerFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'locationFK'	=> FILTER_SANITIZE_STRING,
 		);
-
+/* @todo uncomment
 		foreach( $args as $field => $validation ){
 			if( !filter_has_var(INPUT_POST, $field) ){
 				$errors[] = array('global', 'Le champ '.$field.' est manquant.', 'error');
 			}
 		}
-
+*/
 		if( empty($errors) ){
 
 			$formData = filter_var_array($_POST, $args);
@@ -69,8 +69,8 @@ class payment extends common {
 				if( is_null($id) || $id === false ){
 					$errors[] = array('label', 'Identifiant incorrect.', 'error');
 				} else {
-					$id = filter_var($id, FILTER_VALIDATE_INT, array('min_range' => 1));
-					if( $id === false ){
+					$check = filter_var($id, FILTER_VALIDATE_INT, array('min_range' => 1));
+					if( $check === false ){
 						$errors[] = array('label', 'Identifiant du paiement incorrect.', 'error');
 					} else {
 						//check if id exists in DB
@@ -87,28 +87,28 @@ class payment extends common {
 				//label
 					if( is_null($label) || $label === false ){
 						$errors[] = array('label', 'Libellé incorrect.', 'error');
-					} elseif( empty($name) ){
+					} elseif( empty($label) ){
 						$errors[] = array('label', 'Le libellé est requis.', 'required');
 					} else {
 						$formData['label'] = trim($label);
 					}
 
-				//paiementDate, format dd/mm/yyyy
-					if( is_null($paiementDate) || $paiementDate === false ){
-						$errors[] = array('paiementDate', 'Date incorrecte.', 'error');
-					} elseif( empty($name) ){
-						$errors[] = array('paiementDate', 'La date est requise.', 'required');
+				//paymentDate, format dd/mm/yyyy
+					if( is_null($paymentDate) || $paymentDate === false ){
+						$errors[] = array('paymentDate', 'Date incorrecte.', 'error');
+					} elseif( empty($paymentDate) ){
+						$errors[] = array('paymentDate', 'La date est requise.', 'required');
 					} else {
-						$regexp = array("options" => array("regexp" => "^([012][123456789]|[3][01])\/([0][123456789]|[1][12])\/[20][0-9]{2}$"));
-						$paiementDate = filter_var($paiementDate, FILTER_VALIDATE_REGEXP, $regexp);
-						if( $paiement === false ){
-							$errors[] = array('paiementDate', 'Date incorrecte.', 'error');
+						$regexp = array("options" => array("regexp" => "/^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{2}$/"));
+						$check = filter_var($paymentDate, FILTER_VALIDATE_REGEXP, $regexp);
+						if( $check === false ){
+							$errors[] = array('paymentDate', 'Date incorrecte.'.$paymentDate, 'error');
 						} else {
-							$tmp = explode('/', $paiementDate);
-							if( strtotime($tmp[1].'/'.$tmp[0].'/'.$tmp[2]) === false ){ //strtotime understand only english date format
-								$errors[] = array('paiementDate', 'Date incorrecte.', 'error');
+							$date = substr($paymentDate, -4).'-'.substr($paymentDate, 3, 2).'-'.substr($paymentDate, 0, 2);
+							if( strtotime($date) === false ){ //strtotime accepts only valid english date
+								$errors[] = array('paymentDate', 'Format de date incorrect.', 'error');
 							} else {
-								$formData['paiementDate'] = trim($paiementDate);
+								$formData['paymentDate'] = $date;
 							}
 						}
 					}
@@ -117,8 +117,8 @@ class payment extends common {
 					if( is_null($amount) || $amount === false ){
 						$errors[] = array('amount', 'Montant incorrect.', 'error');
 					} else {
-						$amount = filter_var($amount, FILTER_VALIDATE_FLOAT);
-						if( $amount === false ){
+						$check = filter_var($amount, FILTER_VALIDATE_FLOAT);
+						if( $check === false ){
 							$errors[] = array('amount', 'Montant incorrect.', 'error');
 						} else {
 							$formData['amount'] = $amount;
@@ -136,8 +136,8 @@ class payment extends common {
 					if( is_null($recurrent) || $recurrent === false ){
 						$errors[] = array('recurrent', 'Récurrence incorrecte.', 'error');
 					} else {
-						$recurrent = filter_var($recurrent, FILTER_VALIDATE_BOOLEAN);
-						if( $amount === false ){
+						$check = filter_var($recurrent, FILTER_VALIDATE_BOOLEAN);
+						if( $check === null ){
 							$errors[] = array('recurrent', 'Récurrence incorrecte.', 'error');
 						} else {
 							$formData['recurrent'] = $recurrent;
@@ -150,16 +150,19 @@ class payment extends common {
 					} else {
 						$check = filter_var($recipientFK, FILTER_VALIDATE_INT, array('min_range' => 1));
 						if( $check === false ){ //not an id
+							if( empty($recipientFK) ){
+								$errors[] = array('recipientFK', 'Le bénéficiaire est requis.', 'required');
+							} else {
+								//new recipient ?
+								$check = recipient::existsByLabel($recipientFK);
+								if( $check ) $formData['recipientFK'] = $check;
+								else {
+									$eRecipient = new recipient();
+									$eRecipient->name = $recipientFK;
+									$eRecipient->save();
 
-							//new recipient ?
-							$check = recipient::existsByLabel($recipientFK);
-							if( $check ) $formData['recipientFK'] = $check;
-							else {
-								$eRecipient = new recipient();
-								$eRecipient->name = $recipientFK;
-								$eRecipient->save();
-
-								$formData['recipientFK'] = $eRecipient->id;
+									$formData['recipientFK'] = $eRecipient->id;
+								}
 							}
 						} else {
 							//check if id exists in DB
@@ -176,8 +179,8 @@ class payment extends common {
 					if( is_null($typeFK) || $typeFK === false ){
 						$errors[] = array('typeFK', 'Type incorrect.', 'error');
 					} else {
-						$typeFK = filter_var($typeFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $typeFK === false ){
+						$check = filter_var($typeFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){
 							$errors[] = array('typeFK', 'Identifiant du type incorrect.', 'error');
 						} else {
 							//check if id exists in DB
@@ -193,8 +196,8 @@ class payment extends common {
 					if( is_null($statusFK) || $statusFK === false ){
 						$errors[] = array('statusFK', 'Statut incorrect.', 'error');
 					} else {
-						$statusFK = filter_var($statusFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $statusFK === false ){
+						$check = filter_var($statusFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){
 							$errors[] = array('statusFK', 'Identifiant du statut incorrect.', 'error');
 						} else {
 							//check if id exists in DB
@@ -210,8 +213,8 @@ class payment extends common {
 					if( is_null($ownerFK) || $ownerFK === false ){
 						$errors[] = array('ownerFK', 'Personne incorrecte.', 'error');
 					} else {
-						$ownerFK = filter_var($ownerFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $ownerFK === false ){
+						$check = filter_var($ownerFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){
 							$errors[] = array('ownerFK', 'Identifiant de la personne incorrect.', 'error');
 						} else {
 							//check if id exists in DB
@@ -227,8 +230,8 @@ class payment extends common {
 					if( is_null($currencyFK) || $currencyFK === false ){
 						$errors[] = array('currencyFK', 'Monnaie incorrecte.', 'error');
 					} else {
-						$currencyFK = filter_var($currencyFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $currencyFK === false ){
+						$check = filter_var($currencyFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){
 							$errors[] = array('currencyFK', 'Identifiant de la monnaie incorrect.', 'error');
 						} else {
 							//check if id exists in DB
@@ -244,18 +247,21 @@ class payment extends common {
 					if( is_null($methodFK) || $methodFK === false ){
 						$errors[] = array('methodFK', 'Méthode incorrecte.', 'error');
 					} else {
-						$methodFK = filter_var($methodFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $methodFK === false ){ //not an id
+						$check = filter_var($methodFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){ //not an id
+							if( empty($methodFK) ){
+								$errors[] = array('methodFK', 'La méthode est requise.', 'required');
+							} else {
+								//new method ?
+								$check = method::existsByLabel($methodFK);
+								if( $check ) $formData['methodFK'] = $check;
+								else {
+									$eMethod = new method();
+									$eMethod->name = $methodFK;
+									$eMethod->save();
 
-							//new method ?
-							$check = method::existsByLabel($methodFK);
-							if( $check ) $formData['methodFK'] = $check;
-							else {
-								$eMethod = new method();
-								$eMethod->name = $methodFK;
-								$eMethod->save();
-
-								$formData['methodFK'] = $eMethod->id;
+									$formData['methodFK'] = $eMethod->id;
+								}
 							}
 						} else {
 							//check if id exists in DB
@@ -272,18 +278,21 @@ class payment extends common {
 					if( is_null($originFK) || $originFK === false ){
 						$errors[] = array('originFK', 'Origine incorrecte.', 'error');
 					} else {
-						$originFK = filter_var($originFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $originFK === false ){ //not an id
+						$check = filter_var($originFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){ //not an id
+							if( empty($originFK) ){
+								$errors[] = array('originFK', 'L\'origine est requise.', 'required');
+							} else {
+								//new origin ?
+								$check = origin::existsByLabel($originFK);
+								if( $check ) $formData['originFK'] = $check;
+								else {
+									$eOrigin = new origin();
+									$eOrigin->name = $originFK;
+									$eOrigin->save();
 
-							//new origin ?
-							$check = origin::existsByLabel($originFK);
-							if( $check ) $formData['originFK'] = $check;
-							else {
-								$eOrigin = new origin();
-								$eOrigin->name = $originFK;
-								$eOrigin->save();
-
-								$formData['originFK'] = $eOrigin->id;
+									$formData['originFK'] = $eOrigin->id;
+								}
 							}
 						} else {
 							//check if id exists in DB
@@ -300,18 +309,21 @@ class payment extends common {
 					if( is_null($locationFK) || $locationFK === false ){
 						$errors[] = array('locationFK', 'Localisation incorrecte.', 'error');
 					} else {
-						$locationFK = filter_var($locationFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $locationFK === false ){ //not an id
+						$check = filter_var($locationFK, FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $check === false ){ //not an id
+							if( empty($locationFK) ){
+								$errors[] = array('locationFK', 'La localisation est requise.', 'required');
+							} else {
+								//new location ?
+								$check = location::existsByLabel($locationFK);
+								if( $check ) $formData['locationFK'] = $check;
+								else {
+									$eLocation = new location();
+									$eLocation->name = $locationFK;
+									$eLocation->save();
 
-							//new origin ?
-							$check = origin::existsByLabel($locationFK);
-							if( $check ) $formData['locationFK'] = $check;
-							else {
-								$eLocation = new location();
-								$eLocation->name = $locationFK;
-								$eLocation->save();
-
-								$formData['locationFK'] = $eLocation->id;
+									$formData['locationFK'] = $eLocation->id;
+								}
 							}
 						} else {
 							//check if id exists in DB
@@ -337,7 +349,7 @@ class payment extends common {
 			}
 
 			foreach( self::$_fields[$this->_table] as $k => $v ){
-				$this->$k = $formData[$k];
+				if( isset($formData[$v]) ) $this->_data[$v] = $formData[$v];
 			}
 		}
 
@@ -383,16 +395,29 @@ class payment extends common {
 	 */
 	public function loadForCurrentMonth(){
 		try {
-			$q = $this->_db->prepare("
-				SELECT p.* FROM ".$this->_table." p
-				WHERE paymentDate
-				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
-				AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
-				ORDER BY paymentDate desc
-			");
-			$q->execute();
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
 
-			return $q->fetchAll();
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), date('Y-m'));
+			$list = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$q = $this->_db->prepare("
+					SELECT p.* FROM ".$this->_table." p
+					WHERE ownerFK = :owner
+					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+					AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
+					ORDER BY paymentDate desc
+				");
+				$q->execute(array(':owner' => $this->getOwner()));
+
+				$list = $q->fetchAll();
+
+				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+			}
+
+			return $list;
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -405,14 +430,39 @@ class payment extends common {
 	 */
 	public function loadForTimeFrame( $frame ){
 		try {
-			//construct the query and parameters
-			$sql = "";
-			$params = array();
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
 
-			$q = $this->_db->prepare($sql);
-			$q->execute( $params );
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
+			$list = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				//construct the query and parameters
+				$sql = "SELECT p.* FROM ".$this->_table." p WHERE ownerFK = :owner";
+				$where = array();
+				$params = array(':owner' => $this->getOwner());
 
-			return $q->fetchAll();
+				$frame = explode(',', $frame);
+
+				foreach( $frame as $i => $partialDate ){
+					$where[] = 'paymentDate LIKE :partial'.$i;
+					$params[':partial'.$i] = $partialDate.'-__';
+				}
+
+				if( !empty($where) ) $sql .= " AND (".implode(' OR ', $where).")";
+
+				$sql .= " ORDER BY paymentDate desc";
+
+				$q = $this->_db->prepare($sql);
+				$q->execute( $params );
+
+				$list = $q->fetchAll();
+
+				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+			}
+
+			return $list;
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -441,6 +491,21 @@ class payment extends common {
 				$this->statusFK = 2; //prévisible
 				$this->save();
 			}
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	public function getYearRange(){
+		try {
+			$q = $this->_db->prepare("
+				SELECT LEFT(MIN(paymentDate), 4), LEFT(MAX(paymentDate), 4)
+				FROM payment
+			");
+			$q->execute();
+
+			return $q->fetch(PDO::FETCH_NUM);
+
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}

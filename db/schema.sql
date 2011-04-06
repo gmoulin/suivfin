@@ -92,7 +92,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`location` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`location` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `locationNameIDX` (`name` ASC) )
@@ -194,7 +194,7 @@ COMMENT = 'contient les entrées et sorties d\'argent';
 DROP TABLE IF EXISTS `suivfin`.`balance` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`balance` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `currencyFK` INT NOT NULL ,
   `originFK` INT NOT NULL ,
   `typeFK` INT NOT NULL ,

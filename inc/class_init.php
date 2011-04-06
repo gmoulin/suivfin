@@ -21,7 +21,7 @@ class init {
 	private $_pass;
 
 	//account
-	private $_ownerID;
+	private $_ownerID = null;
 
 	//constructor
 	private function __construct(){
@@ -63,6 +63,9 @@ class init {
 	 * @return database handler
 	 */
 	public function getOwner(){
+		if( empty($this->_ownerID) ){
+			if( isset($_SESSION['_ownerID']) ) $this->setOwner($_SESSION['_ownerID']);
+		}
 		return $this->_ownerID;
 	}
 
@@ -71,6 +74,7 @@ class init {
 	 */
 	public function setOwner( $id ){
 		$this->_ownerID = $id;
+		$_SESSION['_ownerID'] = $id; //always refresh it in case of chosen owner switch
 	}
 
 	/**

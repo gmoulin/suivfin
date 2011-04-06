@@ -73,13 +73,6 @@ $(document).ready(function(){
 			$('#recurrent0').attr('checked', 'checked');
 		});
 
-	//help
-		$('#helpToggle').click(function(e){
-			e.preventDefault();
-
-			$('#help').toggleClass('deploy');
-		});
-
 	$('datalist, select', '#payment_form').loadList();
 
 	$('#container').isotope({
@@ -87,7 +80,7 @@ $(document).ready(function(){
 		itemSelector: '.item',
 		layoutMode: 'fitRows',
 		sortBy: 'date',
-		sortAscending: 'false',
+		sortAscending: false,
 		getSortData: {
 			date: function( $elem ){
 				return $elem.data('date');
@@ -107,6 +100,20 @@ $(document).ready(function(){
 			amount: function( $elem ){
 				return parseFloat( $elem.data('amount') );
 			}
+		},
+		cellsByRow: {
+			columnWidth: 240,
+			rowHeight: 200
+		},
+		cellsByColumn: {
+			columnWidth: 240,
+			rowHeight: 200
+		},
+		masonry: {
+			columnWidth: 240
+		},
+		masonryHorizontal: {
+			rowHeight: 200
 		}
 	});
 
@@ -135,7 +142,8 @@ $(document).ready(function(){
 		for ( prop in filters ) {
 			isoFilters.push( filters[ prop ] )
 		}
-		selector = isoFilters.join('');
+		/* use of * as "all" selector can cause error with 2 or more consecutive * */
+		selector = isoFilters.join('').replace(/\*/g, '');
 		$container.isotope({ filter: selector });
 	});
 
@@ -153,12 +161,29 @@ $(document).ready(function(){
 			isoFilters.push( filters[ prop ] )
 		}
 		selector = isoFilters.join('');
+		/* use of * as "all" selector can cause error with 2 or more consecutive * */
+		selector = isoFilters.join('').replace(/\*/g, '');
 		$container.isotope({ filter: selector });
 	});
 
 	// filter buttons
-	$('#timeframe :checkbox').click(function(e){
+	$('#time_frame :checkbox').change(function(e){
+		//toggle the months checkboxes if the event target is a year checkbox
+		if( $(this).hasClass('year') ){
+			var isChecked = $(this).is(':checked');
+
+			var $months = $(this).parent().find('ul.filter');
+
+			$months.find(':checkbox').each(function(i, cb){
+				cb.checked = isChecked;
+			});
+		}
+
 		reloadPayments();
+	});
+
+	$('.button-bar a').click(function(e){
+		$(this).addClass('active').closest('ul').find('.active').not($(this)).removeClass('active');
 	});
 
 
@@ -192,7 +217,7 @@ $(document).ready(function(){
 });
 
 /**
- * ajax load <datalist> and <select> content
+ * ajax load for <datalist> and <select> options
  */
 $.fn.loadList = function(){
 	console.log('loadList');
@@ -221,17 +246,17 @@ $.fn.loadList = function(){
 					$list.find('option:gt(0)').remove(); //keep the first option aka "placeholder"
 				}
 
-				$.each(data, function(i, obj){
-					obj.name = decoder.html(obj.name).val();
+				$.each(data, function(id, name){
+					name = decoder.html(name).val();
 					if( isDatalist ){
-						var $o = $('<option>', { "value": obj.name, text: obj.name })
+						var $o = $('<option>', { "value": name, text: name })
 						if( isOrigin && regexp != false ){
 							if( $o.val().search(regexp) != -1 ) $o.appendTo( $list );
 						} else {
 							$o.appendTo( $list );
 						}
 					} else {
-						$('<option>', { "value": ( obj.id ? obj.id : obj.name ), text: obj.name }).appendTo( $list );
+						$('<option>', { "value": id, text: name }).appendTo( $list );
 					}
 				});
 
@@ -246,14 +271,34 @@ $.fn.loadList = function(){
 	});
 }
 
+/**
+ * reload the payments according to the selected months
+ */
 function reloadPayments(){
-	$.post('ajax/loadPayments.php', 'timeframe=' + $('#time_frame').serialize(), function(data){
+	var tf = $('#time_frame :checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+	if( tf == '' ) return;
+	$.post('ajax/payment.php', 'action=list&timeframe=' + tf, function(data){
 		//empty list then add new elements
-		$container.isotope('remove', $('.item', $container)).isotope( 'appended', $(data));
-	});
+		var $container = $('#container');
+		var $items = $(data);
+		$container.isotope('remove', $('.item', $container)).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+	}, 'html');
 }
 
+/**
+ * display the form errors
+ * use ".class + .validation-icon" css rules
+ * use ".class ~ .tip" css rules
+ * @param array [[field id, message, error type]]
+ */
+function formErrors( data ) {
+	console.log('formErrors');
+	$.each(data, function(index, error){
+		$('#' + error[0]).addClass(error[2]).siblings('.tip').remove(); //remove previous error message if present
 
+		$('#' + error[0]).parent().append( $('<span>', { 'class': 'tip', 'text': error[1] }) ); //add error message
+	});
+}
 
 
 

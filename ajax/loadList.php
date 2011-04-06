@@ -34,6 +34,12 @@ try {
 					header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
 					die;
 				}
+			} else { //create the timestamp
+				$ts->id = $target;
+				$ts->save();
+
+				$ts->load($target);
+				$lastModified = strtotime($ts->stamp);
 			}
 		}
 

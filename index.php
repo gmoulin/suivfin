@@ -53,6 +53,8 @@ try {
 	$oOwner = new owner();
 	$owners = $oOwner->loadListForFilter();
 
+	list($yearMin, $yearMax) = $oPayment->getYearRange();
+
 	$months = array(
 		'01' => 'Janvier',
 		'02' => 'Février',
@@ -78,16 +80,16 @@ try {
 
 <nav id="owners">
 	Comptes :
-	<ul>
-		<?php foreach( $owners as $id => $info ){
-			echo '<li><a href="?owner='.$id.'" title="voir le suivi de '.$info['name'].'" class="'.( $id == $owner ? 'active' : '' ).'">'.$info['name'].'</a>';
+	<ul class="button-bar">
+		<?php foreach( $owners as $id => $name ){
+			echo '<li><a href="?owner='.$id.'" title="voir le suivi de '.$name.'" class="'.( $id == $owner ? 'active' : '' ).'">'.$name.'</a>';
 		} ?>
 	</ul>
 </nav>
 
 <form id="payment_form" action="" method="post">
 	<input type="hidden" id="id" name="id" value="">
-	<input type="hidden" id="ownerFK" name="ownerFK" value="<?php echo $ownerFK; ?>">
+	<input type="hidden" id="ownerFK" name="ownerFK" value="<?php echo $owner; ?>">
 	<input type="hidden" id="action" name="action" value="add">
 	<fieldset>
 		<legend>Paiement</legend>
@@ -96,37 +98,42 @@ try {
 				<label for="typeFK">Type</label>
 			</li>
 			<li>
-				<select id="typeFK" name="typeFK" autocomplete="off" required>
-					<option value=""></option>
-				</select>
+				<?php
+					foreach( $types as $id => $name ){
+				?>
+					<label for="type_<?php echo $id; ?>"><?php echo $name; ?></label>
+					<input type="radio" name="typeFK" id="type_<?php echo $id; ?>" value="<?php echo $id; ?>" required>
+				<?php
+					}
+				?>
 			</li>
 
 			<li>
 				<label for="label">Libellé</label>
 			</li>
 			<li>
-				<input type="text" id="label" name="label" value="" autocomplete="off" autofocus required placeholder="courses">
+				<input type="text" id="label" name="label" value="courses" autocomplete="off" required placeholder="courses">
 			</li>
 
 			<li>
-				<label for="paiementDate">Date</label>
+				<label for="paymentDate">Date</label>
 			</li>
 			<li>
-				<input type="date" id="paiementDate" name="paiementDate" value="" autocomplete="off" required pattern="^([012][123456789]|[3][01])\/([0][123456789]|[1][12])\/20[0-9]{2}$" placeholder="<?php echo date('d/m/Y'); ?>">
+				<input type="date" id="paymentDate" name="paymentDate" value="<?php echo date('d/m/Y'); ?>" autocomplete="off" required pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{2}$" placeholder="<?php echo date('d/m/Y'); ?>">
 			</li>
 
 			<li>
 				<label for="amount">Montant</label>
 			</li>
 			<li>
-				<input type="number" id="amount" name="amount" value="" autocomplete="off" required min="0.0" placeholder="0.0">
+				<input type="number" id="amount" name="amount" value="12" autocomplete="off" required min="0.0" placeholder="0.0">
 			</li>
 
 			<li>
 				<label for="comment">Commentaire</label>
 			</li>
 			<li>
-				<textarea id="comment" name="comment"></textarea>
+				<textarea id="comment" name="comment">test ajout</textarea>
 			</li>
 
 			<li>
@@ -141,7 +148,7 @@ try {
 				<label for="recipientFK">Bénéficiaire</label>
 			</li>
 			<li>
-				<input type="text" id="recipientFK" name="recipientFK" value="" autocomplete="off" required list="recipientList" placeholder="Migros">
+				<input type="text" id="recipientFK" name="recipientFK" value="un chanceux" autocomplete="off" required list="recipientList" placeholder="entreprise ou compte">
 				<datalist id="recipientList"></datalist>
 			</li>
 
@@ -149,9 +156,14 @@ try {
 				<label for="currencyFK">Monnaie</label>
 			</li>
 			<li>
-				<select id="currencyFK" name="currencyFK" autocomplete="off" required>
-					<option value=""></option>
-				</select>
+				<?php
+					foreach( $currencies as $id => $name ){
+				?>
+					<label for="currency_<?php echo $id; ?>"><?php echo $name; ?></label>
+					<input type="radio" name="currencyFK" id="currency_<?php echo $id; ?>" value="<?php echo $id; ?>" required>
+				<?php
+					}
+				?>
 			</li>
 
 			<li>
@@ -166,7 +178,7 @@ try {
 				<label for="originFK">Origine</label>
 			</li>
 			<li>
-				<input type="text" id="originFK" name="originFK" value="" autocomplete="off" required list="originList" placeholder="liquide CHF">
+				<input type="text" id="originFK" name="originFK" value="" autocomplete="off" required list="originList" placeholder="compte">
 				<datalist id="originList"></datalist>
 			</li>
 
@@ -174,9 +186,14 @@ try {
 				<label for="statusFK">Statut</label>
 			</li>
 			<li>
-				<select id="statusFK" name="statusFK" autocomplete="off" required>
-					<option value=""></option>
-				</select>
+				<?php
+					foreach( $statuses as $id => $name ){
+				?>
+					<label for="status_<?php echo $id; ?>"><?php echo $name; ?></label>
+					<input type="radio" name="statusFK" id="status_<?php echo $id; ?>" value="<?php echo $id; ?>" required>
+				<?php
+					}
+				?>
 			</li>
 
 			<li>
@@ -197,14 +214,8 @@ try {
 
 <aside id="layouts">
 	Affichage :
-	<ul>
-		<li><a href="#masonry" class="selected" >masonry</a></li>
-		<li><a href="#fitRows">fitRows</a></li>
-		<li><a href="#cellsByRow">cellsByRow</a></li>
-		<li><a href="#straightDown">straightDown</a></li>
-		<li><a href="#masonryHorizontal" class="horizontal" >masonryHorizontal</a></li>
-		<li><a href="#fitColumns" class="horizontal" >fitColumns</a></li>
-		<li><a href="#cellsByColumn" class="horizontal">cellsByColumn</a></li>
+	<ul class="button-bar">
+		<li><a href="#masonry">masonry</a></li><li><a href="#fitRows" class="active">fitRows</a></li><li><a href="#cellsByRow">cellsByRow</a></li><li><a href="#straightDown">straightDown</a></li><li><a href="#masonryHorizontal" class="horizontal">masonryHorizontal</a></li><li><a href="#fitColumns" class="horizontal">fitColumns</a></li><li><a href="#cellsByColumn" class="horizontal">cellsByColumn</a></li>
 	</ul>
 </aside>
 
@@ -212,12 +223,16 @@ try {
 	Années (et mois) à afficher :
 	<h2>Année</h2>
 	<ul class="filter" data-group="year">
-		<?php for( $y = 2011; $y <= date('Y'); $y++ ){ ?>
+		<?php
+			$currentYear = date('Y');
+			$currentMonth = date('m');
+			for( $y = $yearMin; $y <= $yearMax; $y++ ){
+		?>
 			<li>
 				<label for="year_<?php echo $y; ?>">
 					<?php echo $y; ?>
 				</label>
-				<input type="checkbox" id="year_<?php echo $y; ?>" value=".<?php echo $y; ?>" <?php if( $y == date('Y') ){ ?>checked="checked"<?php } ?>>
+				<input type="checkbox" class="year" id="year_<?php echo $y; ?>" value="<?php echo $y; ?>" <?php if( $y == $currentYear ){ ?>checked="checked"<?php } ?>>
 				<div>
 					<h3>Mois</h3>
 					<ul class="filter" data-group="month_<?php echo $y; ?>">
@@ -228,7 +243,7 @@ try {
 								<label for="year_<?php echo $y; ?>_month_<?php echo $m; ?>">
 									<?php echo $months[$m]; ?>
 								</label>
-								<input type="checkbox" id="year_<?php echo $y; ?>_month_<?php echo $m; ?>" value=".<?php echo $m.'-'.$y; ?>" <?php if( $y == date('Y') && $m == date('m') ){ ?>checked="checked"<?php } ?>>
+								<input type="checkbox" id="year_<?php echo $y; ?>_month_<?php echo $m; ?>" value="<?php echo $y.'-'.$m; ?>" <?php if( $y == $currentYear && $m == $currentMonth ){ ?>checked="checked"<?php } ?>>
 							</li>
 						<?php } ?>
 					</ul>
@@ -242,79 +257,63 @@ try {
 <aside id="filter">
 	Filtres :
 	<label>Fréquence</label>
-	<ul class="filter">
-		<li><a href="#" class="selected" data-group="recurrent" data-filter="*">Tout</a></li>
-		<li><a href="#" data-group="recurrent" data-filter=".recurrent">Récurrent</a></li>
-		<li><a href="#" data-group="recurrent" data-filter=".punctual">Ponctuel</a></li>
+	<ul class="filter button-bar">
+		<li><a href="#" class="active" data-group="recurrent" data-filter="*">Tout</a></li><li><a href="#" data-group="recurrent" data-filter=".recurrent">Récurrent</a></li><li><a href="#" data-group="recurrent" data-filter=".punctual">Ponctuel</a></li>
 	</ul>
 	<label>Origine</label>
-	<ul class="filter">
-		<li><a href="#" class="selected" data-group="origin" data-filter="*">Tout</a></li>
-		<?php foreach( $origins as $id => $info ){
-			echo '<li><a href="#" data-group="origin" data-filter=".origin_'.$id.'">'.$info['name'].'</a></li>';
+	<ul class="filter button-bar">
+		<li><a href="#" class="active" data-group="origin" data-filter="*">Tout</a></li><?php foreach( $origins as $id => $name ){
+			if( strpos($name, $owners[$owner]) !== false ) echo '<li><a href="#" data-group="origin" data-filter=".origin_'.$id.'">'.$name.'</a></li>';
 		} ?>
 	</ul>
 	<label>Status</label>
-	<ul class="filter">
-		<li><a href="#" class="selected" data-group="status" data-filter="*">Tout</a></li>
-		<?php foreach( $statuses as $id => $info ){
-			echo '<li><a href="#" data-group="status" data-filter=".status_'.$id.'">'.$info['name'].'</a></li>';
+	<ul class="filter button-bar">
+		<li><a href="#" class="active" data-group="status" data-filter="*">Tout</a></li><?php foreach( $statuses as $id => $name ){
+			echo '<li><a href="#" data-group="status" data-filter=".status_'.$id.'">'.$name.'</a></li>';
 		} ?>
 	</ul>
 	<label for="recipient_filter">Bénéficiaire</label>
 	<select name="recipient" id="recipient_filter">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $recipients as $id => $info ){
-			echo '<option value=".recipient_'.$id.'">'.$info['name'].'</option>';
+		<option value="*" selected="selected">Tout</option><?php foreach( $recipients as $id => $name ){
+			echo '<option value=".recipient_'.$id.'">'.$name.'</option>';
 		} ?>
 	</select>
 	<label for="type_filter">Type</label>
 	<select name="type">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $types as $id => $info ){
-			echo '<option value=".type_'.$id.'">'.$info['name'].'</option>';
+		<option value="*" selected="selected">Tout</option><?php foreach( $types as $id => $name ){
+			echo '<option value=".type_'.$id.'">'.$name.'</option>';
 		} ?>
 	</select>
 	<label for="currency_filter">Monnaie</label>
 	<select name="currency" id="currency_filter">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $currencies as $id => $info ){
-			echo '<option value=".currency_'.$id.'">'.$info['name'].'</option>';
+		<option value="*" selected="selected">Tout</option><?php foreach( $currencies as $id => $name ){
+			echo '<option value=".currency_'.$id.'">'.$name.'</option>';
 		} ?>
 	</select>
 	<label for="method_filter">Méthode</label>
 	<select name="method" id="method_filter">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $methods as $id => $info ){
-			echo '<option value=".method_'.$id.'">'.$info['name'].'</option>';
-		} ?>
-	</select>
-	<label for="origin_filter">Origine</label>
-	<select name="origin" id="origin_filter">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $origins as $id => $info ){
-			echo '<option value=".origin_'.$id.'">'.$info['name'].'</option>';
+		<option value="*" selected="selected">Tout</option><?php foreach( $methods as $id => $name ){
+			echo '<option value=".method_'.$id.'">'.$name.'</option>';
 		} ?>
 	</select>
 	<label for="location_filter">Location</label>
 	<select name="location" id="location_filter">
-		<option value="*" selected="selected">Tout</option>
-		<?php foreach( $locations as $id => $info ){
-			echo '<option value=".location_'.$id.'">'.$info['name'].'</option>';
+		<option value="*" selected="selected">Tout</option><?php foreach( $locations as $id => $name ){
+			echo '<option value=".location_'.$id.'">'.$name.'</option>';
 		} ?>
 	</select>
 </aside>
 
 <aside id="sort">
 	Tri :
-	<ul>
-		<li><a href="#date">date</a></li>
-		<li><a href="#recipient">bénéficiaire</a></li>
-		<li><a href="#method">méthode</a></li>
-		<li><a href="#origin">origine</a></li>
-		<li><a href="#status">statut</a></li>
-		<li><a href="#amount">montant</a></li>
+	<ul class="button-bar">
+		<li><a href="#date" class="active">date</a></li><li><a href="#recipient">bénéficiaire</a></li><li><a href="#method">méthode</a></li><li><a href="#origin">origine</a></li><li><a href="#status">statut</a></li><li><a href="#amount">montant</a></li>
 	</ul>
 </aside>
 
+
+<?php
+	$partial = false;
+	include(SF_PATH.'/list/payment.php');
+?>
 <?php include('html_footer.php'); ?>

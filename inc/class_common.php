@@ -22,6 +22,11 @@ class common {
 	protected $_table;
 
 	/**
+	 * @var string Contains the payments owner id
+	 */
+	protected $_owner = null;
+
+	/**
 	 * @var array that contains the object 'properties'
 	 */
 	protected $_data = array();
@@ -92,7 +97,10 @@ class common {
 	 * get the owner id
 	 */
 	public function getOwner(){
-		return init::getInstance()->getOwner();
+		if( is_null($this->_owner) ){
+			$this->_owner = init::getInstance()->getOwner();
+		}
+		return $this->_owner;
 	}
 
 	/**
@@ -227,8 +235,8 @@ class common {
 
 			$entry = $res->fetch();
 			if( !empty($entry) ){
-				foreach( self::$_fields[$this->_table] as $k => $v ){
-					$this->_data[$k] = $entry[$v];
+				foreach( self::$_fields[$this->_table] as $v ){
+					$this->_data[$v] = $entry[$v];
 				}
 			}
 
@@ -260,7 +268,7 @@ class common {
 
 				$list = array();
 				while( $rs = $loadList->fetch() ){
-					foreach( self::$_fields[$this->_table] as $k => $v ){
+					foreach( self::$_fields[$this->_table] as $v ){
 						$list[ $rs['id'] ][ $v ] = $rs[$v];
 					}
 				}
@@ -297,8 +305,7 @@ class common {
 
 				$list = array();
 				while( $rs = $loadList->fetch() ){
-					$list[ $rs['id'] ]['id'] = $rs['id'];
-					$list[ $rs['id'] ]['name'] = $rs['name'];
+					$list[ $rs['id'] ] = $rs['name'];
 				}
 
 				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
@@ -324,27 +331,27 @@ class common {
 				$action = 'add';
 
 				//build the insert starting from self::$fields
-				$fields = '';
-				$values = '';
+				$fields = array();
+				$values = array();
 
 				foreach( self::$_fields[$this->_table] as $key ){
 					if( $key != 'id' ){
-						$fields .= $key.', ';
+						$fields[] = $key;
 
 						if( $key == 'creationDate' || $key == 'modificationDate' ){
-							$field_value .= ' '.$key.' = NOW(),';
+							$values[] = 'NOW()';
 
 						} elseif( isset($this->_data[$key]) && !is_null($this->_data[$key]) ){
-							$values .= ':'.$key.', ';
+							$values[] = ':'.$key;
 							$params[':'.$key] = $this->_data[$key];
 						} else {
-							$values .= 'NULL';
+							$values[] = 'NULL';
 						}
 					}
 				}
 
-				$fields = substr($fields, 0, -1);
-				$values = substr($values, 0, -1);
+				$fields = implode(', ', $fields);
+				$values = implode(', ', $values);
 				$sql = "INSERT INTO ".$this->_table." (".$fields.") VALUES (".$values.")";
 
 			//update
@@ -426,7 +433,7 @@ class common {
 		try {
 			$verif = true;
 
-			$isUsed = $this->db->prepare("
+			$isUsed = $this->_db->prepare("
 				SELECT COUNT(DISTINCT ".$this->_table."FK) AS verif
 				FROM flux
 				WHERE ".$this->_table."FK = :id");
@@ -450,7 +457,7 @@ class common {
 	 */
 	public function delImpact() {
 		try {
-			$delImpact = $this->db->prepare("
+			$delImpact = $this->_db->prepare("
 				SELECT id, label, creationDate
 				FROM flux
 				WHERE ".$this->_table."FK = :fk
@@ -472,9 +479,11 @@ class common {
 	 */
 	public static function existsById( $id ) {
 		try {
+			$db = init::getInstance()->dbh();
+
 			$verif = false;
 
-			$exists = $this->db->prepare("
+			$exists = $db->prepare("
 				SELECT COUNT(id) AS verif
 				FROM ".get_called_class()."
 				WHERE id = :id");
@@ -499,7 +508,9 @@ class common {
 	 */
 	public static function existsByLabel( $name ) {
 		try {
-			$existsByLabel = $this->db->prepare("
+			$db = init::getInstance()->dbh();
+
+			$existsByLabel = $db->prepare("
 				SELECT id
 				FROM ".get_called_class()."
 				WHERE name = :name
@@ -529,7 +540,7 @@ class common {
 		$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 		$stash = new Stash($stashFileSystem);
 
-		$stash->setupKey(get_class(this));
+		$stash->setupKey(get_class($this));
 		$stash->clear();
 
 		if( isset($this->_relatedStathes) && !empty($this->_relatedStathes) ){
@@ -541,7 +552,7 @@ class common {
 
 		//update caches timestamps
 		$ts = new list_timestamp();
-		$ts->refresh(get_class(this));
+		$ts->refresh(get_class($this));
 
 		if( isset($this->_relatedTimestamps) && !empty($this->_relatedTimestamps) ){
 			foreach( $this->_relatedTimestamps as $t ){
