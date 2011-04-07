@@ -12,7 +12,7 @@ USE `suivfin` ;
 DROP TABLE IF EXISTS `suivfin`.`type` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`type` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `typeNameIDX` (`name` ASC) )
@@ -25,7 +25,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`currency` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`currency` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   `symbol` VARCHAR(4) NOT NULL ,
   PRIMARY KEY (`id`) ,
@@ -40,7 +40,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`method` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`method` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `methodNameIDX` (`name` ASC) )
@@ -53,7 +53,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`origin` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`origin` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `originNameIDX` (`name` ASC) )
@@ -66,7 +66,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`status` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`status` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `statusNameIDX` (`name` ASC) )
@@ -79,7 +79,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`owner` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`owner` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `ownerNameIDX` (`name` ASC) )
@@ -105,7 +105,7 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`recipient` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`recipient` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `recipientNameIDX` (`name` ASC) )
@@ -118,20 +118,20 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`payment` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`payment` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `label` VARCHAR(255) NOT NULL ,
   `paymentDate` DATE NOT NULL ,
-  `amount` FLOAT NOT NULL ,
+  `amount` DECIMAL(7,2) UNSIGNED NOT NULL ,
   `comment` TEXT NULL ,
   `recurrent` TINYINT(1)  NOT NULL ,
-  `recipientFK` INT NOT NULL ,
-  `typeFK` INT NOT NULL ,
-  `currencyFK` INT NOT NULL ,
-  `methodFK` INT NOT NULL ,
-  `originFK` INT NOT NULL ,
-  `statusFK` INT NOT NULL ,
-  `ownerFK` INT NOT NULL ,
-  `locationFK` INT NOT NULL ,
+  `recipientFK` INT(11) UNSIGNED NOT NULL ,
+  `typeFK` INT(11) UNSIGNED NOT NULL ,
+  `currencyFK` INT(11) UNSIGNED NOT NULL ,
+  `methodFK` INT(11) UNSIGNED NOT NULL ,
+  `originFK` INT(11) UNSIGNED NOT NULL ,
+  `statusFK` INT(11) UNSIGNED NOT NULL ,
+  `ownerFK` INT(11) UNSIGNED NOT NULL ,
+  `locationFK` INT(11) UNSIGNED NOT NULL ,
   `creationDate` DATETIME NOT NULL ,
   `modificationDate` DATETIME NOT NULL ,
   PRIMARY KEY (`id`) ,
@@ -194,10 +194,10 @@ COMMENT = 'contient les entrées et sorties d\'argent';
 DROP TABLE IF EXISTS `suivfin`.`balance` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`balance` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `currencyFK` INT NOT NULL ,
-  `originFK` INT NOT NULL ,
-  `typeFK` INT NOT NULL ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `currencyFK` INT(11) UNSIGNED NOT NULL ,
+  `originFK` INT(11) UNSIGNED NOT NULL ,
+  `typeFK` INT(11) UNSIGNED NOT NULL ,
   `lastUpdate` DATE NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `balanceCurrencyFK` (`currencyFK` ASC) ,
@@ -227,10 +227,10 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`evolution` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`evolution` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `evolutionDate` DATE NOT NULL ,
   `balanceFK` INT NOT NULL ,
-  `amount` FLOAT NOT NULL ,
+  `amount` DECIMAL(10,2) NOT NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `evolutionDateIDX` (`evolutionDate` ASC) ,
   INDEX `evolutionBalanceFK` (`balanceFK` ASC) ,
@@ -252,6 +252,38 @@ CREATE  TABLE IF NOT EXISTS `suivfin`.`list_timestamp` (
   `stamp` TIMESTAMP NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `stampIDX` (`stamp` ASC) )
+ENGINE = MyISAM;
+
+
+-- -----------------------------------------------------
+-- Table `suivfin`.`limits`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `suivfin`.`limits` ;
+
+CREATE  TABLE IF NOT EXISTS `suivfin`.`limits` (
+  `owner_id` INT(11) UNSIGNED NOT NULL ,
+  `origin_id` INT(11) UNSIGNED NOT NULL ,
+  `currency_id` INT(11) UNSIGNED NOT NULL ,
+  PRIMARY KEY (`owner_id`, `origin_id`, `currency_id`) ,
+  INDEX `originFK` (`origin_id` ASC) ,
+  INDEX `ownerFK` (`owner_id` ASC) ,
+  INDEX `currencyFK` (`currency_id` ASC) ,
+  UNIQUE INDEX `origin_currency_UDX` (`origin_id` ASC, `currency_id` ASC) ,
+  CONSTRAINT `originFK`
+    FOREIGN KEY (`origin_id` )
+    REFERENCES `suivfin`.`origin` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ownerFK`
+    FOREIGN KEY (`owner_id` )
+    REFERENCES `suivfin`.`owner` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `currencyFK`
+    FOREIGN KEY (`currency_id` )
+    REFERENCES `suivfin`.`currency` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = MyISAM;
 
 
@@ -341,5 +373,19 @@ INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('3', 'Saint-Julien-en-Ge
 INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('4', 'Collonge-sous-Salève');
 INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('5', 'Annemasse');
 INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('6', 'Etrembière');
+
+COMMIT;
+
+-- -----------------------------------------------------
+-- Data for table `suivfin`.`limits`
+-- -----------------------------------------------------
+SET AUTOCOMMIT=0;
+USE `suivfin`;
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '2', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '5', '2');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '3', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '6', '2');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '1', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '4', '2');
 
 COMMIT;

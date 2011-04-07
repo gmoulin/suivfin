@@ -125,6 +125,7 @@ $(document).ready(function(){
 	});
 
 	var $container = $('#container'),
+		$sums = $('#sums'),
 		filters = {};
 
 	// filter buttons
@@ -133,37 +134,84 @@ $(document).ready(function(){
 
 		var $this = $(this),
 			isoFilters = [],
-			prop, selector;
+			prop, selector,
+			group = $this.data('group'),
+			filter = $this.data('filter');
 
 		// store filter value in object
-		// i.e. filters.color = 'red'
-		filters[ $this.data('group') ] = $this.data('filter');
+		filters[ group ] = filter;
 
 		for ( prop in filters ) {
-			isoFilters.push( filters[ prop ] )
+			isoFilters.push( filters[ prop ] );
 		}
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
-		selector = isoFilters.join('').replace(/\*/g, '');
-		$container.isotope({ filter: selector });
+		$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
+
+		if( group == 'origin' ){
+			if( filters['origin'] == '*' ){
+				$sums.find('.origins > li').show();
+			} else {
+				$sums.find('.origins > li'+filters['origin']).fadeIn().siblings().fadeOut();
+			}
+		}
+
+		if( group == 'type' ){
+			if( filters['type'] == '*' ){
+				$sums.find('.types > li').show();
+			} else {
+				$sums.find('.types > li'+filters['origin']).fadeIn().siblings().fadeOut();
+			}
+		}
+
+		if( group == 'currency' ){
+			if( filters['currency'] == '*' ){
+				$sums.find('.currencies > li').show();
+			} else {
+				$sums.find('.currencies > li'+filters['currency']).fadeIn().siblings().fadeOut();
+			}
+		}
 	});
 
 	// filter buttons
 	$('#filter select').change(function(e){
 		var $this = $(this),
 			isoFilters = [],
-			prop, selector;
+			prop,
+			group = $this.attr('name'),
+			filter = $this.val();
 
 		// store filter value in object
-		// i.e. filters.color = 'red'
-		filters[ $this.attr('name') ] = $this.val();
+		filters[ group ] = filter;
 
 		for ( prop in filters ) {
-			isoFilters.push( filters[ prop ] )
+			isoFilters.push( filters[ prop ] );
 		}
-		selector = isoFilters.join('');
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
-		selector = isoFilters.join('').replace(/\*/g, '');
-		$container.isotope({ filter: selector });
+		$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
+
+		if( group == 'origin' ){
+			if( filters['origin'] == '*' ){
+				$sums.find('.origins > li').show();
+			} else {
+				$sums.find('.origins > li'+filters['origin']).fadeIn().siblings().fadeOut();
+			}
+		}
+
+		if( group == 'type' ){
+			if( filters['type'] == '*' ){
+				$sums.find('.types > li').show();
+			} else {
+				$sums.find('.types > li'+filters['origin']).fadeIn().siblings().fadeOut();
+			}
+		}
+
+		if( group == 'currency' ){
+			if( filters['currency'] == '*' ){
+				$sums.find('.currencies > li').show();
+			} else {
+				$sums.find('.currencies > li'+filters['currency']).fadeIn().siblings().fadeOut();
+			}
+		}
 	});
 
 	// filter buttons
@@ -186,6 +234,14 @@ $(document).ready(function(){
 		$(this).addClass('active').closest('ul').find('.active').not($(this)).removeClass('active');
 	});
 
+
+	$('.origins_switch').click(function(e){
+		$.each(limits, function(i, limit){
+			if( $(this).val() == limit['origin'] ){
+				$('#currency_'+limit['currency']).click();
+			}
+		});
+	});
 
 	// change layout
 	var isHorizontal = false;
@@ -232,10 +288,6 @@ $.fn.loadList = function(){
 			if( jqXHR.status == 200 ){
 				var isDatalist = $list.is('datalist');
 
-				var isOrigin = $list.is('#originList');
-				var regexp = false;
-				if( isOrigin && $('#owners .active').length ) regexp = new RegExp($('#owners .active').text()+'$', 'g');
-
 				if( isDatalist ) $list.empty();
 				else {
 					var isFilter = false;
@@ -249,12 +301,7 @@ $.fn.loadList = function(){
 				$.each(data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
-						var $o = $('<option>', { "value": name, text: name })
-						if( isOrigin && regexp != false ){
-							if( $o.val().search(regexp) != -1 ) $o.appendTo( $list );
-						} else {
-							$o.appendTo( $list );
-						}
+						$('<option>', { "value": name, text: name }).appendTo( $list )
 					} else {
 						$('<option>', { "value": id, text: name }).appendTo( $list );
 					}
@@ -282,7 +329,7 @@ function reloadPayments(){
 		var $container = $('#container');
 		var $items = $(data);
 		$container.isotope('remove', $('.item', $container)).isotope('reLayout').append( $items ).isotope( 'appended', $items);
-	}, 'html');
+	});
 }
 
 /**

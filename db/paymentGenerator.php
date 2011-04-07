@@ -21,10 +21,6 @@ try {
 	}
 
 	//get all related lists
-	$oOrigin = new origin();
-	$origins = $oOrigin->loadListForFilter();
-	$originsLength = count($origins) - 1;
-
 	$oStatus = new status();
 	$statuses = $oStatus->loadListForFilter();
 	$statusesLength = count($statuses);
@@ -50,8 +46,8 @@ try {
 
 	$oOwner = new owner();
 	$owners = $oOwner->loadListForFilter();
-	$ownersLength = count($owners);
-
+	$limits = array();
+	$limitsLength = array();
 
 	$date = new DateTime();
 	$date_min = strtotime($date->format('Y-m-d'));
@@ -61,39 +57,50 @@ try {
 
 	$n = 0;
 	$p = new payment();
-	for( $i = 0; $i < $nbPayments; $i++ ){
 
-		$_POST = array_merge($_POST, array(
-			'action'		=> 'add',
-			'id'			=> null,
-			'label'			=> 'test paiement '.$i,
-			'paymentDate'	=> date('d/m/Y', rand($date_min, $date_max)),
-			'amount'		=> rand(10, 1000) + (rand(1, 99) / 100),
-			'comment'		=> 'test automatisé d\'ajout de paiement, numéro '.$i,
-			'recurrent'		=> rand(0, 1),
-			'recipientFK'	=> $recipients[rand(1, $recipientsLength)],
-			'typeFK'		=> rand(1, $typesLength),
-			'currencyFK'	=> rand(1, $currenciesLength),
-			'methodFK'		=> $methods[rand(1, $methodsLength)],
-			'originFK'		=> $origins[rand(1, $originsLength)],
-			'statusFK'		=> rand(1, $statusesLength),
-			'ownerFK'		=> rand(1, $ownersLength),
-			'locationFK'	=> $locations[rand(1, $locationsLength)]	,
-		));
+	foreach( $owners as $owner => $name ){
+		for( $i = 0; $i < $nbPayments; $i++ ){
+			init::getInstance()->setOwner( $owner );
 
-		// /!\ comment "filter_has_var" foreach test in payment class
-		$formData = $p->checkAndPrepareFormData();
+			if( !isset($limits[$owner]) ){
+				$limits[$owner] = $oOwner->getLimits();
+				$limitsLenght[$owner] = count($limits[$owner]) - 1;
+			}
 
-		if( empty($formData['errors']) ){
-			$p->id = null; //security to force insert
-			$p->save();
-			$p->load($p->id);
-			$n++;
-		} else {
-			echo '<pre>';
-			print_r($formData['errors']);
-			echo '</pre>';
-			die;
+			$limit = rand(0, $limitsLenght[$owner]);
+			$origin = $limits[$owner][$limit]['origin_id'];
+			$currency = $limits[$owner][$limit]['currency_id'];
+
+			$_POST = array(
+				'action'		=> 'add',
+				'id'			=> null,
+				'label'			=> 'test paiement '.$n,
+				'paymentDate'	=> date('d/m/Y', rand($date_min, $date_max)),
+				'amount'		=> floatval(rand(10, 1000) + (rand(1, 99) / 100)),
+				'comment'		=> 'test automatisé d\'ajout de paiement, numéro '.$n,
+				'recurrent'		=> rand(0, 1),
+				'recipientFK'	=> $recipients[rand(1, $recipientsLength)],
+				'typeFK'		=> rand(1, $typesLength),
+				'currencyFK'	=> $currency,
+				'methodFK'		=> $methods[rand(1, $methodsLength)],
+				'originFK'		=> $origin,
+				'statusFK'		=> rand(1, $statusesLength),
+				'locationFK'	=> $locations[rand(1, $locationsLength)],
+			);
+
+			// /!\ comment "filter_has_var" foreach test in payment class
+			$formData = $p->checkAndPrepareFormData();
+
+			if( empty($formData['errors']) ){
+				$p->id = null; //security to force insert
+				$p->save();
+				$n++;
+			} else {
+				echo '<pre>';
+				print_r($formData['errors']);
+				echo '</pre>';
+				die;
+			}
 		}
 	}
 

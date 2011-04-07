@@ -4,13 +4,14 @@
  *
  * @param string $class_name
  */
-function __autoload( $class_name ){
-	if( stripos($class_name, 'stash') !== false ){
-		StashAutoloader::autoload($class_name);
-	} else {
+function autoload( $class_name ){
+	if( file_exists(SF_PATH . "/inc/class_" . $class_name . ".php") ){
 		require_once SF_PATH . "/inc/class_" . $class_name . ".php";
+		return true;
 	}
+	return false;
 }
+spl_autoload_register('autoload');
 
 /**
  * Fonction pour afficher les erreurs des blocs try catch

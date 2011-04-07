@@ -206,8 +206,14 @@ a:hover { color: #036; }
 	}
 
 
-
-
+	#sums .sum {
+		float: left;
+	}
+	#sums .origins > li,
+	#forecasts .statuses > li {
+		display: inline-block;
+		vertical-align: top;
+	}
 
 
 

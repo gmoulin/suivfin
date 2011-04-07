@@ -22,11 +22,6 @@ class common {
 	protected $_table;
 
 	/**
-	 * @var string Contains the payments owner id
-	 */
-	protected $_owner = null;
-
-	/**
 	 * @var array that contains the object 'properties'
 	 */
 	protected $_data = array();
@@ -97,14 +92,12 @@ class common {
 	 * get the owner id
 	 */
 	public function getOwner(){
-		if( is_null($this->_owner) ){
-			$this->_owner = init::getInstance()->getOwner();
-		}
-		return $this->_owner;
+		return init::getInstance()->getOwner();
 	}
 
 	/**
 	 * fill the table fields into $_fields for the class defined $_table
+	 * @todo stash
 	 */
 	protected function getColumns(){
 		try {

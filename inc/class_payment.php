@@ -12,6 +12,7 @@
  */
 class payment extends common {
 	protected $_table = 'payment';
+	protected $_join = 'limits';
 	protected $_relatedStashes = array();
 	protected $_relatedTimestamps = array('payment');
 
@@ -36,18 +37,18 @@ class payment extends common {
 			'id'			=> FILTER_SANITIZE_NUMBER_INT,
 			'label'			=> FILTER_SANITIZE_STRING,
 			'paymentDate'	=> FILTER_SANITIZE_STRING,
-			'amount'		=> FILTER_SANITIZE_NUMBER_FLOAT,
+			'amount'		=> array(FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
 			'comment'		=> FILTER_SANITIZE_STRING,
 			'recurrent'		=> FILTER_SANITIZE_NUMBER_INT,
 			'recipientFK'	=> FILTER_SANITIZE_STRING,
 			'typeFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'currencyFK'	=> FILTER_SANITIZE_NUMBER_INT,
 			'methodFK'		=> FILTER_SANITIZE_STRING,
-			'originFK'		=> FILTER_SANITIZE_STRING,
+			'originFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'statusFK'		=> FILTER_SANITIZE_NUMBER_INT,
-			'ownerFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'locationFK'	=> FILTER_SANITIZE_STRING,
 		);
+
 /* @todo uncomment
 		foreach( $args as $field => $validation ){
 			if( !filter_has_var(INPUT_POST, $field) ){
@@ -117,7 +118,7 @@ class payment extends common {
 					if( is_null($amount) || $amount === false ){
 						$errors[] = array('amount', 'Montant incorrect.', 'error');
 					} else {
-						$check = filter_var($amount, FILTER_VALIDATE_FLOAT);
+						$check = filter_var($amount, FILTER_VALIDATE_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
 						if( $check === false ){
 							$errors[] = array('amount', 'Montant incorrect.', 'error');
 						} else {
@@ -209,23 +210,6 @@ class payment extends common {
 						}
 					}
 
-				//ownerFK
-					if( is_null($ownerFK) || $ownerFK === false ){
-						$errors[] = array('ownerFK', 'Personne incorrecte.', 'error');
-					} else {
-						$check = filter_var($ownerFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $check === false ){
-							$errors[] = array('ownerFK', 'Identifiant de la personne incorrect.', 'error');
-						} else {
-							//check if id exists in DB
-							if( owner::existsById($ownerFK) ){
-								$formData['ownerFK'] = $ownerFK;
-							} else {
-								$errors[] = array('ownerFK', 'Identifiant de la personne inconnu.', 'error');
-							}
-						}
-					}
-
 				//currencyFK
 					if( is_null($currencyFK) || $currencyFK === false ){
 						$errors[] = array('currencyFK', 'Monnaie incorrecte.', 'error');
@@ -279,26 +263,12 @@ class payment extends common {
 						$errors[] = array('originFK', 'Origine incorrecte.', 'error');
 					} else {
 						$check = filter_var($originFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $check === false ){ //not an id
-							if( empty($originFK) ){
-								$errors[] = array('originFK', 'L\'origine est requise.', 'required');
-							} else {
-								//new origin ?
-								$check = origin::existsByLabel($originFK);
-								if( $check ) $formData['originFK'] = $check;
-								else {
-									$eOrigin = new origin();
-									$eOrigin->name = $originFK;
-									$eOrigin->save();
-
-									$formData['originFK'] = $eOrigin->id;
-								}
-							}
+						if( $check === false ){
+							$errors[] = array('originFK', 'L\'origine est requise.', 'error');
 						} else {
 							//check if id exists in DB
-							$check = origin::existsById($originFK);
-							if( $check ){
-								$formData['originFK'] = $check;
+							if( origin::existsById($originFK) ){
+								$formData['originFK'] = $originFK;
 							} else {
 								$errors[] = array('originFK', 'Identifiant de l\'origine inconnu.', 'error');
 							}
@@ -351,6 +321,7 @@ class payment extends common {
 			foreach( self::$_fields[$this->_table] as $k => $v ){
 				if( isset($formData[$v]) ) $this->_data[$v] = $formData[$v];
 			}
+			$this->_data['ownerFK'] = $this->getOwner();
 		}
 
 		return $formData;
@@ -404,13 +375,17 @@ class payment extends common {
 			$list = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT p.* FROM ".$this->_table." p
+					SELECT p.*
+					FROM ".$this->_table." p
+					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
 					WHERE ownerFK = :owner
+					AND l.origin_id = p.originFK
+					AND l.currency_id = p.currencyFK
 					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
 					AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
 					ORDER BY paymentDate desc
 				");
-				$q->execute(array(':owner' => $this->getOwner()));
+				$q->execute( array(':owner' => $this->getOwner()) );
 
 				$list = $q->fetchAll();
 
@@ -439,7 +414,14 @@ class payment extends common {
 			$list = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				//construct the query and parameters
-				$sql = "SELECT p.* FROM ".$this->_table." p WHERE ownerFK = :owner";
+				$sql = "
+					SELECT p.*
+					FROM ".$this->_table." p
+					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					WHERE ownerFK = :owner
+					AND l.origin_id = p.originFK
+					AND l.currency_id = p.currencyFK
+				";
 				$where = array();
 				$params = array(':owner' => $this->getOwner());
 
@@ -471,40 +453,166 @@ class payment extends common {
 
 	/**
 	 * dupplicate all current month recurrent payments for next month
+	 * set datePayment to + 1 month, status to 2 (Prévisible)
+	 * @todo make it one time per month only
 	 */
 	public function initNextMonthPayment(){
 		try {
 			$q = $this->_db->prepare("
-				SELECT id FROM ".$this->_table."
+				INSERT INTO ".$this->_table."
+				(`label`, `paymentDate`, `amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, `statusFK`, `ownerFK`, `locationFK`, `creationDate`, `modificationDate`)
+				SELECT `label`, DATE_ADD(`paymentDate`, INTERVAL 1 MONTH) AS paymentDate, `amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, 2, `ownerFK`, `locationFK`, NOW(), NOW()
+				FROM ".$this->_table."
 				WHERE paymentDate
 				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
 				AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
 				AND recurrent = 1
-				ORDER BY paymentDate asc
 			");
 
 			$q->execute();
 
-			while( $obj = $q->fetch(PDO::FETCH_INTO) ){
-				$this->id = null;
-				$this->paymentDate = strtotime( date("Y-m-d", strtotime($this->paymentDate) . "+1 month") );
-				$this->statusFK = 2; //prévisible
-				$this->save();
-			}
+			$this->_cleanCaches();
+
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}
 	}
 
-	public function getYearRange(){
+	/**
+	 * return the list of years and months with payments
+	 */
+	public function getYearsAndMonths(){
 		try {
-			$q = $this->_db->prepare("
-				SELECT LEFT(MIN(paymentDate), 4), LEFT(MAX(paymentDate), 4)
-				FROM payment
-			");
-			$q->execute();
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
 
-			return $q->fetch(PDO::FETCH_NUM);
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$range = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$q = $this->_db->prepare("
+					SELECT DATE_FORMAT(paymentDate, '%Y') AS `year`, DATE_FORMAT(paymentDate, '%m') AS `month`
+					FROM ".$this->_table." p
+					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					WHERE ownerFK = :owner
+					AND l.origin_id = p.originFK
+					AND l.currency_id = p.currencyFK
+					GROUP BY `year`, `month`
+					ORDER BY `year`, `month`
+				");
+				$q->execute( array(':owner' => $this->getOwner()) );
+
+				$range = $q->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
+
+				if( !empty($range) ) $stash->store($range, STASH_EXPIRE);
+			}
+
+			return $range;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
+	 * sum the payment by month-year, type, origin and currency
+	 */
+	public function getSums( $frame ){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
+			$sums = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$sql = "
+					SELECT DATE_FORMAT(paymentDate, '%m-%Y') AS `month`, SUM( amount ) AS `sum`, originFK, typeFK, currencyFK
+					FROM ".$this->_table." p
+					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					WHERE ownerFK = :owner
+					AND l.origin_id = p.originFK
+					AND l.currency_id = p.currencyFK
+				";
+
+				$where = array();
+				$params = array(':owner' => $this->getOwner());
+
+				$frame = explode(',', $frame);
+				foreach( $frame as $i => $partialDate ){
+					$where[] = 'paymentDate LIKE :partial'.$i;
+					$params[':partial'.$i] = $partialDate.'-__';
+				}
+
+				if( !empty($where) ) $sql .= " AND (".implode(' OR ', $where).")";
+
+				$sql .= "
+					GROUP BY `month`, originFK, typeFK, currencyFK
+					ORDER BY `month` DESC, originFK, typeFK, currencyFK
+				";
+
+				$q = $this->_db->prepare($sql);
+				$q->execute($params);
+
+				$sums = array();
+				if( $q->rowCount() > 0 ){
+					while( $r = $q->fetch() ){
+						$sums[ $r['month'] ][ $r['originFK'] ][ $r['typeFK'] ][ $r['currencyFK'] ] = $r['sum'];
+					}
+				}
+				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
+			}
+
+			return $sums;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+
+	/**
+	 * sum the expanses for the current month and the next one
+	 */
+	public function getForecasts(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$forecasts = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$q = $this->_db->prepare("
+					SELECT DATE_FORMAT(paymentDate, '%m-%Y') AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
+					FROM ".$this->_table." p
+					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					WHERE ownerFK = :owner
+					AND l.origin_id = p.originFK
+					AND l.currency_id = p.currencyFK
+					AND p.typeFK = 2
+					AND p.statusFK IN (2,4)
+					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+					AND DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)), '%Y-%m-%d')
+					GROUP BY `month`, statusFK, currencyFK
+					ORDER BY `month`, statusFK, currencyFK
+				");
+
+				$q->execute( array(':owner' => $this->getOwner()) );
+
+				$forecasts = array();
+				if( $q->rowCount() > 0 ){
+					while( $r = $q->fetch() ){
+						$forecasts[ $r['month'] ][ $r['statusFK'] ][ $r['currencyFK'] ] = $r['sum'];
+					}
+				}
+				if( !empty($forecasts) ) $stash->store($forecasts, STASH_EXPIRE);
+			}
+
+			return $forecasts;
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

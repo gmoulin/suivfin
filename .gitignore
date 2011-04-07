@@ -31,6 +31,8 @@ dwsync.xml
 publish
 .idea
 stash
+smarty/cache/*
+smarty/templates_c/*
 
 # build script local files
 build/buildinfo.properties

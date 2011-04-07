@@ -12,6 +12,7 @@
  */
 class owner extends common {
 	protected $_table = 'owner';
+	protected $_link = 'limits';
 	protected $_relatedStashes = array();
 	protected $_relatedTimestamps = array('payment');
 
@@ -106,6 +107,38 @@ class owner extends common {
 		}
 
 		return $formData;
+	}
+
+	/**
+	 * return the linked origins (bank accounts) and currencies for a given owner
+	 */
+	public function getLimits(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$list = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$q = $this->_db->prepare("
+					SELECT origin_id, currency_id
+					FROM ".$this->_link."
+					WHERE owner_id = :owner
+				");
+				$q->execute( array(':owner' => $this->getOwner()) );
+
+				$list = $q->fetchAll();
+
+				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+			}
+
+			return $list;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
 	}
 }
 ?>
