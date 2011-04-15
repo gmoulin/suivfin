@@ -322,6 +322,7 @@ INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('1', 'prélèvement');
 INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('2', 'virement');
 INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('3', 'carte');
 INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('4', 'chèque');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('5', 'liquide');
 
 COMMIT;
 
@@ -336,6 +337,7 @@ INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('3', 'BNP Kariade');
 INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('4', 'Postfinance Commun');
 INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('5', 'Postfinance Guillaume');
 INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('6', 'Postfinance Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('7', 'Liquide');
 
 COMMIT;
 
@@ -387,5 +389,11 @@ INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES (
 INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '6', '2');
 INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '1', '1');
 INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '4', '2');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '7', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '7', '2');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '7', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '7', '2');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '7', '1');
+INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '7', '2');
 
 COMMIT;

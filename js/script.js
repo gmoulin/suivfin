@@ -1,6 +1,6 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
-
+//@todo bug on timeframe change, filters are not reapplied, sort too i presume
 $(document).ready(function(){
 	if( $.browser.mozilla ) $('html').addClass('mozilla');
 	else if( $.browser.webkit ) $('html').addClass('webkit');

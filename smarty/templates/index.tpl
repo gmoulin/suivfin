@@ -1,6 +1,7 @@
 {include "html_header.tpl"}
+
+{* Navigation - top left*}
 <nav id="owners">
-	Comptes :
 	<ul class="button-bar">
 		{strip}
 			{foreach $owners as $id => $name}
@@ -12,6 +13,10 @@
 	</ul>
 </nav>
 
+{* add / update (@todo) form, slide down from top, need show icon and shortcut support *}
+<aside id="form_switch">
+	<a href="#" title="afficher le formulaire" class="button round2 add">Ajouter</a>
+</aside>
 <form id="payment_form" action="" method="post">
 	<input type="hidden" id="id" name="id" value="">
 	<input type="hidden" id="action" name="action" value="add">
@@ -127,10 +132,10 @@
 	</fieldset>
 </form>
 
-
+{* temporary, bottom left *}
 <aside id="layouts">
 	Affichage :
-	<ul class="button-bar">
+	<ul class="button-bar small">
 		{strip}
 			<li><a href="#masonry">masonry</a></li>
 			<li><a href="#fitRows" class="active">fitRows</a></li>
@@ -143,9 +148,9 @@
 	</ul>
 </aside>
 
+{* top right, years visible, months on hover *}
 <aside id="time_frame">
 	Années (et mois) à afficher :
-	<h2>Année</h2>
 	<ul class="filter" data-group="year">
 		{foreach $yearsAndMonths as $y => $months}
 			<li>
@@ -153,113 +158,127 @@
 				<label for="year_{$y}">
 					{$y}
 				</label>
-				<div>
-					<h3>Mois</h3>
-					<ul class="filter" data-group="month_{$y}">
-						{foreach $months as $m}
-							<li>
-								<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if $y == $currentYear && $m == $currentMonth}checked="checked"{/if}>
-								<label for="year_{$y}_month_{$m}">
-									{$lang_months[$m]}
-								</label>
-							</li>
-						{/foreach}
-					</ul>
-				</div>
-			<detail>
+				<ul class="filter" data-group="month_{$y}">
+					{foreach $months as $m}
+						<li>
+							<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if $y == $currentYear && $m == $currentMonth}checked="checked"{/if}>
+							<label for="year_{$y}_month_{$m}">
+								{$lang_months[$m]}
+							</label>
+						</li>
+					{/foreach}
+				</ul>
 			</li>
 		{/foreach}
 	</ul>
 </aside>
 
+{* labels at the left, list or select on hover, @todo change markup accordingly *}
 <aside id="filter">
 	Filtres :
 
-	<label>Fréquence</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="recurrent" data-filter="*">Tout</a></li>
-			<li><a href="#" data-group="recurrent" data-filter=".recurrent">Récurrent</a></li>
-			<li><a href="#" data-group="recurrent" data-filter=".punctual">Ponctuel</a></li>
-		{/strip}
-	</ul>
+	<section>
+		Fréquence
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="recurrent" data-filter="*">Tout</a></li>
+				<li><a href="#" data-group="recurrent" data-filter=".recurrent">Récurrent</a></li>
+				<li><a href="#" data-group="recurrent" data-filter=".punctual">Ponctuel</a></li>
+			{/strip}
+		</ul>
+	</section>
 
-	<label>Origine</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="origin" data-filter="*">Tout</a></li>
-			{foreach $origins as $id => $name}
-				{if array_key_exists($id, $limits)}
-					<li><a href="#" data-group="origin" data-filter=".origin_{$id}">{$name}</a></li>
-				{/if}
-			{/foreach}
-		{/strip}
-	</ul>
+	<section>
+		Origine
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="origin" data-filter="*">Tout</a></li>
+				{foreach $origins as $id => $name}
+					{if array_key_exists($id, $limits)}
+						<li><a href="#" data-group="origin" data-filter=".origin_{$id}">{$name}</a></li>
+					{/if}
+				{/foreach}
+			{/strip}
+		</ul>
+	</section>
 
-	<label>Status</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="status" data-filter="*">Tout</a></li>
-			{foreach $statuses as $id => $name}
-				<li><a href="#" data-group="status" data-filter=".status_{$id}">{$name}</a></li>
-			{/foreach}
-		{/strip}
-	</ul>
+	<section>
+		Status
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="status" data-filter="*">Tout</a></li>
+				{foreach $statuses as $id => $name}
+					<li><a href="#" data-group="status" data-filter=".status_{$id}" class="status_{$id}">{$name}</a></li>
+				{/foreach}
+			{/strip}
+		</ul>
+	</section>
 
-	<label for="recipient_filter">Bénéficiaire</label>
-	<select name="recipient" id="recipient_filter">
-		{strip}
-			<option value="*" selected="selected">Tout</option>
-			{foreach $recipients as $id => $name}
-				<option value=".recipient_{$id}">{$name}</option>
-			{/foreach}
-		{/strip}
-	</select>
+	<section>
+		Bénéficiaire
+		<select name="recipient" id="recipient_filter">
+			{strip}
+				<option value="*" selected="selected">Tout</option>
+				{foreach $recipients as $id => $name}
+					<option value=".recipient_{$id}">{$name}</option>
+				{/foreach}
+			{/strip}
+		</select>
+	</section>
 
-	<label>Type</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="type" data-filter="*">Tout</a></li>
-			{foreach $types as $id => $name}
-				<li><a href="#" data-group="type" data-filter=".type_{$id}">{$name}</a></li>
-			{/foreach}
-		{/strip}
-	</ul>
+	<section>
+		Type
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="type" data-filter="*">Tout</a></li>
+				{foreach $types as $id => $name}
+					<li><a href="#" data-group="type" data-filter=".type_{$id}">{$name}</a></li>
+				{/foreach}
+			{/strip}
+		</ul>
+	</section>
 
-	<label>Monnaie</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="currency" data-filter="*">Tout</a></li>
-			{foreach $currencies as $id => $name}
-				<li><a href="#" data-group="currency" data-filter=".currency_{$id}">{$name}</a></li>
-			{/foreach}
-		{/strip}
-	</ul>
+	<section>
+		Monnaie
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="currency" data-filter="*">Tout</a></li>
+				{foreach $currencies as $id => $name}
+					<li><a href="#" data-group="currency" data-filter=".currency_{$id}">{$name}</a></li>
+				{/foreach}
+			{/strip}
+		</ul>
+	</section>
 
-	<label>Méthode</label>
-	<ul class="filter button-bar">
-		{strip}
-			<li><a href="#" class="active" data-group="method" data-filter="*">Tout</a></li>
-			{foreach $methods as $id => $name}
-				<li><a href="#" data-group="method" data-filter=".method_{$id}">{$name}</a></li>
-			{/foreach}
-		{/strip}
-	</ul>
+	<section>
+		Méthode
+		<ul class="filter button-bar small">
+			{strip}
+				<li><a href="#" class="active" data-group="method" data-filter="*">Tout</a></li>
+				{foreach $methods as $id => $name}
+					<li><a href="#" data-group="method" data-filter=".method_{$id}">{$name}</a></li>
+				{/foreach}
+			{/strip}
+		</ul>
+	</section>
 
-	<label for="location_filter">Localisation</label>
-	<select name="location" id="location_filter">
-		{strip}
-			<option value="*" selected="selected">Tout</option>
-			{foreach $locations as $id => $name}
-				<option value=".location_{$id}">{$name}</option>
-			{/foreach}
-		{/strip}
-	</select>
+	<section>
+		Localisation
+		<select name="location" id="location_filter">
+			{strip}
+				<option value="*" selected="selected">Tout</option>
+				{foreach $locations as $id => $name}
+					<option value=".location_{$id}">{$name}</option>
+				{/foreach}
+			{/strip}
+		</select>
+	</section>
 </aside>
 
+{* bottom right *}
 <aside id="sort">
 	Tri :
-	<ul class="button-bar">
+	<ul class="button-bar small">
 		{strip}
 			<li><a href="#date" class="active">date</a></li>
 			<li><a href="#recipient">bénéficiaire</a></li>
@@ -280,4 +299,4 @@
 <script>
 	var limits = {$limits|json_encode};
 </script>
-{include "html_footer.tpl"}
+{include "html_footer.tpl"}<
