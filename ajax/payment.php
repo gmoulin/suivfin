@@ -1,7 +1,7 @@
 <?php
 //manage payment related ajax requests
 try {
-	require_once('../conf.ini.php');
+	include('../conf.ini.php');
 
 	$action = filter_has_var(INPUT_POST, 'action');
 	if( is_null($action) || $action === false ){
@@ -48,18 +48,18 @@ try {
 					throw new Exception('Gestion des paiements : identitifant du paiement manquant.');
 				}
 
-				$check = filter_var($_POST['id'], FILTER_SANITIZE_STRING, array('min_range' => 1));
-				if( $check === false ){
+				$id = filter_var($_POST['id'], FILTER_VALIDATE_INT, array('min_range' => 1));
+				if( $id === false ){
 					throw new Exception('Gestion des paiements : identifiant incorrect.');
 				}
 
 				$oPayment = new payment($id);
 
-				if( empty($oPayment->id) ){
+				if( $oPayment->id == 0 ){
 					throw new Exception('Gestion des paiements : identitifant du paiement incorrect.');
 				}
 
-				$response = $oPayment;
+				$response = $oPayment->getData();
 			break;
 		case 'list':
 				$frame = filter_has_var(INPUT_POST, 'timeframe');
@@ -99,8 +99,8 @@ try {
 				$smarty->assign('types', $types);
 
 				$oCurrency = new currency();
-				$currencies = $oCurrency->loadListForFilter();
-				$smarty->assign('currencies', $currencies);
+				$currenciesWSymbol = $oCurrency->loadList();
+				$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
 				$oMethod = new method();
 				$methods = $oMethod->loadListForFilter();
@@ -131,6 +131,14 @@ try {
 					throw new Exception('Gestion des paiements : liste des mois incorrecte.');
 				}
 
+
+				$oOwner = new owner();
+				$owners = $oOwner->loadListForFilter();
+				$smarty->assign('owners', $owners);
+
+				$owner = $oOwner->getOwner();
+				$smarty->assign('owner', $owner);
+
 				$oPayement = new payment();
 				$sums = $oPayement->getSums($frame);
 				$smarty->assign('sums', $sums);
@@ -145,8 +153,8 @@ try {
 				$smarty->assign('types', $types);
 
 				$oCurrency = new currency();
-				$currencies = $oCurrency->loadListForFilter();
-				$smarty->assign('currencies', $currencies);
+				$currenciesWSymbol = $oCurrency->loadList();
+				$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
 				//generate the sums details
 				$smarty->assign('partial', true);

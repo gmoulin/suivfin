@@ -1,36 +1,39 @@
 {if !empty($sums)}
 	{if !$partial}
-		<div id="sums" class="clearfix">
+		<section id="sums" class="clearfix">
+			<h2>Totaux</h2>
 	{/if}
-
-			{foreach $sums as $month => $sum_origins}
-				<div class="sum">
-					{$month}
-					<ul class="origins">
-						{foreach $sum_origins as $origin => $sum_types}
-							<li class="origin_{$origin}">
-								{$origins[$origin]}
-								<ul class="types">
-									{foreach $sum_types as $type => $sum_currencies}
-										<li class="type_{$type}">
-											{$types[$type]}
-											<ul class="currencies">
-												{foreach $sum_currencies as $currency => $sum}
-													<li class="currency_{$currency}">
-														total: {$sum} {$currencies[$currency]}s
-													</li>
-												{/foreach}
-											</ul>
-										</li>
-									{/foreach}
-								</ul>
-							</li>
+	{foreach $sums as $month => $sum_types}
+		<div class="sum">
+			<table>
+				<thead>
+					<tr>
+						<th>{$lang_months[$month]}</th>
+						{foreach $sum_types as $type => $sum_origins}
+							{if $sum_origins@first}
+								{foreach $sum_origins as $origin => $sum_currencies}
+									<th class="origin">{$origins[$origin]|replace:$owners[$owner]:''|trim}</th>
+								{/foreach}
+							{/if}
 						{/foreach}
-					</ul>
-				</div>
-			{/foreach}
-
-	{if !$partial}
+					</tr>
+				</thead>
+				<tbody>
+					{foreach $sum_types as $type => $sum_origins}
+						<tr>
+							<td class="type">{$types[$type]|capitalize}</td>
+							{foreach $sum_origins as $origin => $sum_currencies}
+								{foreach $sum_currencies as $currency => $sum}
+									<td>{$sum} {$currenciesWSymbol[$currency].symbol}</td>
+								{/foreach}
+							{/foreach}
+						</tr>
+					{/foreach}
+				</tbody>
+			</table>
 		</div>
+	{/foreach}
+	{if !$partial}
+		</section>
 	{/if}
 {/if}

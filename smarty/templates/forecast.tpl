@@ -1,11 +1,10 @@
 {if !empty($forecasts)}
 	{if !$partial}
-		<div id="forecasts" class="clearfix">
+		<section id="forecasts">
 	{/if}
-
+			<h2>Prévisions</h2>
 			{foreach $forecasts as $month => $fc_statuses}
-				<div class="forecast">
-					{$month}
+					<strong>{$lang_months[$month]} :</strong>
 					<ul class="statuses">
 						{foreach $fc_statuses as $status => $fc_currencies}
 							<li class="status_{$status}">
@@ -13,17 +12,19 @@
 								<ul class="currencies">
 									{foreach $fc_currencies as $currency => $forecast}
 										<li class="currency_{$currency}">
-											total: {$forecast} {$currencies[$currency]}s
+										{strip}
+											{$forecast} {$currenciesWSymbol[$currency].symbol}
+											{if !$forecast@last},{/if}
+										{/strip}
 										</li>
 									{/foreach}
 								</ul>
 							</li>
 						{/foreach}
 					</ul>
-				</div>
 			{/foreach}
 
 	{if !$partial}
-		</div>
+		</section>
 	{/if}
 {/if}

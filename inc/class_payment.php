@@ -17,9 +17,9 @@ class payment extends common {
 	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
-	public function __construct() {
+	public function __construct($id = null){
 		//for "common" ($this->_db & co)
-		parent::__construct();
+		parent::__construct($id);
 	}
 
 	/**
@@ -49,13 +49,12 @@ class payment extends common {
 			'locationFK'	=> FILTER_SANITIZE_STRING,
 		);
 
-/* @todo uncomment
 		foreach( $args as $field => $validation ){
 			if( !filter_has_var(INPUT_POST, $field) ){
 				$errors[] = array('global', 'Le champ '.$field.' est manquant.', 'error');
 			}
 		}
-*/
+
 		if( empty($errors) ){
 
 			$formData = filter_var_array($_POST, $args);
@@ -327,6 +326,9 @@ class payment extends common {
 		return $formData;
 	}
 
+	/**
+	 * overload of common function to manage balance table updates
+	 */
 	public function save(){
 		parent::save();
 
@@ -529,7 +531,7 @@ class payment extends common {
 			$sums = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$sql = "
-					SELECT DATE_FORMAT(paymentDate, '%m-%Y') AS `month`, SUM( amount ) AS `sum`, originFK, typeFK, currencyFK
+					SELECT DATE_FORMAT(paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, originFK, typeFK, currencyFK
 					FROM ".$this->_table." p
 					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
 					WHERE ownerFK = :owner
@@ -549,8 +551,8 @@ class payment extends common {
 				if( !empty($where) ) $sql .= " AND (".implode(' OR ', $where).")";
 
 				$sql .= "
-					GROUP BY `month`, originFK, typeFK, currencyFK
-					ORDER BY `month` DESC, originFK, typeFK, currencyFK
+					GROUP BY `month`, typeFK, originFK, currencyFK
+					ORDER BY `month`, typeFK, originFK, currencyFK
 				";
 
 				$q = $this->_db->prepare($sql);
@@ -559,7 +561,7 @@ class payment extends common {
 				$sums = array();
 				if( $q->rowCount() > 0 ){
 					while( $r = $q->fetch() ){
-						$sums[ $r['month'] ][ $r['originFK'] ][ $r['typeFK'] ][ $r['currencyFK'] ] = $r['sum'];
+						$sums[ $r['month'] ][ $r['typeFK'] ][ $r['originFK'] ][ $r['currencyFK'] ] = $r['sum'];
 					}
 				}
 				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
@@ -587,7 +589,7 @@ class payment extends common {
 			$forecasts = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT DATE_FORMAT(paymentDate, '%m-%Y') AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
+					SELECT DATE_FORMAT(paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
 					FROM ".$this->_table." p
 					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
 					WHERE ownerFK = :owner

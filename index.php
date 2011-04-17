@@ -17,7 +17,7 @@ try {
 		//@todo choose owner overlay
 		$owner = 1; //default
 	} else {
-		$owner = filter_input(INPUT_GET, 'field', FILTER_SANITIZE_NUMBER_INT);
+		$owner = filter_input(INPUT_GET, 'owner', FILTER_SANITIZE_NUMBER_INT);
 		if( is_null($owner) || $owner === false ){
 			throw new Exception('Gestion des comptes : compte incorrect.');
 		}
@@ -61,6 +61,9 @@ try {
 	$currencies = $oCurrency->loadListForFilter();
 	$smarty->assign('currencies', $currencies);
 
+	$currenciesWSymbol = $oCurrency->loadList();
+	$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
+
 	$oMethod = new method();
 	$methods = $oMethod->loadListForFilter();
 	$smarty->assign('methods', $methods);
@@ -83,22 +86,6 @@ try {
 
 	$yearsAndMonths = $oPayment->getYearsAndMonths();
 	$smarty->assign('yearsAndMonths', $yearsAndMonths);
-
-	$lang_months = array(
-		'01' => 'Janvier',
-		'02' => 'Février',
-		'03' => 'Mars',
-		'04' => 'Avril',
-		'05' => 'Mai',
-		'06' => 'Juin',
-		'07' => 'Juillet',
-		'08' => 'Août',
-		'09' => 'Septembre',
-		'10' => 'Octobre',
-		'11' => 'Novembre',
-		'12' => 'Décembre',
-	);
-	$smarty->assign('lang_months', $lang_months);
 
 	$smarty->display('index.tpl');
 } catch (Exception $e) {

@@ -43,7 +43,6 @@ class common {
 	 */
 	public function __construct( $id = null ){
 		try {
-
 			//load the names of the fields of the table
 			//but only if they're not already loaded
 
@@ -189,6 +188,13 @@ class common {
 		} catch ( PDOException $e ){
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}
+	}
+
+	/**
+	 * return the instance data array
+	 */
+	public function getData() {
+		return $this->_data;
 	}
 
 	/**

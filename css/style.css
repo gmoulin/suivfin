@@ -163,8 +163,21 @@
  *
  * Author: Guillaume Moulin
  */
+	body {
+		background-color: hsl(0, 0%, 91%);
+	}
+
+	input[type="checkbox"] {
+		position: relative;
+		top: -4px;
+	}
+
 	.active {
 		font-weight: bold;
+	}
+
+	h2 {
+		display: inline;
 	}
 
 	/* placeholder */
@@ -181,80 +194,165 @@
 		}
 
 	/* statuses */
-		.status_1 { /* vérifié */
-			background-color: #b4ffb4;
+		.status_1 { /* vérifié - green */
+			background: -moz-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			border: 1px solid rgb(0, 255, 82);
 		}
 
-		.status_2 { /* à prévisible */
-			background-color: #ffffbe;
+		.status_2 { /* à prévisible - orange */
+			background: -moz-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			border: 1px solid rgb(255, 169, 0);
 		}
 
-		.status_3 { /* à vérifier */
-			background-color: #fff3dd;
+		.status_3 { /* à vérifier - light blue */
+			background: -moz-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			border: 1px solid rgb(0, 183, 255);
 		}
 
-		.status_4 { /* à payer */
-			background-color: #f22f22;
+		.status_4 { /* à payer - red */
+			background: -moz-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			border: 1px solid rgb(242, 47, 34);
 		}
 
 	/* list */
 		.item {
 			padding: 3px 4px;
+			margin: 3px;
+			position: relative;
+		}
+
+		.item dd span {
+			float: right;
+		}
+
+		.item .buttons {
+			display: none;
+			position: absolute;
+			top: 2px;
+			left: 0;
+			width: 100%;
+		}
+		.item .buttons a:last-child {
+			float: right;
+			margin-right: 5px;
+		}
+
+		.item:hover .buttons {
+			display: block;
 		}
 
 	/* sum and forecast */
-		#sums .sum {
-			float: left;
+		#sums {
+			position: fixed;
+			top: 50px;
+			right: 0;
+			max-width: 17%;
+			max-height: 700px;
+			overflow-y: auto;
+			overflow-x: hidden;
+			background-color: #ccc;
+			border-width: 1px 0 1px 1px;
+			border-color: #000 #000 #000 #000;
+			border-style: solid solid solid solid;
+			border-radius: 6px 0 0 6px;
+			padding: 5px;
+			z-index: 99;
 		}
-		#sums .origins > li,
-		#forecasts .statuses > li {
+
+		#sums table,
+		#sums th,
+		#sums td {
+			border: none;
+		}
+
+		#sums th,
+		#sums td {
+			padding: 3px 10px;
+			white-space: nowrap;
+		}
+		#sums tr td:first-child {
+			font-weight: bold;
+			padding-left: 0;
+			text-indent: 4px;
+		}
+		#sums tr td:last-child {
+			padding-right: 2px;
+		}
+
+		#sums .highlight {
+			background-color: rgba(102, 102, 102, 0.5);
+			color: rgb(255, 255, 255);
+			border-radius: 4px;
+		}
+
+		#forecasts {
+			margin: 50px 0 0 10px;
+		}
+		#forecasts * {
+			line-height: 20px;
+			height: 20px;
+		}
+		#forecasts li {
+			padding: 0;
 			display: inline-block;
-			vertical-align: top;
+		}
+		#forecasts ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: inline-block;
+		}
+		#forecasts h2,
+		#forecasts > ul {
+			margin-right: 20px;
+		}
+
+		#forecasts .statuses > li {
+			padding: 0 3px;
 		}
 
 	/* Isotope styles */
+		/* Isotope Filtering */
+			.isotope-item {
+			  z-index: 2;
+			}
 
-	/* Isotope Filtering */
-		.isotope-item {
-		  z-index: 2;
-		}
+			.isotope-hidden.isotope-item {
+			  pointer-events: none;
+			  z-index: 1;
+			}
 
-		.isotope-hidden.isotope-item {
-		  pointer-events: none;
-		  z-index: 1;
-		}
+		/* Isotope CSS3 transitions */
+			.isotope,
+			.isotope .isotope-item {
+			  -webkit-transition-duration: 0.8s;
+				 -moz-transition-duration: 0.8s;
+					  transition-duration: 0.8s;
+			}
 
-	/* Isotope CSS3 transitions */
-		.isotope,
-		.isotope .isotope-item {
-		  -webkit-transition-duration: 0.8s;
-			 -moz-transition-duration: 0.8s;
-				  transition-duration: 0.8s;
-		}
+			.isotope {
+			  -webkit-transition-property: height, width;
+				 -moz-transition-property: height, width;
+					  transition-property: height, width;
+			}
 
-		.isotope {
-		  -webkit-transition-property: height, width;
-			 -moz-transition-property: height, width;
-				  transition-property: height, width;
-		}
+			.isotope .isotope-item {
+			  -webkit-transition-property: -webkit-transform, opacity;
+				 -moz-transition-property:    -moz-transform, opacity;
+					  transition-property:         transform, opacity;
+			}
 
-		.isotope .isotope-item {
-		  -webkit-transition-property: -webkit-transform, opacity;
-			 -moz-transition-property:    -moz-transform, opacity;
-				  transition-property:         transform, opacity;
-		}
+		/* isotope required for containers to inherit vertical size from window */
+			html,
+			body {
+				height: 100%;
+			}
 
-	/* isotope required for containers to inherit vertical size from window */
-		html,
-		body {
-		  height: 100%;
-		}
-
-		#container {
-		  border: 1px solid #666;
-		  padding: 5px;
-		  margin-bottom: 20px;
-		}
+			#container {
+				padding: 0;
+				margin: 0 1% 30px 0;
+				max-width: 82%;
+			}
 
 	/**
 	 * css only buttons
@@ -476,37 +574,102 @@
 	/* form */
 		#form_switch {
 			position: fixed;
-			top: 40px;
-			left: 0;
+			top: 0px;
+			left: 45%;
 			background-color: #ccc;
-			border-width: 1px 1px 1px 0;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 0 6px 6px 0;
-			padding: 5px;
-			z-index: 100;
-		}
-
-		#payment_form {
-			position: fixed;
-			top: -100%;
-			margin: 0 auto;
-			max-height: 500px;
-			overflow-y: auto;
 			border-width: 0 1px 1px 1px;
 			border-color: #000 #000 #000 #000;
 			border-style: solid solid solid solid;
 			border-radius: 0 0 6px 6px;
 			padding: 5px;
-			z-index: 102;
+			z-index: 99;
+		}
 
-			-webkit-transition: top 0.3s ease-in-out 0s;
-			-moz-transition: top 0.3s ease-in-out 0s;
-			transition: top 0.3s ease-in-out 0s;
+		#payment_form {
+			position: fixed;
+			top: -100%;
+			left: 0;
+			width: 100%;
+			text-align: center;
+
+			-webkit-transition: top 0.5s ease-in-out 0s;
+			-moz-transition: top 0.5s ease-in-out 0s;
+			transition: top 0.5s ease-in-out 0s;
 		}
 
 		#payment_form.deploy {
 			top: 0;
+		}
+
+		#payment_form fieldset {
+			display: inline-block;
+			margin: 0 auto;
+			max-height: 700px;
+			width: auto;
+			overflow-y: auto;
+			background-color: #ccc;
+			border-width: 0 1px 1px 1px;
+			border-color: #000 #000 #000 #000;
+			border-style: solid solid solid solid;
+			border-radius: 0 0 6px 6px;
+			padding: 15px;
+			z-index: 102;
+			text-align: left;
+			position: relative;
+		}
+
+		#payment_form ul {
+			list-style: none;
+			margin: 15px 0 0;
+			padding: 0;
+		}
+
+		#payment_form h1 {
+			text-align: center;
+			display: block;
+			font-weight: bold;
+			font-size: 1.2em;
+		}
+
+		#payment_form li:nth-child(odd) {
+			float: left;
+			clear: both;
+			padding: 3px 15px 4px 0;
+			width: 150px
+		}
+		#payment_form li:nth-child(even) {
+			float: left;
+			display: inline;
+			padding: 3px 0 4px 0;
+			width: 320px;
+		}
+
+		#payment_form .formButtons {
+			padding-top: 15px;
+			text-align: center;
+		}
+
+		#payment_form input:not([type=radio]),
+		#payment_form textarea {
+			width: 300px;
+		}
+
+		#payment_form label {
+			font-weight: bold;
+		}
+		#payment_form input + label {
+			font-weight: normal;
+		}
+
+		#payment_form input + label {
+			margin-right: 10px;
+		}
+
+		#payment_form input + label:hover {
+			background: none repeat scroll 0 0 rgba(0, 0, 0, 0.5);
+			border-radius: 3px;
+			color: #FFFFFF;
+			text-shadow: none;
 		}
 
 	/* layouts */
@@ -536,8 +699,10 @@
 			border-color: #000 #000 #000 #000;
 			border-style: solid solid solid solid;
 			border-radius: 0 0 0 6px;
-			padding: 5px;
+			padding: 5px 0 5px 5px;
 			z-index: 100;
+			height: 20px;
+			line-height: 20px;
 		}
 		#time_frame > ul {
 			display: inline-block;
@@ -550,12 +715,13 @@
 		#time_frame > ul > li {
 			display: inline-block;
 			position: relative;
+			padding: 0 5px;
 		}
 
 		#time_frame li > ul {
 			display: block;
 			position: absolute;
-			top: 130%;
+			top: 25px;
 			right: 0;
 			max-height: 0;
 			overflow: hidden;
@@ -579,6 +745,10 @@
 			border-width: 0 1px 1px 1px;
 			border-radius: 0 0 6px 6px;
 		}
+		#time_frame ul > li:last-child:hover > ul {
+			border-width: 0 0 1px 1px;
+			border-radius: 0 0 0 6px;
+		}
 		#time_frame li {
 			white-space: nowrap;
 		}
@@ -588,15 +758,25 @@
 
 	/* filters */
 		#filter {
-			margin: 50px 0 0 60px;
+			margin: 10px 0 25px 10px;
 		}
 		#filter section {
-			display: inline-block;
+			display: inline;
 			padding: 5px;
+			position: relative;
 		}
 		#filter ul {
-			display: inline-block;
-			padding-left: 5px;
+			padding: 0;
+			margin: 0;
+			display: none;
+			position: absolute;
+			top: 90%;
+			left: 0;
+		}
+		#filter section:hover ul {
+			display: block;
+			z-index: 2;
+			white-space: nowrap;
 		}
 
 	/* sorts */

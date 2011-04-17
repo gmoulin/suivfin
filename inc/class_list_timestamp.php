@@ -15,9 +15,9 @@ class list_timestamp extends common {
 	protected $_table = 'list_timestamp';
 
 	// Constructor
-	public function __construct() {
+	public function __construct( $id = null ){
 		//for "common" ($this->_db & co)
-		parent::__construct();
+		parent::__construct($id);
 	}
 
 	/**

@@ -15,21 +15,21 @@
 
 {* add / update (@todo) form, slide down from top, need show icon and shortcut support *}
 <aside id="form_switch">
-	<a href="#" title="afficher le formulaire" class="button round2 add">Ajouter</a>
+	<a href="#" title="afficher le formulaire" class="button round2 add small">Ajouter</a>
 </aside>
 <form id="payment_form" action="" method="post">
 	<input type="hidden" id="id" name="id" value="">
 	<input type="hidden" id="action" name="action" value="add">
 	<fieldset>
-		<legend>Paiement</legend>
-		<ul>
+		<h1>Paiement</h1>
+		<ul class="clearfix">
 			<li>
 				<label for="typeFK">Type</label>
 			</li>
 			<li>
 				{foreach $types as $id => $name}
-					<label for="type_{$id}">{$name}</label>
 					<input type="radio" name="typeFK" id="type_{$id}" value="{$id}" required>
+					<label for="type_{$id}">{$name}</label>
 				{/foreach}
 			</li>
 
@@ -37,43 +37,43 @@
 				<label for="label">Libellé</label>
 			</li>
 			<li>
-				<input type="text" id="label" name="label" value="courses" autocomplete="off" required placeholder="courses">
+				<input type="text" id="label" name="label" value="" autocomplete="off" required placeholder="courses">
 			</li>
 
 			<li>
 				<label for="paymentDate">Date</label>
 			</li>
 			<li>
-				<input type="date" id="paymentDate" name="paymentDate" value="{$smarty.now|date_format:'%d/%m/%Y'}" autocomplete="off" required pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$" placeholder="{$smarty.now|date_format:'%d/%m/%Y'}">
+				<input type="date" id="paymentDate" name="paymentDate" value="" autocomplete="off" required pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$" placeholder="{$smarty.now|date_format:'%d/%m/%Y'}">
 			</li>
 
 			<li>
 				<label for="amount">Montant</label>
 			</li>
 			<li>
-				<input type="number" id="amount" name="amount" value="12" autocomplete="off" required min="0.0" placeholder="0.0">
+				<input type="number" id="amount" name="amount" value="" autocomplete="off" required min="0.0" placeholder="0.0">
 			</li>
 
 			<li>
 				<label for="comment">Commentaire</label>
 			</li>
 			<li>
-				<textarea id="comment" name="comment">test ajout</textarea>
+				<textarea id="comment" name="comment" placeholder="précisions"></textarea>
 			</li>
 
 			<li>
-				<label for="recurrent0">Récurrence</label>
+				<label for="recurrent_0">Récurrence</label>
 			</li>
 			<li>
-				<input type="radio" id="recurrent0" name="recurrent" value="0" checked="checked"><label for="recurrent0">Non</label>
-				<input type="radio" id="recurrent1" name="recurrent" value="1"><label for="recurrent1">Oui</label>
+				<input type="radio" id="recurrent_0" name="recurrent" value="0" checked="checked"><label for="recurrent_0">Non</label>
+				<input type="radio" id="recurrent_1" name="recurrent" value="1"><label for="recurrent_1">Oui</label>
 			</li>
 
 			<li>
 				<label for="recipientFK">Bénéficiaire</label>
 			</li>
 			<li>
-				<input type="text" id="recipientFK" name="recipientFK" value="un chanceux" autocomplete="off" required list="recipientList" placeholder="entreprise ou compte">
+				<input type="text" id="recipientFK" name="recipientFK" value="" autocomplete="off" required list="recipientList" placeholder="entreprise ou compte">
 				<datalist id="recipientList"></datalist>
 			</li>
 
@@ -91,8 +91,8 @@
 			<li>
 				{foreach $origins as $id => $name}
 					{if array_key_exists($id, $limits)}
-						<label for="origin_{$id}">{$name}</label>
 						<input type="radio" name="originFK" id="origin_{$id}" value="{$id}" class="origins_switch" required>
+						<label for="origin_{$id}">{$name}</label>
 					{/if}
 				{/foreach}
 			</li>
@@ -102,8 +102,8 @@
 			</li>
 			<li>
 				{foreach $currencies as $id => $name}
-					<label for="currency_{$id}">{$name}</label>
 					<input type="radio" name="currencyFK" id="currency_{$id}" value="{$id}" required readonly>
+					<label for="currency_{$id}">{$name}</label>
 				{/foreach}
 			</li>
 
@@ -112,13 +112,13 @@
 			</li>
 			<li>
 				{foreach $statuses as $id => $name}
-					<label for="status_{$id}">{$name}</label>
 					<input type="radio" name="statusFK" id="status_{$id}" value="{$id}" required>
+					<label for="status_{$id}">{$name}</label>
 				{/foreach}
 			</li>
 
 			<li>
-				<label for="locationFK">location</label>
+				<label for="locationFK">Location</label>
 			</li>
 			<li>
 				<input type="text" id="locationFK" name="locationFK" value="" autocomplete="off" required list="locationList" placeholder="Carouge">
@@ -126,8 +126,8 @@
 			</li>
 		</ul>
 		<div class="formButtons">
-			<button type="submit" id="formSubmit" name="formSubmit" class="button formButton" data-icon="y" rel="">Enregistrer</button>
-			<button type="reset" id="formCancel" name="formCancel" class="button formButton" data-icon="x" rel="cancel">Annuler</button>
+			<button type="submit" id="formSubmit" name="formSubmit" class="formButton" data-icon="y" rel="">Enregistrer</button>
+			<button type="reset" id="formCancel" name="formCancel" class="formButton" data-icon="x" rel="cancel">Annuler</button>
 		</div>
 	</fieldset>
 </form>
@@ -154,14 +154,14 @@
 	<ul class="filter" data-group="year">
 		{foreach $yearsAndMonths as $y => $months}
 			<li>
-				<input type="checkbox" class="year" id="year_{$y}" value="{$y}" {if $y == $currentYear}checked="checked"{/if}>
+				<input type="checkbox" class="year" id="year_{$y}" value="{$y}" {if $y == $currentYear}checked="checked"{/if} autocomplete="off">
 				<label for="year_{$y}">
 					{$y}
 				</label>
 				<ul class="filter" data-group="month_{$y}">
 					{foreach $months as $m}
 						<li>
-							<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if $y == $currentYear && $m == $currentMonth}checked="checked"{/if}>
+							<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if $y == $currentYear && $m == $currentMonth}checked="checked"{/if} autocomplete="off">
 							<label for="year_{$y}_month_{$m}">
 								{$lang_months[$m]}
 							</label>
@@ -173,12 +173,15 @@
 	</ul>
 </aside>
 
+{assign var=partial value=false}
+{include "forecast.tpl"}
+
 {* labels at the left, list or select on hover, @todo change markup accordingly *}
 <aside id="filter">
-	Filtres :
+	<h2>Filtres :</h2>
 
 	<section>
-		Fréquence
+		Fréquence : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="recurrent" data-filter="*">Tout</a></li>
@@ -189,7 +192,7 @@
 	</section>
 
 	<section>
-		Origine
+		Origine : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="origin" data-filter="*">Tout</a></li>
@@ -203,7 +206,7 @@
 	</section>
 
 	<section>
-		Status
+		Status : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="status" data-filter="*">Tout</a></li>
@@ -215,7 +218,7 @@
 	</section>
 
 	<section>
-		Bénéficiaire
+		Bénéficiaire :
 		<select name="recipient" id="recipient_filter">
 			{strip}
 				<option value="*" selected="selected">Tout</option>
@@ -227,7 +230,7 @@
 	</section>
 
 	<section>
-		Type
+		Type : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="type" data-filter="*">Tout</a></li>
@@ -239,7 +242,7 @@
 	</section>
 
 	<section>
-		Monnaie
+		Monnaie : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="currency" data-filter="*">Tout</a></li>
@@ -251,7 +254,7 @@
 	</section>
 
 	<section>
-		Méthode
+		Méthode : <output></output>
 		<ul class="filter button-bar small">
 			{strip}
 				<li><a href="#" class="active" data-group="method" data-filter="*">Tout</a></li>
@@ -263,7 +266,7 @@
 	</section>
 
 	<section>
-		Localisation
+		Localisation :
 		<select name="location" id="location_filter">
 			{strip}
 				<option value="*" selected="selected">Tout</option>
@@ -290,13 +293,10 @@
 	</ul>
 </aside>
 
-
-{assign var=partial value=false}
 {include "payment.tpl"}
 {include "sum.tpl"}
-{include "forecast.tpl"}
 
 <script>
 	var limits = {$limits|json_encode};
 </script>
-{include "html_footer.tpl"}<
+{include "html_footer.tpl"}

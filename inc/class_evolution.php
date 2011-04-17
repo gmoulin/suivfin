@@ -15,9 +15,9 @@ class evolution extends common {
 	protected $_table = 'evolution';
 
 	// Constructor
-	public function __construct() {
+	public function __construct( $id = null ){
 		//for "common" ($this->_db & co)
-		parent::__construct();
+		parent::__construct($id);
 	}
 
 	public function deleteSinceDate( $date ){

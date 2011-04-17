@@ -16,9 +16,9 @@ class method extends common {
 	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
-	public function __construct() {
+	public function __construct( $id = null ){
 		//for "common" ($this->_db & co)
-		parent::__construct();
+		parent::__construct($id);
 	}
 
 	/**
