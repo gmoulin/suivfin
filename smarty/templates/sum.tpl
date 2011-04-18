@@ -1,8 +1,8 @@
+{if !$partial}
+	<section id="sums" class="clearfix">
+		<h2>Totaux</h2>
+{/if}
 {if !empty($sums)}
-	{if !$partial}
-		<section id="sums" class="clearfix">
-			<h2>Totaux</h2>
-	{/if}
 	{foreach $sums as $month => $sum_types}
 		<div class="sum">
 			<table>
@@ -33,7 +33,7 @@
 			</table>
 		</div>
 	{/foreach}
-	{if !$partial}
-		</section>
-	{/if}
+{/if}
+{if !$partial}
+	</section>
 {/if}

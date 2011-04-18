@@ -112,22 +112,26 @@ class owner extends common {
 	/**
 	 * return the linked origins (bank accounts) and currencies for a given owner
 	 */
-	public function getLimits(){
+	public function getLimits( $forAll = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 			StashBox::setHandler($stashFileSystem);
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
-			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, ( !$forAll ? $this->getOwner() : 'all' ));
 			$list = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
 					SELECT origin_id, currency_id
 					FROM ".$this->_link."
-					WHERE owner_id = :owner
+					".( !$forAll ? "WHERE owner_id = :owner" : "" )."
 				");
-				$q->execute( array(':owner' => $this->getOwner()) );
+				if( !$forAll ){
+					$q->execute( array(':owner' => $this->getOwner()) );
+				} else {
+					$q->execute();
+				}
 
 				$list = $q->fetchAll();
 

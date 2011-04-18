@@ -641,7 +641,7 @@
 			float: left;
 			display: inline;
 			padding: 3px 0 4px 0;
-			width: 320px;
+			width: 370px;
 		}
 
 		#payment_form .formButtons {
@@ -651,7 +651,7 @@
 
 		#payment_form input:not([type=radio]),
 		#payment_form textarea {
-			width: 300px;
+			width: 350px;
 		}
 
 		#payment_form label {
@@ -670,6 +670,10 @@
 			border-radius: 3px;
 			color: #FFFFFF;
 			text-shadow: none;
+		}
+
+		.error + .tip {
+			color: red;
 		}
 
 	/* layouts */

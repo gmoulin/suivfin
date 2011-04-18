@@ -21,6 +21,40 @@ try {
 				$formData = $oPayment->checkAndPrepareFormData();
 
 				if ( empty($formData['errors']) ) {
+					//if it's a transfert, create the mirror deposit
+					if( empty($oPayment->id) && $oPayment->typeFK == 3 ){
+						//is the recipient a valid origin ?
+						$oRecipient = new recipient($oPayment->recipientFK);
+						$origin = origin::existsByLabel($oRecipient->name);
+						if( $origin ){
+							$mirror = clone $oPayment;
+
+							$mirror->typeFK = 1; //dépôt
+							$mirror->recipientFK = $mirror->originFK;
+							$mirror->originFK = $origin;
+							$mirror->statusFK = 3; //à vérifier
+
+							$oOwner = new owner();
+							$limits = $oOwner->getLimits(true);
+							foreach( $limits as $limit ){
+								if( $mirror->originFK = $limit['origin_id'] ){
+									$currency = $limit['currency_id'];
+									$owner = $limit['owner_id'];
+								}
+							}
+
+
+							if( $mirror->currencyFK != $currency ){
+								if( !empty($bis->comment) ) $mirror->comment .= "\n";
+								$mirror->comment .= "Montant à vérifier";
+							}
+							$mirror->currencyFK = $currency;
+							$mirror->ownerFK = $owner;
+
+							$mirror->save();
+						}
+					}
+
 					$oPayment->save();
 					$response = 'ok';
 				} else {

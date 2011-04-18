@@ -4,6 +4,11 @@ $(document).ready(function(){
 	if( $.browser.mozilla ) $('html').addClass('mozilla');
 	else if( $.browser.webkit ) $('html').addClass('webkit');
 
+	var $container = $('#container'),
+		$sums = $('#sums'),
+		$form = $('#payment_form'),
+		filters = {};
+
 	//ajax global management
 		$('#ajax_loader').ajaxStart(function(){
 			console.log('ajaxStart');
@@ -23,11 +28,11 @@ $(document).ready(function(){
 		$('#form_switch a').click(function(e){
 			e.preventDefault();
 
-			$('#payment_form').addClass('deploy');
-			$('#action').val('add');
+			$form.resetForm()
+				 .addClass('deploy');
 		});
 
-		$('form').submit(function(e){
+		$form.submit(function(e){
 			e.preventDefault();
 
 			if( $(this)[0].checkValidity() ){
@@ -41,16 +46,12 @@ $(document).ready(function(){
 					},
 					success: function(data){
 						if( data == 'ok' ){
-							//form hide
+							reloadPayments( $container, filters, $sums );
 
-							//if item present, update it and the list
-							if( $('#id').val() != '' && $('#payment_' + $('#id').val()).length ){
-								//todo
-								console.log('todo');
-							} else {
-								//refresh the whole list
-								reloadPayments();
-							}
+							//form hide
+							$form.removeClass('deploy')
+								 .find('datalist, select').loadList();
+
 						} else {
 							//form errors display
 							formErrors(data);
@@ -66,19 +67,15 @@ $(document).ready(function(){
 			//multiple call protection
 			if( $(this).data('save_clicked') != 1 ){
 				$(this).data('save_clicked', 1);
+			} else {
+				e.preventDefault();
 			}
 		});
 
 		$('#formCancel').click(function(){
 			console.log('formCancel click');
 
-			$('#payment_form')
-				.removeClass('deploy')
-				.find(':input:visible, #id').each(function(field){
-					if( $(field).is(':checkbox') ) $(field).removeAttr('checked');
-					else $(field).val('');
-				});
-			$('#recurrent_0').click();
+			$form.removeClass('deploy').resetForm();
 		});
 
 		$('.origins_switch').change(function(e){
@@ -90,18 +87,27 @@ $(document).ready(function(){
 		$('html').unbind('keypress').keypress(function(e){
 			// ESCAPE key pressed
 			if( e.keyCode == 27 ){
-				console.log('escape pressed');
 				$('#payment_form.deploy').removeClass('deploy');
 			}
 		});
 
-		$('datalist, select', '#payment_form').loadList();
+		$(document).unbind('keydown').keydown(function(e){
+			//"a" pressed for add
+			if( e.which == 65 ){
+				$('#payment_form:not(.deploy)')
+					.resetForm()
+					.addClass('deploy');
+			}
+		}).delegate('#amount', 'keydown', function(e){
+			if( e.which == 188 ){ //, pressed (comma)
+				e.preventDefault();
+				$('#amount').val(function(){ return this.value + '.'; });
+			}
+		});
+
+		$form.find('datalist, select').loadList();
 
 	//isotope
-		var $container = $('#container'),
-			$sums = $('#sums'),
-			filters = {};
-
 		$('#container').isotope({
 			// options
 			itemSelector: '.item',
@@ -144,8 +150,10 @@ $(document).ready(function(){
 			}
 		}).delegate('.eject', 'click', function(e){
 			e.preventDefault();
-			$('#payment_form').addClass('deploy');
+			$form.resetForm()
+				 .addClass('deploy');
 			$('#action').val('update');
+
 			$.post('ajax/payment.php', 'action=get&id=' + $(this).attr('href'), function(data){
 				var decoder = $('textarea'),
 					$field = null,
@@ -171,11 +179,14 @@ $(document).ready(function(){
 						$radio.attr('checked', 'checked');
 					}
 				});
+
+
 			});
 		}).delegate('.delete', 'click', function(e){
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
 				$.post('ajax/payment.php', 'action=delete&id=' + $(this).attr('href'), function(e){
 					reloadPayments( $container, filters, $sums );
+					$form.find('datalist, select').loadList();
 				});
 			}
 		});
@@ -329,6 +340,24 @@ $.fn.loadList = function(){
 				}
 			}
 		});
+	});
+}
+
+/**
+ * reset the payment form fields
+ */
+$.fn.resetForm = function(){
+	console.log('resetForm');
+	return this.each(function(){
+		var $f = $(this);
+
+		$f.removeClass('deploy')
+			.find(':input:visible, #id').each(function(i, field){
+				if( field.type == 'radio' ) field.checked = false;
+				else field.value = '';
+			});
+		$('#recurrent_0').attr('checked', 'checked');
+		$('#action').val('add');
 	});
 }
 
