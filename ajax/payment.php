@@ -21,34 +21,35 @@ try {
 				$formData = $oPayment->checkAndPrepareFormData();
 
 				if ( empty($formData['errors']) ) {
-					//if it's a transfert, create the mirror deposit
+					//if it's a new transfert, create the mirror deposit
 					if( empty($oPayment->id) && $oPayment->typeFK == 3 ){
-						//is the recipient a valid origin ?
+						//is the recipient a valid origin ? (also used for limitation)
 						$oRecipient = new recipient($oPayment->recipientFK);
-						$origin = origin::existsByLabel($oRecipient->name);
-						if( $origin ){
+						$deposit_recipient = origin::existsByLabel($oRecipient->name);
+						if( $deposit_recipient ){
 							$mirror = clone $oPayment;
 
-							$mirror->typeFK = 1; //dépôt
-							$mirror->recipientFK = $mirror->originFK;
-							$mirror->originFK = $origin;
-							$mirror->statusFK = 3; //à vérifier
+							$mirror->typeFK = 1; //deposit
+
+							//no need to swap origin and recipient as deposits are summed by recipient
+
+							$mirror->statusFK = 3; //to check
 
 							$oOwner = new owner();
 							$limits = $oOwner->getLimits(true);
 							foreach( $limits as $limit ){
-								if( $mirror->originFK = $limit['origin_id'] ){
+								if( $deposit_recipient == $limit['origin_id'] ){
 									$currency = $limit['currency_id'];
 									$owner = $limit['owner_id'];
+									break;
 								}
 							}
 
-
 							if( $mirror->currencyFK != $currency ){
+								$mirror->currencyFK = $currency;
 								if( !empty($bis->comment) ) $mirror->comment .= "\n";
 								$mirror->comment .= "Montant à vérifier";
 							}
-							$mirror->currencyFK = $currency;
 							$mirror->ownerFK = $owner;
 
 							$mirror->save();

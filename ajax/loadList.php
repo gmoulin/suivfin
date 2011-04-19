@@ -24,7 +24,9 @@ try {
 		}
 
 		$lastModified = 0;
-		$target = ( strpos($field, 'List') !== false ? substr($field, 0, strlen($field)-4 ) : $field );
+		$target = $field;
+		if( strpos($field, 'List') !== false ) $target = substr($field, 0, -4);
+		elseif( strpos($field, '_filter') !== false ) $target = substr($field, 0, -7);
 		if( $browserHasCache ){
 			$ts = new list_timestamp($target);
 			if( !empty($ts->id) ){
@@ -63,6 +65,17 @@ try {
 					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
 				break;
 
+			case 'origin_filter':
+			case 'recipient_filter':
+			case 'location_filter':
+					$target = substr($field, 0, -7);
+
+					$obj = new $target();
+					$list = $obj->loadListForFilterByOwner();
+
+					$ts = new list_timestamp($target); //not optimal as the list has not always changed for a specific owner
+					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
+				break;
 			default:
 				throw new Exception('Chargement de liste : cible non reconnue.');
 		}

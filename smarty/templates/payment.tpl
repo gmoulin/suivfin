@@ -18,8 +18,8 @@
 		>
 
 			<div class="buttons">
-				<a class="button round eject small" href="{$payment['id']}" title="voir le détail"></a>
-				<a class="button round delete small" href="{$payment['id']}" title="supprimer"></a>
+				<a class="button" href="{$payment['id']}" title="Editer ce paiement"><span class="pen icon"></span>Editer</a>
+				<a class="button" href="{$payment['id']}" title="Supprimer ce paiement"><span class="trash icon"></span>Supprimer</a>
 			</div>
 			<dl>
 				<dd>

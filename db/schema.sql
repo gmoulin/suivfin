@@ -379,6 +379,21 @@ INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('6', 'Etrembière');
 COMMIT;
 
 -- -----------------------------------------------------
+-- Data for table `suivfin`.`recipient`
+-- -----------------------------------------------------
+SET AUTOCOMMIT=0;
+USE `suivfin`;
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('1', 'BNP Commun');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('2', 'BNP Guillaume');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('3', 'BNP Kariade');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('4', 'Postfinance Commun');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('5', 'Postfinance Guillaume');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('6', 'Postfinance Kariade');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('7', 'Liquide');
+
+COMMIT;
+
+-- -----------------------------------------------------
 -- Data for table `suivfin`.`limits`
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;

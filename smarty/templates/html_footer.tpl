@@ -13,5 +13,9 @@
 		<script src="js/plugins.js"></script>
 		<script src="js/script.js?v={$js}"></script>
 		<!-- end scripts-->
+
+		<script>
+			var limits = {$limits|json_encode};
+		</script>
 	</body>
 </html>

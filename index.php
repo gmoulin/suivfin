@@ -42,7 +42,8 @@ try {
 
 	//get all related lists
 	$oOrigin = new origin();
-	$origins = $oOrigin->loadListForFilter();
+	$origins = $oOrigin->loadListForFilterByOwner();
+	$origins_full = $oOrigin->loadListForFilter();
 	$smarty->assign('origins', $origins);
 
 	$oStatus = new status();
@@ -50,7 +51,7 @@ try {
 	$smarty->assign('statuses', $statuses);
 
 	$oRecipient = new recipient();
-	$recipients = $oRecipient->loadListForFilter();
+	$recipients = $oRecipient->loadListForFilterByOwner();
 	$smarty->assign('recipients', $recipients);
 
 	$oType = new type();
@@ -65,21 +66,21 @@ try {
 	$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
 	$oMethod = new method();
-	$methods = $oMethod->loadListForFilter();
+	$methods = $oMethod->loadListForFilterByOwner();
 	$smarty->assign('methods', $methods);
 
 	$oLocation = new location();
-	$locations = $oLocation->loadListForFilter();
+	$locations = $oLocation->loadListForFilterByOwner();
 	$smarty->assign('locations', $locations);
 
 	$oOwner = new owner();
 	$owners = $oOwner->loadListForFilter();
 	$smarty->assign('owners', $owners);
 
-	$limits = $oOwner->getLimits();
+	$limits = $oOwner->getLimits(true);
 	$tmp = array();
 	foreach( $limits as $limit ){
-		$tmp[$limit['origin_id']] = $limit['currency_id'];
+		$tmp[ $origins_full[ $limit['origin_id'] ] ] = $limit['currency_id'];
 	}
 	$limits = $tmp;
 	$smarty->assign('limits', $limits);

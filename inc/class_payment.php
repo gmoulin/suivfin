@@ -44,7 +44,7 @@ class payment extends common {
 			'typeFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'currencyFK'	=> FILTER_SANITIZE_NUMBER_INT,
 			'methodFK'		=> FILTER_SANITIZE_STRING,
-			'originFK'		=> FILTER_SANITIZE_NUMBER_INT,
+			'originFK'		=> FILTER_SANITIZE_STRING,
 			'statusFK'		=> FILTER_SANITIZE_NUMBER_INT,
 			'locationFK'	=> FILTER_SANITIZE_STRING,
 		);
@@ -146,7 +146,7 @@ class payment extends common {
 
 				//recipientFK
 					if( is_null($recipientFK) || $recipientFK === false ){
-						$errors[] = array('recipientFK', 'Bénéficiaire incorrecte.', 'error');
+						$errors[] = array('recipientFK', 'Bénéficiaire incorrect.', 'error');
 					} else {
 						$check = filter_var($recipientFK, FILTER_VALIDATE_INT, array('min_range' => 1));
 						if( $check === false ){ //not an id
@@ -262,12 +262,26 @@ class payment extends common {
 						$errors[] = array('originFK', 'Origine incorrecte.', 'error');
 					} else {
 						$check = filter_var($originFK, FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $check === false ){
-							$errors[] = array('originFK', 'L\'origine est requise.', 'error');
+						if( $check === false ){ //not an id
+							if( empty($originFK) ){
+								$errors[] = array('originFK', 'L\'origine est requise.', 'required');
+							} else {
+								//new origin ?
+								$check = origin::existsByLabel($originFK);
+								if( $check ) $formData['originFK'] = $check;
+								else {
+									$eOrigin = new origin();
+									$eOrigin->name = $originFK;
+									$eOrigin->save();
+
+									$formData['originFK'] = $eOrigin->id;
+								}
+							}
 						} else {
 							//check if id exists in DB
-							if( origin::existsById($originFK) ){
-								$formData['originFK'] = $originFK;
+							$check = origin::existsById($originFK);
+							if( $check ){
+								$formData['originFK'] = $check;
 							} else {
 								$errors[] = array('originFK', 'Identifiant de l\'origine inconnu.', 'error');
 							}
@@ -311,10 +325,10 @@ class payment extends common {
 		if( empty($errors) ){
 
 			$this->hasAmountBeenModified = false;
-			if( !empty($this->id) ){
-				$this->load($id);
+			if( $action == 'update' ){
+				$this->load($formData['id']);
 
-				if( $this->amount != $formData->amout ) $this->hasAmountBeenModified = true;
+				if( $this->amount != $formData['amount'] ) $this->hasAmountBeenModified = true;
 			}
 
 			foreach( self::$_fields[$this->_table] as $k => $v ){
@@ -377,12 +391,9 @@ class payment extends common {
 			$list = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT p.*
-					FROM ".$this->_table." p
-					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					SELECT *
+					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND l.origin_id = p.originFK
-					AND l.currency_id = p.currencyFK
 					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
 					AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
 					ORDER BY paymentDate desc
@@ -417,12 +428,9 @@ class payment extends common {
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				//construct the query and parameters
 				$sql = "
-					SELECT p.*
-					FROM ".$this->_table." p
-					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					SELECT *
+					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND l.origin_id = p.originFK
-					AND l.currency_id = p.currencyFK
 				";
 				$where = array();
 				$params = array(':owner' => $this->getOwner());
@@ -495,11 +503,8 @@ class payment extends common {
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
 					SELECT DATE_FORMAT(paymentDate, '%Y') AS `year`, DATE_FORMAT(paymentDate, '%m') AS `month`
-					FROM ".$this->_table." p
-					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND l.origin_id = p.originFK
-					AND l.currency_id = p.currencyFK
 					GROUP BY `year`, `month`
 					ORDER BY `year`, `month`
 				");
@@ -530,17 +535,36 @@ class payment extends common {
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
 			$sums = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+
+				// type = 1 means deposits, and for them it's the recipient
+				// recipient and origin have the same ids for bank accounts and cash
 				$sql = "
-					SELECT DATE_FORMAT(paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, originFK, typeFK, currencyFK
-					FROM ".$this->_table." p
-					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
-					WHERE ownerFK = :owner
-					AND l.origin_id = p.originFK
-					AND l.currency_id = p.currencyFK
+					SELECT `month`, sum, paymentDate, fromto, typeFK, currencyFK
+					FROM (
+							(
+								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
+								FROM ".$this->_table." p
+								INNER JOIN ".$this->_join." l ON p.ownerFK = l.owner_id
+								WHERE p.ownerFK = :owner1
+								AND p.typeFK != 1
+								AND p.originFK = l.origin_id
+								AND p.currencyFK = l.currency_id
+								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
+							) UNION (
+								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
+								FROM ".$this->_table." p
+								INNER JOIN ".$this->_join." l ON p.ownerFK = l.owner_id
+								WHERE p.ownerFK = :owner2
+								AND p.typeFK = 1
+								AND p.recipientFK = l.origin_id
+								AND p.currencyFK = l.currency_id
+								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
+							)
+					) sub
 				";
 
 				$where = array();
-				$params = array(':owner' => $this->getOwner());
+				$params = array(':owner1' => $this->getOwner(), ':owner2' => $this->getOwner());
 
 				$frame = explode(',', $frame);
 				foreach( $frame as $i => $partialDate ){
@@ -548,11 +572,10 @@ class payment extends common {
 					$params[':partial'.$i] = $partialDate.'-__';
 				}
 
-				if( !empty($where) ) $sql .= " AND (".implode(' OR ', $where).")";
+				if( !empty($where) ) $sql .= "WHERE ".implode(' OR ', $where);
 
 				$sql .= "
-					GROUP BY `month`, typeFK, originFK, currencyFK
-					ORDER BY `month`, typeFK, originFK, currencyFK
+					ORDER BY `month`, typeFK, fromto, currencyFK
 				";
 
 				$q = $this->_db->prepare($sql);
@@ -561,8 +584,19 @@ class payment extends common {
 				$sums = array();
 				if( $q->rowCount() > 0 ){
 					while( $r = $q->fetch() ){
-						$sums[ $r['month'] ][ $r['typeFK'] ][ $r['originFK'] ][ $r['currencyFK'] ] = $r['sum'];
+						$sums['list'][ $r['month'] ][ $r['typeFK'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
+						$sums['fromto'][] = $r['fromto'];
+
+						if( !isset($sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ]) ){
+							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] = 0;
+						}
+						if( $r['typeFK'] == 1 ){
+							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] += $r['sum'];
+						} else {
+							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] -= $r['sum'];
+						}
 					}
+					$sums['fromto'] = array_unique($sums['fromto']);
 				}
 				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
 			}
@@ -590,13 +624,10 @@ class payment extends common {
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
 					SELECT DATE_FORMAT(paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
-					FROM ".$this->_table." p
-					INNER JOIN ".$this->_join." l ON l.owner_id = p.ownerFK
+					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND l.origin_id = p.originFK
-					AND l.currency_id = p.currencyFK
-					AND p.typeFK = 2
-					AND p.statusFK IN (2,4)
+					AND typeFK = 2
+					AND statusFK IN (2,4)
 					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
 					AND DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)), '%Y-%m-%d')
 					GROUP BY `month`, statusFK, currencyFK

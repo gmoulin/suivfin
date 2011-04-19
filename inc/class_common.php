@@ -318,6 +318,45 @@ class common {
 	}
 
 	/**
+	 * @return array[key][entry]
+	 */
+	public function loadListForFilterByOwner(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$list = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+
+				$loadList = $this->_db->prepare("
+					SELECT f.id, f.name
+					FROM ".$this->_table." f
+					INNER JOIN payment p ON p.".$this->_table."FK = f.id
+					WHERE ownerFK = :owner
+					ORDER BY name
+				");
+
+				$loadList->execute(array(':owner' => $this->getOwner()));
+
+				$list = array();
+				while( $rs = $loadList->fetch() ){
+					$list[ $rs['id'] ] = $rs['name'];
+				}
+
+				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+			}
+
+			return $list;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
 	 * save data in the database
 	 * insert for id = 0, else update
 	 */
@@ -409,9 +448,11 @@ class common {
 				throw new Exception('Impossible to delete record, id is null');
 			}
 
+			/*
 			if( $this->_isUsed() ){
 				return 'used';
 			}
+			*/
 
 			$q = $this->_db->prepare("DELETE FROM ".$this->_table." where id = :id");
 			$q->execute( array(':id' => $this->_data['id']) );
@@ -428,14 +469,15 @@ class common {
 	/**
 	 * @return boolean
 	 */
-	protected function _isUsed( $field ) {
+	protected function _isUsed() {
 		try {
 			$verif = true;
 
 			$isUsed = $this->_db->prepare("
 				SELECT COUNT(DISTINCT ".$this->_table."FK) AS verif
 				FROM flux
-				WHERE ".$this->_table."FK = :id");
+				WHERE ".$this->_table."FK = :id
+			");
 
 			$isUsed->execute( array( ':id' => $this->_data['id'] ) );
 

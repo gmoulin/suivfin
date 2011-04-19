@@ -1,35 +1,44 @@
 {if !$partial}
-	<section id="sums" class="clearfix">
-		<h2>Totaux</h2>
+	<section id="sums">
 {/if}
 {if !empty($sums)}
-	{foreach $sums as $month => $sum_types}
+	{foreach $sums.list as $month => $sum_types}
 		<div class="sum">
 			<table>
 				<thead>
 					<tr>
 						<th>{$lang_months[$month]}</th>
-						{foreach $sum_types as $type => $sum_origins}
-							{if $sum_origins@first}
-								{foreach $sum_origins as $origin => $sum_currencies}
-									<th class="origin">{$origins[$origin]|replace:$owners[$owner]:''|trim}</th>
-								{/foreach}
-							{/if}
+						{foreach $sums.fromto as $fromto}
+							<th class="fromto">{$origins[$fromto]|replace:$owners[$owner]:''|trim}</th>
 						{/foreach}
 					</tr>
 				</thead>
 				<tbody>
-					{foreach $sum_types as $type => $sum_origins}
+					{foreach $sum_types as $type => $sum_fromto}
 						<tr>
 							<td class="type">{$types[$type]|capitalize}</td>
-							{foreach $sum_origins as $origin => $sum_currencies}
-								{foreach $sum_currencies as $currency => $sum}
-									<td>{$sum} {$currenciesWSymbol[$currency].symbol}</td>
-								{/foreach}
+							{foreach $sums.fromto as $header}
+								{if !isset($sum_fromto[$header])}
+									<td></td>
+								{else}
+									{foreach $sum_fromto[$header] as $currency => $sum}
+										<td>{$sum|number_format:2:'.':'\''} {$currenciesWSymbol[$currency].symbol}</td>
+									{/foreach}
+								{/if}
 							{/foreach}
 						</tr>
 					{/foreach}
 				</tbody>
+				<tfoot>
+					<tr>
+						<th>Total</th>
+						{foreach $sums.fromto as $header}
+							{foreach $sums.total[$month][$header] as $currency => $sum}
+								<td>{$sum|number_format:2:'.':'\''} {$currenciesWSymbol[$currency].symbol}</td>
+							{/foreach}
+						{/foreach}
+					</tr>
+				</tfoot>
 			</table>
 		</div>
 	{/foreach}

@@ -2,15 +2,11 @@
 
 {* Navigation - top left*}
 <nav id="owners">
-	<ul class="button-bar">
-		{strip}
-			{foreach $owners as $id => $name}
-				<li>
-					<a href="?owner={$id}" title="voir le suivi de {$name}" class="{if $id == $owner}active{/if}">{$name}</a>
-				</li>
-			{/foreach}
-		{/strip}
-	</ul>
+	{strip}
+		{foreach $owners as $id => $name}
+			<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill {if $name@first}left{elseif $name@last}right{else}middle{/if} {if $id == $owner}primary{/if}">{$name}</a>
+		{/foreach}
+	{/strip}
 </nav>
 
 {include "form.tpl"}
@@ -18,17 +14,15 @@
 {* temporary, bottom left *}
 <aside id="layouts">
 	Affichage :
-	<ul class="button-bar small">
-		{strip}
-			<li><a href="#masonry">masonry</a></li>
-			<li><a href="#fitRows" class="active">fitRows</a></li>
-			<li><a href="#cellsByRow">cellsByRow</a></li>
-			<li><a href="#straightDown">straightDown</a></li>
-			<li><a href="#masonryHorizontal" class="horizontal">masonryHorizontal</a></li>
-			<li><a href="#fitColumns" class="horizontal">fitColumns</a></li>
-			<li><a href="#cellsByColumn" class="horizontal">cellsByColumn</a></li>
-		{/strip}
-	</ul>
+	{strip}
+		<a href="#masonry" class="button left pill">masonry</a>
+		<a href="#fitRows" class="button middle primary pill">fitRows</a>
+		<a href="#cellsByRow" class="button middle pill">cellsByRow</a>
+		<a href="#straightDown" class="button middle pill">straightDown</a>
+		<a href="#masonryHorizontal" class="horizontal button middle pill">masonryHorizontal</a>
+		<a href="#fitColumns" class="horizontal button middle pill">fitColumns</a>
+		<a href="#cellsByColumn" class="horizontal button right pill">cellsByColumn</a>
+	{/strip}
 </aside>
 
 {* top right, years visible, months on hover *}
@@ -64,22 +58,17 @@
 {* bottom right *}
 <aside id="sort">
 	Tri :
-	<ul class="button-bar small">
-		{strip}
-			<li><a href="#date" class="active">date</a></li>
-			<li><a href="#recipient">bénéficiaire</a></li>
-			<li><a href="#method">méthode</a></li>
-			<li><a href="#origin">origine</a></li>
-			<li><a href="#status">statut</a></li>
-			<li><a href="#amount">montant</a></li>
-		{/strip}
-	</ul>
+	{strip}
+		<a href="#date" class="primary button pill left">date</a>
+		<a href="#recipient" class="button pill middle">bénéficiaire</a>
+		<a href="#method" class="button pill middle">méthode</a>
+		<a href="#origin" class="button pill middle">origine</a>
+		<a href="#status" class="button pill middle">statut</a>
+		<a href="#amount" class="button pill right">montant</a>
+	{/strip}
 </aside>
 
 {include "payment.tpl"}
 {include "sum.tpl"}
 
-<script>
-	var limits = {$limits|json_encode};
-</script>
 {include "html_footer.tpl"}

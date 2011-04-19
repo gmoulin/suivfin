@@ -7,6 +7,7 @@ $(document).ready(function(){
 	var $container = $('#container'),
 		$sums = $('#sums'),
 		$form = $('#payment_form'),
+		$filter = $('#filter'),
 		filters = {};
 
 	//ajax global management
@@ -51,6 +52,7 @@ $(document).ready(function(){
 							//form hide
 							$form.removeClass('deploy')
 								 .find('datalist, select').loadList();
+							$filter.find('select').loadList();
 
 						} else {
 							//form errors display
@@ -78,20 +80,12 @@ $(document).ready(function(){
 			$form.removeClass('deploy').resetForm();
 		});
 
-		$('.origins_switch').change(function(e){
-			if( limits[$(this).val()] ){
-				$('#currency_' + limits[ $(this).val() ]).attr('checked', 'checked');
-			}
-		});
-
-		$('html').unbind('keypress').keypress(function(e){
+		$(document).unbind('keypress').keypress(function(e){
 			// ESCAPE key pressed
 			if( e.keyCode == 27 ){
 				$('#payment_form.deploy').removeClass('deploy');
 			}
-		});
-
-		$(document).unbind('keydown').keydown(function(e){
+		}).unbind('keydown').keydown(function(e){
 			//"a" pressed for add
 			if( e.which == 65 ){
 				$('#payment_form:not(.deploy)')
@@ -106,6 +100,12 @@ $(document).ready(function(){
 		});
 
 		$form.find('datalist, select').loadList();
+
+		$('#originFK').change(function(e){
+			if( this.value != '' && limits[ this.value ] ){
+				$('#currency_' + limits[ this.value ]).attr('checked', 'checked');
+			}
+		});
 
 	//isotope
 		$('#container').isotope({
@@ -183,10 +183,12 @@ $(document).ready(function(){
 
 			});
 		}).delegate('.delete', 'click', function(e){
+			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
 				$.post('ajax/payment.php', 'action=delete&id=' + $(this).attr('href'), function(e){
 					reloadPayments( $container, filters, $sums );
 					$form.find('datalist, select').loadList();
+					$filter.find('select').loadList();
 				});
 			}
 		});
@@ -199,7 +201,7 @@ $(document).ready(function(){
 		});
 
 	// filter buttons
-		$('#filter a').click(function(e){
+		$filter.delegate('a', 'click', function(e){
 			e.preventDefault();
 
 			var $this = $(this),
@@ -213,13 +215,13 @@ $(document).ready(function(){
 			filters[ group ] = filter;
 
 			applyFilters($container, filters);
-		}).filter('.active').each(function(){
+		}).find('.primary').each(function(){
 			//output the current value
 			$(this).closest('section').children('output').text( $(this).text() );
 		});
 
 	// filter list
-		$('#filter select').change(function(e){
+		$filter.delegate('select', 'change', function(e){
 			var $this = $(this),
 				group = $this.attr('name'),
 				filter = $this.val();
@@ -274,26 +276,36 @@ $(document).ready(function(){
 
 	//sums cells hover
 		$('#sums')
-			.delegate('td:not(.type)', 'mouseenter', function(){
+			.delegate('tbody td:not(.type)', 'mouseenter', function(){
 				var $this = $(this),
 					index = $this.parent().children(':not(.type)').index($this);
 
 				$this.siblings('.type').addClass('highlight');
-				$this.closest('table').find('thead th.origin:eq(' + index + ')').addClass('highlight');
+				$this.closest('table').find('thead th.fromto:eq(' + index + ')').addClass('highlight');
 			})
-			.delegate('td:not(.type)', 'mouseleave', function(){
+			.delegate('tbody td:not(.type)', 'mouseleave', function(){
 				var $this = $(this),
 					index = $this.parent().children(':not(.type)').index($this);
 
 				$this.siblings('.type').removeClass('highlight');
-				$this.closest('table').find('thead th.origin:eq(' + index + ')').removeClass('highlight');
+				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
+			})
+			.delegate('tfoot td', 'mouseenter', function(){
+				var $this = $(this),
+					index = $this.parent().children('td').index($this);
+
+				$this.closest('table').find('thead th.fromto:eq(' + index + ')').addClass('highlight');
+			})
+			.delegate('tfoot td', 'mouseleave', function(){
+				var $this = $(this),
+					index = $this.parent().children('td').index($this);
+
+				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
 			});
 
-	//buttons active state and focus remove after click
-		$('body').delegate('a.button', 'click', function(e){
-			$(this).blur();
-		}).delegate('.button-bar a', 'click', function(e){
-			$(this).blur().addClass('active').closest('ul').find('.active').not( $(this) ).removeClass('active');
+	//buttons active state
+		$('#filter, #sort, #layouts, #owners').delegate('.button', 'click', function(){
+			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
 });
 
@@ -357,6 +369,7 @@ $.fn.resetForm = function(){
 				else field.value = '';
 			});
 		$('#recurrent_0').attr('checked', 'checked');
+		$('#type_2').attr('checked', 'checked');
 		$('#action').val('add');
 	});
 }
@@ -376,7 +389,7 @@ function applyFilters( $container, filters ){
 	/* use of * as "all" selector can cause error with 2 or more consecutive * */
 	$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
 
-	var sortName = $('#sort a.active').attr('href').substr(1);
+	var sortName = $('#sort a.primary').attr('href').substr(1);
 	$container.isotope({ sortBy: sortName });
 }
 
