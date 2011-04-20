@@ -8,7 +8,8 @@ $(document).ready(function(){
 		$sums = $('#sums'),
 		$form = $('#payment_form'),
 		$filter = $('#filter'),
-		filters = {};
+		filters = {},
+		buffer = null;
 
 	//ajax global management
 		$('#ajax_loader').ajaxStart(function(){
@@ -47,12 +48,21 @@ $(document).ready(function(){
 					},
 					success: function(data){
 						if( data == 'ok' ){
-							reloadPayments( $container, filters, $sums );
+							//is next month present in time frame
+							var paymentDate = $('#paymentDate').val().split('/'),
+								newMonth = paymentDate[2] + '-' + paymentDate[1];
 
-							//form hide
-							$form.removeClass('deploy')
-								 .find('datalist, select').loadList();
-							$filter.find('select').loadList();
+							if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+								reloadPayments( $container, filters, $sums );
+
+								//form hide
+								$form.removeClass('deploy')
+									 .find('datalist, select').loadList();
+								$filter.find('select').loadList();
+
+							} else {
+								window.location.reload();
+							}
 
 						} else {
 							//form errors display
@@ -148,7 +158,7 @@ $(document).ready(function(){
 			masonryHorizontal: {
 				rowHeight: 200
 			}
-		}).delegate('.eject', 'click', function(e){
+		}).delegate('.edit', 'click', function(e){
 			e.preventDefault();
 			$form.resetForm()
 				 .addClass('deploy');
@@ -160,7 +170,11 @@ $(document).ready(function(){
 					$radio = null;
 				$.each(data, function(key, value){
 					$field = $('#' + key);
-					$radio = $('#' + key.replace(/FK/, '') + '_' + value);
+					if( !isNaN(parseInt(value)) ){
+						$radio = $('#' + key.replace(/FK/, '') + '_' + value);
+					} else {
+						$radio = null;
+					}
 					if( $field.length ){
 						if( $field.is('input[type=text][list]') ){ //datalist
 							$field.val( $( $field.attr('list') ).children('[data-id=' + value + ']').text() );
@@ -200,7 +214,7 @@ $(document).ready(function(){
 			$('#container').isotope({ sortBy: sortName });
 		});
 
-	// filter buttons
+	//filter buttons
 		$filter.delegate('a', 'click', function(e){
 			e.preventDefault();
 
@@ -220,7 +234,7 @@ $(document).ready(function(){
 			$(this).closest('section').children('output').text( $(this).text() );
 		});
 
-	// filter list
+	//filter list
 		$filter.delegate('select', 'change', function(e){
 			var $this = $(this),
 				group = $this.attr('name'),
@@ -232,7 +246,27 @@ $(document).ready(function(){
 			applyFilters($container, filters);
 		});
 
-	// time frame chekboxes
+	//next month recurrent payments generation
+		$('#next_month a').click(function(e){
+			e.preventDefault();
+
+			$.post('ajax/payment.php', 'action=initNextMonth', function(data){
+				if( data == 'ok' ){
+					//is next month present in time frame
+					var today = new Date(),
+						newMonth = today.getYear() + '-' + today.getMonth();
+
+					if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+						reloadPayments( $container, filters, $sums );
+
+					} else {
+						window.location.reload();
+					}
+				}
+			});
+		});
+
+	//time frame chekboxes
 		$('#time_frame :checkbox').change(function(e){
 			//toggle the months checkboxes if the event target is a year checkbox
 			if( $(this).hasClass('year') ){
@@ -245,33 +279,9 @@ $(document).ready(function(){
 				});
 			}
 
-			reloadPayments( $container, filters, $sums);
-		});
-
-	// change layout
-		var isHorizontal = false;
-		$('#layouts a').click(function(e){
-			e.preventDefault();
-			var mode = $(this).attr('href').substr(1);
-				wasHorizontal = isHorizontal;
-			isHorizontal = $(this).hasClass('horizontal');
-
-			if ( wasHorizontal !== isHorizontal ) {
-				// need to do some clean up for transitions and sizes
-				var style = isHorizontal ?
-					{ height: '80%', width: $container.width() } :
-					{ width: 'auto' };
-				// stop any animation on container height / width
-				$container.filter(':animated').stop();
-
-				$container.addClass('no-transition').css( style );
-				setTimeout(function(){
-					$container.removeClass('no-transition').isotope({ layoutMode : mode });
-				}, 100 )
-			} else {
-				// go ahead and apply new layout
-				$container.isotope({ layoutMode : mode });
-			}
+			//wait 500ms before reloading data, help when user check several checkboxes quickly
+			clearTimeout(buffer);
+			buffer = setTimeout(function(){ reloadPayments( $container, filters, $sums); }, 500);
 		});
 
 	//sums cells hover
@@ -304,7 +314,7 @@ $(document).ready(function(){
 			});
 
 	//buttons active state
-		$('#filter, #sort, #layouts, #owners').delegate('.button', 'click', function(){
+		$('#filter, #sort, #nextMonth, #owners').delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
 });

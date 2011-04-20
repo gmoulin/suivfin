@@ -47,7 +47,7 @@ try {
 
 							if( $mirror->currencyFK != $currency ){
 								$mirror->currencyFK = $currency;
-								if( !empty($bis->comment) ) $mirror->comment .= "\n";
+								if( !empty($mirror->comment) ) $mirror->comment .= "\n";
 								$mirror->comment .= "Montant à vérifier";
 							}
 							$mirror->ownerFK = $owner;
@@ -150,7 +150,7 @@ try {
 				$smarty->display('payment.tpl');
 				die;
 			break;
-		case 'sum' :
+		case 'sum':
 				$frame = filter_has_var(INPUT_POST, 'timeframe');
 				if( is_null($frame) || $frame === false ){
 					throw new Exception('Gestion des paiements : liste des mois manquant.');
@@ -196,7 +196,7 @@ try {
 				$smarty->display('sum.tpl');
 				die;
 			break;
-		case 'forecast' :
+		case 'forecast':
 				$oPayement = new payment();
 				$forecasts = $oPayement->getForecasts();
 				$smarty->assign('forecasts', $forecasts);
@@ -214,6 +214,12 @@ try {
 				$smarty->assign('partial', true);
 				$smarty->display('forecast.tpl');
 				die;
+			break;
+		case 'initNextMonth':
+				$oPayment = new payment();
+				$oPayment->initNextMonthPayment();
+
+				$response = 'ok';
 			break;
 		/*
 		case 'graph':

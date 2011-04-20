@@ -25,7 +25,7 @@ class evolution extends common {
 	 * @params date $date
 	 * @params integer $origin: a key for payment origin, must be present in table limits (for currency link)
 	 */
-	public function deleteSinceDate( $date, $origin ){
+	public function deleteSince( $date, $origin ){
 		try{
 			$deleteSinceDate = $this->_db->prepare("
 				DELETE
@@ -58,16 +58,36 @@ class evolution extends common {
 			}
 			$origins = array_unique($origins);
 
-			foreach( $origins as $origin ){
-				$sql = "
-					SELECT evolutionDate, amount
-					FROM ".$this->_table."
-					WHERE originFK = :origin
-					ORDER BY evolutionDate DESC
-					LIMIT 1
-				";
+			$lastDate = "
+				SELECT evolutionDate, amount
+				FROM ".$this->_table."
+				WHERE originFK = :origin
+				ORDER BY evolutionDate DESC
+				LIMIT 1
+			";
+			$q = $this->_db->prepare($lastDate);
 
-				$q = $this->_db->prepare($sql);
+			// type = 1 means deposits, and for them it's the recipient
+			// recipient and origin have the same ids for bank accounts and cash
+			$sum = "
+				(
+					SELECT SUM(amount) AS 'sum', typeFK
+					FROM payment
+					WHERE originFK = :origin1
+					AND paymentDate = :date1
+					AND typeFK != 1
+					GROUP BY typeFK
+				) UNION (
+					SELECT SUM(amount) AS 'sum', typeFK
+					FROM payment
+					WHERE recipientFK = :origin2
+					AND paymentDate = :date2
+					AND typeFK = 1
+				)
+			";
+			$s = $this->_db->prepare($sum);
+
+			foreach( $origins as $origin ){
 				$q->execute( array(':origin' => $origin) );
 
 				$this->originFK = $origin;
@@ -76,25 +96,21 @@ class evolution extends common {
 
 				$rs = $q->fetch();
 				if( !empty($rs) && !empty($rs['evolutionDate']) ){
-					$this->evolutionDate = $rs['evolutionDate'];
+					$this->evolutionDate = date("Y-m-d", strtotime("+1 day", strtotime( $rs['evolutionDate'] )) );
 					$this->amount = $rs['amount'];
 				}
 
 				$today = date('Y-m-d');
-				while( $this->evolutionDate != $today ){
+				while( $this->evolutionDate <= $today ){
 					$this->id = null; //force add
 
-					$sql = "
-						SELECT SUM(amount) AS 'sum', typeFK
-						FROM payment
-						WHERE originFK = :origin
-						AND paymentDate = :date
-						GROUP BY typeFK
-					";
-
-					$q = $this->_db->prepare($sql);
-					$q->execute( array(':origin' => $origin, ':date' => $this->evolutionDate) );
-					$rs = $q->fetchAll();
+					$s->execute( array(
+						':origin1' => $origin,
+						':origin2' => $origin,
+						':date1' => $this->evolutionDate,
+						':date2' => $this->evolutionDate
+					) );
+					$rs = $s->fetchAll();
 					if( !empty($rs) ){
 						foreach( $rs as $data ){
 							if( $data['typeFK'] == 1 ){
@@ -108,9 +124,14 @@ class evolution extends common {
 					$this->save();
 
 					//set the date to next day
-					$this->evolutionDate = date("Y-m-d", strtotime("+1 day", strtotime($this->evolutionDate)) );
+					$this->evolutionDate = date("Y-m-d", strtotime("+1 day", strtotime( $this->evolutionDate )) );
+
+					$s->closeCursor();
 				}
+
+				$q->closeCursor();
 			}
+
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

@@ -9,21 +9,11 @@
 	{/strip}
 </nav>
 
-{include "form.tpl"}
-
-{* temporary, bottom left *}
-<aside id="layouts">
-	Affichage :
-	{strip}
-		<a href="#masonry" class="button left pill">masonry</a>
-		<a href="#fitRows" class="button middle primary pill">fitRows</a>
-		<a href="#cellsByRow" class="button middle pill">cellsByRow</a>
-		<a href="#straightDown" class="button middle pill">straightDown</a>
-		<a href="#masonryHorizontal" class="horizontal button middle pill">masonryHorizontal</a>
-		<a href="#fitColumns" class="horizontal button middle pill">fitColumns</a>
-		<a href="#cellsByColumn" class="horizontal button right pill">cellsByColumn</a>
-	{/strip}
+<aside id="next_month">
+	<a href="#" class="button pill" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
 </aside>
+
+{include "form.tpl"}
 
 {* top right, years visible, months on hover *}
 <aside id="time_frame">

@@ -18,8 +18,8 @@
 		>
 
 			<div class="buttons">
-				<a class="button" href="{$payment['id']}" title="Editer ce paiement"><span class="pen icon"></span>Editer</a>
-				<a class="button" href="{$payment['id']}" title="Supprimer ce paiement"><span class="trash icon"></span>Supprimer</a>
+				<a class="button edit" href="{$payment['id']}" title="Editer ce paiement"><span class="pen icon"></span>Editer</a>
+				<a class="button delete" href="{$payment['id']}" title="Supprimer ce paiement"><span class="trash icon"></span>Supprimer</a>
 			</div>
 			<dl>
 				<dd>

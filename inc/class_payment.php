@@ -324,11 +324,8 @@ class payment extends common {
 
 		if( empty($errors) ){
 
-			$this->hasAmountBeenModified = false;
 			if( $action == 'update' ){
 				$this->load($formData['id']);
-
-				if( $this->amount != $formData['amount'] ) $this->hasAmountBeenModified = true;
 			}
 
 			foreach( self::$_fields[$this->_table] as $k => $v ){
@@ -341,18 +338,16 @@ class payment extends common {
 	}
 
 	/**
-	 * overload of common function to manage balance table updates
+	 * overload of common function to manage evolution table
 	 */
 	public function save(){
 		parent::save();
 
-		if( $this->hasAmountBeenModified ){
-			//delete evolutions since the updated payment date
-			$oEvolution = new evolution();
-			$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
-			//calculate all missing evolution until today
-			$oEvolution->calculateEvolution();
-		}
+		//delete evolutions since the updated payment date
+		$oEvolution = new evolution();
+		$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
+		//calculate all missing evolution until today
+		$oEvolution->calculateEvolution();
 	}
 
 	/**
@@ -532,13 +527,44 @@ class payment extends common {
 			$sums = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
+				//get the balance of each origin per month by getting the previous month last day balance
+				$sql = "
+					SELECT amount, DATE_FORMAT(DATE_ADD(evolutionDate, INTERVAL 1 DAY), '%y%m') AS `month`, e.originFK, currencyFK
+					FROM evolution e
+					INNER JOIN limits l ON l.originFK = e.originFK
+					WHERE l.ownerFK = :owner
+				";
+
+				$frame = explode(',', $frame);
+				$where = array();
+				$params = array(':owner' => $this->getOwner());
+				foreach( $frame as $i => $partialDate ){
+					$where[] = 'evolutionDate = DATE_FORMAT(DATE_SUB(:partial'.$i.', INTERVAL 1 DAY), \'%Y-%m-%d\')';
+					$params[':partial'.$i] = $partialDate.'-01';
+				}
+				if( !empty($where) ) $sql .= "AND (".implode(' OR ', $where).")";
+
+				$sql .= "
+					ORDER BY `month`, originFK, currencyFK
+				";
+				$e = $this->_db->prepare($sql);
+				$e->execute($params);
+
+				$sums = array('balance' => array(), 'list' => array(), 'fromto' => array());
+				if( $e->rowCount() > 0 ){
+					while( $r = $e->fetch() ){
+						$sums['balance'][ $r['month'] ][ $r['originFK'] ][ $r['currencyFK'] ] = $r['amount'];
+					}
+				}
+
+
 				// type = 1 means deposits, and for them it's the recipient
 				// recipient and origin have the same ids for bank accounts and cash
 				$sql = "
 					SELECT `month`, sum, paymentDate, fromto, typeFK, currencyFK
 					FROM (
 							(
-								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT DATE_FORMAT(p.paymentDate, '%y%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner1
@@ -547,7 +573,7 @@ class payment extends common {
 								AND p.currencyFK = l.currencyFK
 								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
 							) UNION (
-								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT DATE_FORMAT(p.paymentDate, '%y%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner2
@@ -559,10 +585,9 @@ class payment extends common {
 					) sub
 				";
 
+
 				$where = array();
 				$params = array(':owner1' => $this->getOwner(), ':owner2' => $this->getOwner());
-
-				$frame = explode(',', $frame);
 				foreach( $frame as $i => $partialDate ){
 					$where[] = 'paymentDate LIKE :partial'.$i;
 					$params[':partial'.$i] = $partialDate.'-__';
@@ -577,14 +602,21 @@ class payment extends common {
 				$q = $this->_db->prepare($sql);
 				$q->execute($params);
 
-				$sums = array();
 				if( $q->rowCount() > 0 ){
 					while( $r = $q->fetch() ){
-						$sums['list'][ $r['month'] ][ $r['typeFK'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
 						$sums['fromto'][] = $r['fromto'];
 
+						$sums['list'][ $r['month'] ][ $r['typeFK'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
+
 						if( !isset($sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ]) ){
-							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] = 0;
+							if(    isset($sums['balance'][ $r['month'] ])
+								&& isset($sums['balance'][ $r['month'] ][ $r['fromto'] ])
+								&& isset($sums['balance'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ])
+							){
+								$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $sums['balance'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ];
+							} else {
+								$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] = 0;
+							}
 						}
 						if( $r['typeFK'] == 1 ){
 							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] += $r['sum'];
@@ -594,6 +626,7 @@ class payment extends common {
 					}
 					$sums['fromto'] = array_unique($sums['fromto']);
 				}
+
 				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
 			}
 

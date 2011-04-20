@@ -250,7 +250,7 @@
 			position: fixed;
 			top: 50px;
 			right: 0;
-			max-width: 17%;
+			max-width: 20%;
 			max-height: 700px;
 			overflow-y: auto;
 			overflow-x: hidden;
@@ -291,6 +291,17 @@
 
 		#sums td:not(.type) {
 			text-align: right;
+		}
+
+		#sums table {
+			width: 100%;
+		}
+
+		#sums hr {
+			width: 100%;
+			height: 2px;
+			background-color: #fff;
+			border-top: 1px solid #666;
 		}
 
 		#forecasts {
@@ -358,8 +369,8 @@
 
 			#container {
 				padding: 0;
-				margin: 0 1% 30px 0;
-				max-width: 82%;
+				margin: 0 0 30px 0;
+				max-width: 79%;
 			}
 
 	/**
@@ -582,8 +593,8 @@
 			color: red;
 		}
 
-	/* layouts */
-		#layouts {
+	/* next month recurrent payments generation button */
+		#next_month {
 			position: fixed;
 			bottom: 0;
 			left: 0;
@@ -594,9 +605,6 @@
 			border-radius: 0 6px 0 0;
 			padding: 5px;
 			z-index: 100;
-		}
-		#layouts ul {
-			display: inline-block;
 		}
 
 	/* time frame */
