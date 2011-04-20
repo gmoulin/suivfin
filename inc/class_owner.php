@@ -123,9 +123,9 @@ class owner extends common {
 			$list = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT ".( $forAll ? "owner_id, " : "" )." origin_id, currency_id
+					SELECT ".( $forAll ? "ownerFK, " : "" )." originFK, currencyFK
 					FROM ".$this->_link."
-					".( !$forAll ? "WHERE owner_id = :owner" : "" )."
+					".( !$forAll ? "WHERE ownerFK = :owner" : "" )."
 				");
 				if( !$forAll ){
 					$q->execute( array(':owner' => $this->getOwner()) );

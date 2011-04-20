@@ -68,8 +68,8 @@ try {
 			}
 
 			$limit = rand(0, $limitsLenght[$owner]);
-			$origin = $limits[$owner][$limit]['origin_id'];
-			$currency = $limits[$owner][$limit]['currency_id'];
+			$origin = $limits[$owner][$limit]['originFK'];
+			$currency = $limits[$owner][$limit]['currencyFK'];
 
 			$_POST = array(
 				'action'		=> 'add',

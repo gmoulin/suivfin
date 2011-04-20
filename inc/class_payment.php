@@ -347,15 +347,11 @@ class payment extends common {
 		parent::save();
 
 		if( $this->hasAmountBeenModified ){
-			//update balance lastUpdate field for the batch
-			$eBalance = new balance();
-			$eBalance->loadByFKs($this->_data['currencyFK'], $this->_data['originFK'], $this->_data['typeFK']);
-
-			if( !empty($eBalance->id) ){
-				$eBalance->lastUpdate = $this->creationDate;
-
-				$eBalance->save();
-			}
+			//delete evolutions since the updated payment date
+			$oEvolution = new evolution();
+			$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
+			//calculate all missing evolution until today
+			$oEvolution->calculateEvolution();
 		}
 	}
 
@@ -544,20 +540,20 @@ class payment extends common {
 							(
 								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
-								INNER JOIN ".$this->_join." l ON p.ownerFK = l.owner_id
+								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner1
 								AND p.typeFK != 1
-								AND p.originFK = l.origin_id
-								AND p.currencyFK = l.currency_id
+								AND p.originFK = l.originFK
+								AND p.currencyFK = l.currencyFK
 								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
 							) UNION (
 								SELECT DATE_FORMAT(p.paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
-								INNER JOIN ".$this->_join." l ON p.ownerFK = l.owner_id
+								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner2
 								AND p.typeFK = 1
-								AND p.recipientFK = l.origin_id
-								AND p.currencyFK = l.currency_id
+								AND p.recipientFK = l.originFK
+								AND p.currencyFK = l.currencyFK
 								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
 							)
 					) sub

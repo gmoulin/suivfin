@@ -38,9 +38,9 @@ try {
 							$oOwner = new owner();
 							$limits = $oOwner->getLimits(true);
 							foreach( $limits as $limit ){
-								if( $deposit_recipient == $limit['origin_id'] ){
-									$currency = $limit['currency_id'];
-									$owner = $limit['owner_id'];
+								if( $deposit_recipient == $limit['originFK'] ){
+									$currency = $limit['currencyFK'];
+									$owner = $limit['ownerFK'];
 									break;
 								}
 							}

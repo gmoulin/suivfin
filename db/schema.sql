@@ -185,40 +185,7 @@ CREATE  TABLE IF NOT EXISTS `suivfin`.`payment` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = MyISAM
-COMMENT = 'contient les entrées et sorties d\'argent';
-
-
--- -----------------------------------------------------
--- Table `suivfin`.`balance`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `suivfin`.`balance` ;
-
-CREATE  TABLE IF NOT EXISTS `suivfin`.`balance` (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `currencyFK` INT(11) UNSIGNED NOT NULL ,
-  `originFK` INT(11) UNSIGNED NOT NULL ,
-  `typeFK` INT(11) UNSIGNED NOT NULL ,
-  `lastUpdate` DATE NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `balanceCurrencyFK` (`currencyFK` ASC) ,
-  INDEX `balanceOriginFK` (`originFK` ASC) ,
-  INDEX `balanceTypeFK` (`typeFK` ASC) ,
-  CONSTRAINT `balanceCurrencyFK`
-    FOREIGN KEY (`currencyFK` )
-    REFERENCES `suivfin`.`currency` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `balanceOriginFK`
-    FOREIGN KEY (`originFK` )
-    REFERENCES `suivfin`.`origin` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `balanceTypeFK`
-    FOREIGN KEY (`typeFK` )
-    REFERENCES `suivfin`.`type` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = MyISAM;
+COMMENT = 'contient les entrées et sorties d\'argent' ;
 
 
 -- -----------------------------------------------------
@@ -227,18 +194,12 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`evolution` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`evolution` (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `originFK` INT(11) NOT NULL ,
   `evolutionDate` DATE NOT NULL ,
-  `balanceFK` INT NOT NULL ,
   `amount` DECIMAL(10,2) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `evolutionDateIDX` (`evolutionDate` ASC) ,
-  INDEX `evolutionBalanceFK` (`balanceFK` ASC) ,
-  CONSTRAINT `evolutionBalanceFK`
-    FOREIGN KEY (`balanceFK` )
-    REFERENCES `suivfin`.`balance` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`originFK`, `evolutionDate`) ,
+  INDEX `originIDX` (`originFK` ASC) ,
+  INDEX `evolutionDateIDX` (`evolutionDate` ASC) )
 ENGINE = MyISAM;
 
 
@@ -261,26 +222,25 @@ ENGINE = MyISAM;
 DROP TABLE IF EXISTS `suivfin`.`limits` ;
 
 CREATE  TABLE IF NOT EXISTS `suivfin`.`limits` (
-  `owner_id` INT(11) UNSIGNED NOT NULL ,
-  `origin_id` INT(11) UNSIGNED NOT NULL ,
-  `currency_id` INT(11) UNSIGNED NOT NULL ,
-  PRIMARY KEY (`owner_id`, `origin_id`, `currency_id`) ,
-  INDEX `originFK` (`origin_id` ASC) ,
-  INDEX `ownerFK` (`owner_id` ASC) ,
-  INDEX `currencyFK` (`currency_id` ASC) ,
-  UNIQUE INDEX `origin_currency_UDX` (`origin_id` ASC, `currency_id` ASC) ,
+  `ownerFK` INT(11) UNSIGNED NOT NULL ,
+  `originFK` INT(11) UNSIGNED NOT NULL ,
+  `currencyFK` INT(11) UNSIGNED NOT NULL ,
+  PRIMARY KEY (`ownerFK`, `originFK`, `currencyFK`) ,
+  INDEX `originFK` (`originFK` ASC) ,
+  INDEX `ownerFK` (`ownerFK` ASC) ,
+  INDEX `currencyFK` (`currencyFK` ASC) ,
   CONSTRAINT `originFK`
-    FOREIGN KEY (`origin_id` )
+    FOREIGN KEY (`originFK` )
     REFERENCES `suivfin`.`origin` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `ownerFK`
-    FOREIGN KEY (`owner_id` )
+    FOREIGN KEY (`ownerFK` )
     REFERENCES `suivfin`.`owner` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `currencyFK`
-    FOREIGN KEY (`currency_id` )
+    FOREIGN KEY (`currencyFK` )
     REFERENCES `suivfin`.`currency` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
@@ -295,120 +255,122 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`type`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('1', 'dépôt');
-INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('2', 'dépense');
-INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES ('3', 'transfert');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES (1, 'dépôt');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES (2, 'dépense');
+INSERT INTO `suivfin`.`type` (`id`, `name`) VALUES (3, 'transfert');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`currency`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES ('1', 'Euro', '€');
-INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES ('2', 'Franc', 'CHF');
+INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES (1, 'Euro', '€');
+INSERT INTO `suivfin`.`currency` (`id`, `name`, `symbol`) VALUES (2, 'Franc', 'CHF');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`method`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('1', 'prélèvement');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('2', 'virement');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('3', 'carte');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('4', 'chèque');
-INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES ('5', 'liquide');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES (1, 'prélèvement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES (2, 'virement');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES (3, 'carte');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES (4, 'chèque');
+INSERT INTO `suivfin`.`method` (`id`, `name`) VALUES (5, 'liquide');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`origin`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('1', 'BNP Commun');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('2', 'BNP Guillaume');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('3', 'BNP Kariade');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('4', 'Postfinance Commun');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('5', 'Postfinance Guillaume');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('6', 'Postfinance Kariade');
-INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES ('7', 'Liquide');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (1, 'BNP Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (2, 'BNP Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (3, 'BNP Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (4, 'Postfinance Commun');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (5, 'Postfinance Guillaume');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (6, 'Postfinance Kariade');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (7, 'Liquide Euro');
+INSERT INTO `suivfin`.`origin` (`id`, `name`) VALUES (8, 'Liquide Franc');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`status`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('1', 'Vérifié');
-INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('2', 'Prévisible');
-INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('3', 'À vérifier');
-INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES ('4', 'À payer');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES (1, 'Vérifié');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES (2, 'Prévisible');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES (3, 'À vérifier');
+INSERT INTO `suivfin`.`status` (`id`, `name`) VALUES (4, 'À payer');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`owner`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('1', 'Guillaume');
-INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('2', 'Kariade');
-INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES ('3', 'Commun');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES (1, 'Guillaume');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES (2, 'Kariade');
+INSERT INTO `suivfin`.`owner` (`id`, `name`) VALUES (3, 'Commun');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`location`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('1', 'Genève');
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('2', 'Carouge');
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('3', 'Saint-Julien-en-Genevois');
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('4', 'Collonge-sous-Salève');
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('5', 'Annemasse');
-INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES ('6', 'Etrembière');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (1, 'Genève');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (2, 'Carouge');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (3, 'Saint-Julien-en-Genevois');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (4, 'Collonge-sous-Salève');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (5, 'Annemasse');
+INSERT INTO `suivfin`.`location` (`id`, `name`) VALUES (6, 'Etrembière');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`recipient`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('1', 'BNP Commun');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('2', 'BNP Guillaume');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('3', 'BNP Kariade');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('4', 'Postfinance Commun');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('5', 'Postfinance Guillaume');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('6', 'Postfinance Kariade');
-INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES ('7', 'Liquide');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (1, 'BNP Commun');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (2, 'BNP Guillaume');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (3, 'BNP Kariade');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (4, 'Postfinance Commun');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (5, 'Postfinance Guillaume');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (6, 'Postfinance Kariade');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (7, 'Liquide Euro');
+INSERT INTO `suivfin`.`recipient` (`id`, `name`) VALUES (8, 'Liquide Franc');
 
 COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `suivfin`.`limits`
 -- -----------------------------------------------------
-SET AUTOCOMMIT=0;
+START TRANSACTION;
 USE `suivfin`;
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '2', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '5', '2');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '3', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '6', '2');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '1', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '4', '2');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '7', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('1', '7', '2');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '7', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('2', '7', '2');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '7', '1');
-INSERT INTO `suivfin`.`limits` (`owner_id`, `origin_id`, `currency_id`) VALUES ('3', '7', '2');
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (1, 2, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (1, 5, 2);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (2, 3, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (2, 6, 2);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (3, 1, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (3, 4, 2);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (1, 7, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (1, 8, 2);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (2, 7, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (2, 8, 2);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (3, 7, 1);
+INSERT INTO `suivfin`.`limits` (`ownerFK`, `originFK`, `currencyFK`) VALUES (3, 8, 2);
 
 COMMIT;

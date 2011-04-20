@@ -80,7 +80,7 @@ try {
 	$limits = $oOwner->getLimits(true);
 	$tmp = array();
 	foreach( $limits as $limit ){
-		$tmp[ $origins_full[ $limit['origin_id'] ] ] = $limit['currency_id'];
+		$tmp[ $origins_full[ $limit['originFK'] ] ] = $limit['currencyFK'];
 	}
 	$limits = $tmp;
 	$smarty->assign('limits', $limits);
