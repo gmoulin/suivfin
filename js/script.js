@@ -1,9 +1,6 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
 $(document).ready(function(){
-	if( $.browser.mozilla ) $('html').addClass('mozilla');
-	else if( $.browser.webkit ) $('html').addClass('webkit');
-
 	var $container = $('#container'),
 		$sums = $('#sums'),
 		$form = $('#payment_form'),
@@ -70,6 +67,12 @@ $(document).ready(function(){
 						}
 					}
 				});
+			}
+		}).delegate('input[name=typeFK]', 'change', function(e){
+			if( this.id == 'type_3' ){
+				$form.find('.ownerChoice').fadeIn();
+			} else {
+				$form.find('.ownerChoice:visible').fadeOut();
 			}
 		});
 
@@ -277,11 +280,15 @@ $(document).ready(function(){
 				$months.find(':checkbox').each(function(i, cb){
 					cb.checked = isChecked;
 				});
+
+			//check the year checkbox if needed
+			} else {
+				$(this).closest('ul').parent().find('.year').attr('checked', 'checked');
 			}
 
 			//wait 500ms before reloading data, help when user check several checkboxes quickly
 			clearTimeout(buffer);
-			buffer = setTimeout(function(){ reloadPayments( $container, filters, $sums); }, 500);
+			buffer = setTimeout(function(){ reloadPayments($container, filters, $sums); }, 500);
 		});
 
 	//sums cells hover
@@ -378,6 +385,7 @@ $.fn.resetForm = function(){
 				if( field.type == 'radio' ) field.checked = false;
 				else field.value = '';
 			});
+		$f.find('.ownerChoice').hide();
 		$('#recurrent_0').attr('checked', 'checked');
 		$('#type_2').attr('checked', 'checked');
 		$('#action').val('add');

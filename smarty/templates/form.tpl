@@ -9,12 +9,22 @@
 		<h1>Paiement pour {$owners[$owner]}</h1>
 		<ul class="clearfix">
 			<li>
-				<label for="typeFK">Type</label>
+				<label for="type_1">Type</label>
 			</li>
 			<li>
 				{foreach $types as $id => $name}
 					<input type="radio" name="typeFK" id="type_{$id}" value="{$id}" required>
 					<label for="type_{$id}">{$name}</label>
+				{/foreach}
+			</li>
+
+			<li class="ownerChoice">
+				<label for="transfert_owner_1">Receveur</label>
+			</li>
+			<li class="ownerChoice">
+				{foreach $owners as $id => $name}
+					<input type="radio" name="transfert_ownerFK" id="transfert_owner_{$id}" value="{$id}" {if $owner == $id}checked="checked"{/if}>
+					<label for="transfert_owner_{$id}">{$name}</label>
 				{/foreach}
 			</li>
 
@@ -56,7 +66,7 @@
 			</li>
 
 			<li>
-				<label for="currencyFK">Monnaie</label>
+				<label for="currency_1">Monnaie</label>
 			</li>
 			<li>
 				{foreach $currencies as $id => $name}
@@ -89,7 +99,7 @@
 			</li>
 
 			<li>
-				<label for="statusFK">Statut</label>
+				<label for="status_1">Statut</label>
 			</li>
 			<li>
 				{foreach $statuses as $id => $name}

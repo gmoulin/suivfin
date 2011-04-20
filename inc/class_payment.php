@@ -33,20 +33,20 @@ class payment extends common {
 		$errors = array();
 
 		$args = array(
-			'action'		=> FILTER_SANITIZE_STRING,
-			'id'			=> FILTER_SANITIZE_NUMBER_INT,
-			'label'			=> FILTER_SANITIZE_STRING,
-			'paymentDate'	=> FILTER_SANITIZE_STRING,
-			'amount'		=> array(FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
-			'comment'		=> FILTER_SANITIZE_STRING,
-			'recurrent'		=> FILTER_SANITIZE_NUMBER_INT,
-			'recipientFK'	=> FILTER_SANITIZE_STRING,
-			'typeFK'		=> FILTER_SANITIZE_NUMBER_INT,
-			'currencyFK'	=> FILTER_SANITIZE_NUMBER_INT,
-			'methodFK'		=> FILTER_SANITIZE_STRING,
-			'originFK'		=> FILTER_SANITIZE_STRING,
-			'statusFK'		=> FILTER_SANITIZE_NUMBER_INT,
-			'locationFK'	=> FILTER_SANITIZE_STRING,
+			'action'			=> FILTER_SANITIZE_STRING,
+			'id'				=> FILTER_SANITIZE_NUMBER_INT,
+			'label'				=> FILTER_SANITIZE_STRING,
+			'paymentDate'		=> FILTER_SANITIZE_STRING,
+			'amount'			=> array(FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
+			'comment'			=> FILTER_SANITIZE_STRING,
+			'recurrent'			=> FILTER_SANITIZE_NUMBER_INT,
+			'recipientFK'		=> FILTER_SANITIZE_STRING,
+			'typeFK'			=> FILTER_SANITIZE_NUMBER_INT,
+			'currencyFK'		=> FILTER_SANITIZE_NUMBER_INT,
+			'methodFK'			=> FILTER_SANITIZE_STRING,
+			'originFK'			=> FILTER_SANITIZE_STRING,
+			'statusFK'			=> FILTER_SANITIZE_NUMBER_INT,
+			'locationFK'		=> FILTER_SANITIZE_STRING,
 		);
 
 		foreach( $args as $field => $validation ){
@@ -166,9 +166,8 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = recipient::existsById($recipientFK);
-							if( $check ){
-								$formData['recipientFK'] = $check;
+							if( recipient::existsById($recipientFK) ){
+								$formData['recipientFK'] = $recipientFK;
 							} else {
 								$errors[] = array('recipientFK', 'Identifiant du bénificiaire inconnu.', 'error');
 							}
@@ -248,9 +247,8 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = method::existsById($methodFK);
-							if( $check ){
-								$formData['methodFK'] = $check;
+							if( method::existsById($methodFK) ){
+								$formData['methodFK'] = $methodFK;
 							} else {
 								$errors[] = array('methodFK', 'Identifiant de la méthode inconnu.', 'error');
 							}
@@ -279,8 +277,7 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = origin::existsById($originFK);
-							if( $check ){
+							if( origin::existsById($originFK) ){
 								$formData['originFK'] = $check;
 							} else {
 								$errors[] = array('originFK', 'Identifiant de l\'origine inconnu.', 'error');
@@ -310,8 +307,7 @@ class payment extends common {
 							}
 						} else {
 							//check if id exists in DB
-							$check = location::existsById($locationFK);
-							if( $check ){
+							if( location::existsById($locationFK) ){
 								$formData['locationFK'] = $check;
 							} else {
 								$errors[] = array('locationFK', 'Identifiant de la localisation inconnu.', 'error');
@@ -326,11 +322,25 @@ class payment extends common {
 
 			if( $action == 'update' ){
 				$this->load($formData['id']);
+
+				$oEvolution = new evolution();
+
+				if( $this->_data['paymentDate'] != $formData['paymentDate'] ){
+					$since = date('Y-m-d', min( strtotime($this->_data['paymentDate']), strtotime($formData['paymentDate']) ) );
+					//delete evolutions for the payment old origin, recalculation will be done in save function
+					$oEvolution->deleteSince($since, $this->_data['originFK']);
+				}
+
+				if( $this->_data['originFK'] != $formData['originFK'] ){
+					//delete evolutions for the payment old origin, recalculation will be done in save function
+					$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
+				}
 			}
 
 			foreach( self::$_fields[$this->_table] as $k => $v ){
 				if( isset($formData[$v]) ) $this->_data[$v] = $formData[$v];
 			}
+
 			$this->_data['ownerFK'] = $this->getOwner();
 		}
 
@@ -343,7 +353,7 @@ class payment extends common {
 	public function save(){
 		parent::save();
 
-		//delete evolutions since the updated payment date
+		//delete evolutions for the payment origin
 		$oEvolution = new evolution();
 		$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
 		//calculate all missing evolution until today
@@ -355,12 +365,13 @@ class payment extends common {
 	 */
 	public function delete(){
 		try {
-			if( parent::delete() === true ){
-				$q = $this->_db->prepare('DELETE FROM balance where typeFK = :id');
-				$q->excute(array(
-					':id' => $this->_data['id'],
-				));
-			}
+			parent::delete();
+
+			//delete evolutions for the payment origin
+			$oEvolution = new evolution();
+			$oEvolution->deleteForOrigin($this->_data['originFK']);
+			//calculate all missing evolution until today
+			$oEvolution->calculateEvolution();
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

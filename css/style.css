@@ -248,10 +248,10 @@
 	/* sum and forecast */
 		#sums {
 			position: fixed;
-			top: 50px;
+			top: 45px;
 			right: 0;
-			max-width: 20%;
-			max-height: 700px;
+			max-width: 22%;
+			max-height: 800px;
 			overflow-y: auto;
 			overflow-x: hidden;
 			background-color: #ccc;
@@ -370,7 +370,7 @@
 			#container {
 				padding: 0;
 				margin: 0 0 30px 0;
-				max-width: 79%;
+				max-width: 77%;
 			}
 
 	/**
@@ -591,6 +591,10 @@
 		.required ~ .tip,
 		.error ~ .tip {
 			color: red;
+		}
+
+		#payment_form li.ownerChoice {
+			display: none;
 		}
 
 	/* next month recurrent payments generation button */

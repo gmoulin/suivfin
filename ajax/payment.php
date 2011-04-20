@@ -40,7 +40,6 @@ try {
 							foreach( $limits as $limit ){
 								if( $deposit_recipient == $limit['originFK'] ){
 									$currency = $limit['currencyFK'];
-									$owner = $limit['ownerFK'];
 									break;
 								}
 							}
@@ -50,7 +49,23 @@ try {
 								if( !empty($mirror->comment) ) $mirror->comment .= "\n";
 								$mirror->comment .= "Montant à vérifier";
 							}
-							$mirror->ownerFK = $owner;
+
+							//the owner for the deposit may not be the current owner
+							$mirror_owner = filter_has_var(INPUT_POST, 'transfert_ownerFK');
+							if( is_null($mirror_owner) || $mirror_owner === false ){
+								throw new Exception('Gestion des paiements : identitifant du receveur manquant.');
+							}
+
+							$mirror_owner = filter_var($_POST['transfert_ownerFK'], FILTER_VALIDATE_INT, array('min_range' => 1));
+							if( $mirror_owner === false ){
+								throw new Exception('Gestion des paiements : identifiant du receveur incorrect.');
+							}
+
+							if( owner::existsById($mirror_owner) ){
+								$mirror->ownerFK = $mirror_owner;
+							} else {
+								throw new Exception('Gestion des paiements : identifiant du receveur inconnu.');
+							}
 
 							$mirror->save();
 						}
