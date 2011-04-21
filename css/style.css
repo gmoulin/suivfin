@@ -261,6 +261,7 @@
 			border-radius: 6px 0 0 6px;
 			padding: 5px;
 			z-index: 99;
+			font-size: 11px;
 		}
 
 		#sums table,
@@ -704,6 +705,10 @@
 			display: block;
 			z-index: 2;
 			white-space: nowrap;
+		}
+
+		#filter select {
+			max-width: 150px;
 		}
 
 	/* sorts */

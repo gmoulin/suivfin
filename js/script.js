@@ -61,13 +61,12 @@ $(document).ready(function(){
 						$form.data('submitting', 0);
 					},
 					success: function(data){
+						$form.data('submitting', 0); //security, sometimes complete() is not called...
 						if( data == 'ok' ){
 							if( needReload ) window.location.reload();
 							else reloadParts();
 
 						} else if( data.payments ){
-							refreshParts( data );
-
 							//form hide
 							$form.removeClass('deploy')
 								 .find('datalist, select').loadList();
@@ -75,6 +74,8 @@ $(document).ready(function(){
 
 							//focus the payment add button
 							$('#form_switch a').focus();
+
+							refreshParts( data );
 
 						} else {
 							//form errors display

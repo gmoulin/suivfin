@@ -367,7 +367,7 @@ class payment extends common {
 
 			//delete evolutions for the payment origin
 			$oEvolution = new evolution();
-			$oEvolution->deleteForOrigin($this->_data['originFK']);
+			$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
 			//calculate all missing evolution until today
 			$oEvolution->calculateEvolution();
 
@@ -537,7 +537,7 @@ class payment extends common {
 
 				//get the balance of each origin per month by getting the previous month last day balance
 				$sql = "
-					SELECT amount, DATE_FORMAT(DATE_ADD(evolutionDate, INTERVAL 1 DAY), '%y%m') AS `month`, e.originFK, currencyFK
+					SELECT amount, DATE_FORMAT(DATE_ADD(evolutionDate, INTERVAL 1 MONTH), '%y-%m') AS `month`, e.originFK, currencyFK
 					FROM evolution e
 					INNER JOIN limits l ON l.originFK = e.originFK
 					WHERE l.ownerFK = :owner
@@ -547,7 +547,7 @@ class payment extends common {
 				$where = array();
 				$params = array(':owner' => $this->getOwner());
 				foreach( $frame as $i => $partialDate ){
-					$where[] = 'evolutionDate = DATE_FORMAT(DATE_SUB(:partial'.$i.', INTERVAL 1 DAY), \'%Y-%m-%d\')';
+					$where[] = 'evolutionDate = DATE_FORMAT(DATE_SUB(:partial'.$i.', INTERVAL 1 MONTH), \'%Y-%m-25\')';
 					$params[':partial'.$i] = $partialDate.'-01';
 				}
 				if( !empty($where) ) $sql .= "AND (".implode(' OR ', $where).")";
@@ -572,7 +572,7 @@ class payment extends common {
 					SELECT `month`, sum, paymentDate, fromto, typeFK, currencyFK
 					FROM (
 							(
-								SELECT DATE_FORMAT(p.paymentDate, '%y%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT IF( DAYOFMONTH(p.paymentDate) <= 24, DATE_FORMAT(p.paymentDate, '%y-%m'), DATE_FORMAT(DATE_ADD(p.paymentDate, INTERVAL 1 MONTH), '%y-%m') ) AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner1
@@ -581,7 +581,7 @@ class payment extends common {
 								AND p.currencyFK = l.currencyFK
 								GROUP BY `month`, p.typeFK, fromto, p.currencyFK
 							) UNION (
-								SELECT DATE_FORMAT(p.paymentDate, '%y%m') AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT IF( DAYOFMONTH(p.paymentDate) <= 24, DATE_FORMAT(p.paymentDate, '%y-%m'), DATE_FORMAT(DATE_ADD(p.paymentDate, INTERVAL 1 MONTH), '%y-%m') ) AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner2
@@ -597,8 +597,9 @@ class payment extends common {
 				$where = array();
 				$params = array(':owner1' => $this->getOwner(), ':owner2' => $this->getOwner());
 				foreach( $frame as $i => $partialDate ){
-					$where[] = 'paymentDate LIKE :partial'.$i;
-					$params[':partial'.$i] = $partialDate.'-__';
+					$where[] = 'paymentDate BETWEEN DATE_FORMAT(DATE_SUB(:partialA'.$i.', INTERVAL 1 MONTH), \'%Y-%m-25\') AND DATE_FORMAT(:partialB'.$i.', \'%Y-%m-24\')';
+					$params[':partialA'.$i] = $partialDate.'-01';
+					$params[':partialB'.$i] = $partialDate.'-01';
 				}
 
 				if( !empty($where) ) $sql .= "WHERE ".implode(' OR ', $where);
@@ -660,13 +661,13 @@ class payment extends common {
 			$forecasts = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT DATE_FORMAT(paymentDate, '%m') AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
+					SELECT IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%m'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%m') ) AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
 					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND typeFK = 2
+					AND typeFK != 1
 					AND statusFK IN (2,4)
-					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
-					AND DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)), '%Y-%m-%d')
+					AND paymentDate BETWEEN IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(CURDATE(), '%Y-%m-25'), DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-25') )
+					AND DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)), '%Y-%m-25')
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
 				");

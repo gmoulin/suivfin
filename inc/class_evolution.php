@@ -100,8 +100,8 @@ class evolution extends common {
 					$this->amount = $rs['amount'];
 				}
 
-				$today = date('Y-m-d');
-				while( $this->evolutionDate <= $today ){
+				$end = date("Y-m-d",strtotime("+2 months"));;
+				while( $this->evolutionDate <= $end ){
 					$this->id = null; //force add
 
 					$s->execute( array(
