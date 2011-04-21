@@ -72,7 +72,7 @@ try {
 					}
 
 					$oPayment->save();
-					$response = 'ok';
+					$response = getFreshData( $smarty );
 				} else {
 					$response = $formData['errors'];
 				}
@@ -90,7 +90,8 @@ try {
 
 				$oPayment = new payment($id);
 				$oPayment->delete();
-				$response = "ok";
+
+				$response = getFreshData( $smarty );
 			break;
 		case 'get':
 				$id = filter_has_var(INPUT_POST, 'id');
@@ -222,25 +223,30 @@ try {
 				$smarty->assign('statuses', $statuses);
 
 				$oCurrency = new currency();
-				$currencies = $oCurrency->loadListForFilter();
-				$smarty->assign('currencies', $currencies);
+				$currenciesWSymbol = $oCurrency->loadList();
+				$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
 				//generate the sums details
 				$smarty->assign('partial', true);
 				$smarty->display('forecast.tpl');
 				die;
 			break;
+		case 'refresh':
+				$response = getFreshData( $smarty );
+			break;
 		case 'initNextMonth':
 				$oPayment = new payment();
 				$oPayment->initNextMonthPayment();
 
-				$response = 'ok';
+				$response = getFreshData( $smarty );
 			break;
 		/*
 		case 'graph':
-			//@todo develop the filters
-				$oPayement = new payment();
-				$response = $oArtist->loadList('paymentDate');
+			multiple type of graphs with same data
+			zoomable parts (year -> month -> day)
+
+			use canvas, maybe with highcharts.js
+
 			break;
 		*/
 		default:
@@ -255,5 +261,63 @@ try {
 	header($_SERVER["SERVER_PROTOCOL"]." 555 Response with exception");
 	echo json_encode($e->getMessage());
 	die;
+}
+
+function getFreshData( &$smarty ){
+	$frame = filter_has_var(INPUT_POST, 'timeframe');
+	if( is_null($frame) || $frame === false ){
+		return 'ok';
+	}
+
+	$frame = filter_var($_POST['timeframe'], FILTER_SANITIZE_STRING);
+	if( $frame === false ){
+		return 'ok';
+	}
+
+	$tmp = explode(',', $frame);
+	if( empty($tmp) ){
+		return 'ok';
+	}
+
+	$oPayement = new payment();
+	$smarty->assign('payments', $oPayement->loadForTimeFrame($frame));
+	$smarty->assign('sums', $oPayement->getSums($frame));
+	$smarty->assign('forecasts', $oPayement->getForecasts());
+
+	$oOwner = new owner();
+	$smarty->assign('owners', $oOwner->loadListForFilter());
+	$smarty->assign('owner', $oOwner->getOwner());
+
+	//get all related lists, normaly they are stashed
+	$oOrigin = new origin();
+	$smarty->assign('origins', $oOrigin->loadListForFilter());
+
+	$oStatus = new status();
+	$smarty->assign('statuses', $oStatus->loadListForFilter());
+
+	$oRecipient = new recipient();
+	$smarty->assign('recipients', $oRecipient->loadListForFilter());
+
+	$oType = new type();
+	$smarty->assign('types', $oType->loadListForFilter());
+
+	$oCurrency = new currency();
+	$smarty->assign('currenciesWSymbol', $oCurrency->loadList());
+
+	$oMethod = new method();
+	$smarty->assign('methods', $oMethod->loadListForFilter());
+
+	$oLocation = new location();
+	$smarty->assign('locations', $oLocation->loadListForFilter());
+
+	//generate the payments details
+	$smarty->assign('partial', true);
+
+	$response = array();
+	$response['payments'] = $smarty->fetch('payment.tpl');
+	$response['sums'] = $smarty->fetch('sum.tpl');
+	$response['forecasts'] = $smarty->fetch('forecast.tpl');
+
+	return $response;
 }
 ?>

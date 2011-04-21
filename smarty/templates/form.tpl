@@ -6,7 +6,7 @@
 	<input type="hidden" id="id" name="id" value="">
 	<input type="hidden" id="action" name="action" value="add">
 	<fieldset>
-		<h1>Paiement pour {$owners[$owner]}</h1>
+		<h1>Paiement par {$owners[$owner]}</h1>
 		<ul class="clearfix">
 			<li>
 				<label for="type_1">Type</label>

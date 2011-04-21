@@ -13,8 +13,6 @@
 class payment extends common {
 	protected $_table = 'payment';
 	protected $_join = 'limits';
-	protected $_relatedStashes = array();
-	protected $_relatedTimestamps = array('payment');
 
 	// Constructor
 	public function __construct($id = null){
@@ -466,7 +464,6 @@ class payment extends common {
 	/**
 	 * dupplicate all current month recurrent payments for next month
 	 * set datePayment to + 1 month, status to 2 (Prévisible)
-	 * @todo make it one time per month only
 	 */
 	public function initNextMonthPayment(){
 		try {

@@ -14,7 +14,6 @@ try {
 	$smarty->assign('js', filemtime( SF_PATH.'/js/script.js' ));
 
 	if( !filter_has_var(INPUT_GET, 'owner') ){
-		//@todo choose owner overlay
 		$owner = 1; //default
 	} else {
 		$owner = filter_input(INPUT_GET, 'owner', FILTER_SANITIZE_NUMBER_INT);

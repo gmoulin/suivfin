@@ -581,25 +581,12 @@ class common {
 		$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 		$stash = new Stash($stashFileSystem);
 
-		$stash->setupKey(get_class($this));
+		$stash->setupKey( get_class($this) );
 		$stash->clear();
-
-		if( isset($this->_relatedStathes) && !empty($this->_relatedStathes) ){
-			foreach( $this->_relatedStathes as $s ){
-				$stash->setupKey($s);
-				$stash->clear();
-			}
-		}
 
 		//update caches timestamps
 		$ts = new list_timestamp();
-		$ts->refresh(get_class($this));
-
-		if( isset($this->_relatedTimestamps) && !empty($this->_relatedTimestamps) ){
-			foreach( $this->_relatedTimestamps as $t ){
-				$ts->refresh($t);
-			}
-		}
+		$ts->refresh( get_class($this) );
 	}
 }
 ?>

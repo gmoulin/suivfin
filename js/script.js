@@ -5,6 +5,7 @@ $(document).ready(function(){
 		$sums = $('#sums'),
 		$form = $('#payment_form'),
 		$filter = $('#filter'),
+		$timeframe = $('#time_frame'),
 		filters = {},
 		buffer = null;
 
@@ -20,7 +21,7 @@ $(document).ready(function(){
 		})
 		.ajaxError(function(event, xhr, settings, exception){
 			console.log('ajaxError');
-			if( xhr.responseText != '' ) inform("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
+			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
 	//forms actions
@@ -36,9 +37,24 @@ $(document).ready(function(){
 
 			if( $(this)[0].checkValidity() && $form.data('submitting') != 1 ){
 				$form.data('submitting', 1); //multiple call protection
+
+				//is next month present in time frame
+				var paymentDate = $('#paymentDate').val().split('/'),
+					newMonth = paymentDate[2] + '-' + paymentDate[1];
+
+				var needReload = false;
+				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
+					$('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
+				} else {
+					needReload = true;
+				}
+
+				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
 				$.ajax({
 					url: 'ajax/payment.php',
-					data: $(':input', '#payment_form').serialize(),
+					data: $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' ),
 					type: 'POST',
 					dataType: 'json',
 					complete: function(){
@@ -46,24 +62,19 @@ $(document).ready(function(){
 					},
 					success: function(data){
 						if( data == 'ok' ){
-							//is next month present in time frame
-							var paymentDate = $('#paymentDate').val().split('/'),
-								newMonth = paymentDate[2] + '-' + paymentDate[1];
+							if( needReload ) window.location.reload();
+							else reloadParts();
 
-							if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
-								reloadPayments( $container, filters, $sums );
+						} else if( data.payments ){
+							refreshParts( data );
 
-								//form hide
-								$form.removeClass('deploy')
-									 .find('datalist, select').loadList();
-								$filter.find('select').loadList();
+							//form hide
+							$form.removeClass('deploy')
+								 .find('datalist, select').loadList();
+							$filter.find('select').loadList();
 
-								//focus the payment add button
-								$('#form_switch a').focus();
-
-							} else {
-								window.location.reload();
-							}
+							//focus the payment add button
+							$('#form_switch a').focus();
 
 						} else {
 							//form errors display
@@ -196,10 +207,17 @@ $(document).ready(function(){
 		}).delegate('.delete', 'click', function(e){
 			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
-				$.post('ajax/payment.php', 'action=delete&id=' + $(this).attr('href'), function(e){
-					reloadPayments( $container, filters, $sums );
-					$form.find('datalist, select').loadList();
-					$filter.find('select').loadList();
+				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
+				$.post('ajax/payment.php', 'action=delete&id=' + $(this).attr('href') + '&timeframe=' + tf, function(data){
+					if( data.payments ){
+						$form.find('datalist, select').loadList();
+						$filter.find('select').loadList();
+
+						refreshParts( data );
+					} else {
+						alert( data );
+					}
 				});
 			}
 		});
@@ -246,21 +264,35 @@ $(document).ready(function(){
 	//next month recurrent payments generation
 		$('#next_month a').click(function(e){
 			e.preventDefault();
+			if( confirm("Êtes-vous sûr ?\nAucune vérification ne sera réalisée !") ){
 
-			$.post('ajax/payment.php', 'action=initNextMonth', function(data){
-				if( data == 'ok' ){
-					//is next month present in time frame
-					var today = new Date(),
-						newMonth = today.getYear() + '-' + today.getMonth();
+				//is next month present in time frame
+				var now = new Date(),
+					next = new Date(now.getFullYear(), now.getMonth()+1, 1),
+					newMonth = next.getFullYear() + '-' + next.getMonth();
 
-					if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
-						reloadPayments( $container, filters, $sums );
+				var needReload = false;
+				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
+					$('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
+				} else {
+					needReload = true;
+				}
+
+				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
+				$.post('ajax/payment.php', 'action=initNextMonth' + ( !needReload ? '&timeframe=' + tf : '' ), function(data){
+					if( data == 'ok' ){
+						if( needReload ) window.location.reload();
+
+					} else if( data.payments ){
+						refreshParts( data );
 
 					} else {
-						window.location.reload();
+						alert( data );
 					}
-				}
-			});
+				});
+			}
 		});
 
 	//time frame chekboxes
@@ -282,7 +314,7 @@ $(document).ready(function(){
 
 			//wait 500ms before reloading data, help when user check several checkboxes quickly
 			clearTimeout(buffer);
-			buffer = setTimeout(function(){ reloadPayments($container, filters, $sums); }, 500);
+			buffer = setTimeout(function(){ reloadParts(); }, 500);
 		});
 
 	//sums cells hover
@@ -314,19 +346,73 @@ $(document).ready(function(){
 				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
 			});
 
-	//buttons active state
-		$('#filter, #sort, #nextMonth, #owners').delegate('.button', 'click', function(){
+	//remove <a.button> active state after click
+		$('#filter, #sort, #next_month, #owners').delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
+
+
+	/**
+	 * refresh the payments, forecast and sum parts with ajax return
+	 * @params json data: array containing payments, forecasts and sums html code
+	 */
+	function resfreshParts( data ){
+		$sums.empty().html( data.sums );
+
+		var $forecast = $('#forecasts'),
+			title = $forecast.children('h2').detach();
+		$forecast.empty().html( data.forecasts ).prepend( title );
+
+		//empty list then add new elements
+		var $items = $( data.payments );
+		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+		applyFilters();
+	}
+
+
+	/**
+	 * reload the payments, sums and forecasts according to the selected months
+	 */
+	function reloadParts(){
+		var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+		if( tf == '' ) return;
+
+		//resfresh sums
+		$.post('ajax/payment.php', 'action=refresh&timeframe=' + tf, function(data){
+			if( data.payments ){
+				resfreshParts( data );
+			} else {
+				alert( data );
+			}
+		});
+	}
+
+
+	/**
+	 * apply given filters to isotope
+	 * and sums
+	 */
+	function applyFilters(){
+		var isoFilters = [],
+			prop;
+
+		for ( prop in filters ) {
+			isoFilters.push( filters[ prop ] );
+		}
+
+		/* use of * as "all" selector can cause error with 2 or more consecutive * */
+		$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
+
+		var sortName = $('#sort a.primary').attr('href').substr(1);
+		$container.isotope({ sortBy: sortName });
+	}
 });
 
 /**
  * ajax load for <datalist> and <select> options
  */
 $.fn.loadList = function(){
-	console.log('loadList');
 	return this.each(function(){
-		console.log('loadList inner');
 		var $list = $(this);
 
 		//ask the list values to the server and create the <option>s with it
@@ -386,49 +472,6 @@ $.fn.resetForm = function(){
 	});
 }
 
-/**
- * apply given filters to isotope
- * and sums
- */
-function applyFilters( $container, filters ){
-	var isoFilters = [],
-		prop;
-
-	for ( prop in filters ) {
-		isoFilters.push( filters[ prop ] );
-	}
-
-	/* use of * as "all" selector can cause error with 2 or more consecutive * */
-	$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
-
-	var sortName = $('#sort a.primary').attr('href').substr(1);
-	$container.isotope({ sortBy: sortName });
-}
-
-/**
- * reload the payments according to the selected months
- */
-function reloadPayments( $container, filters, $sums ){
-	var tf = $('#time_frame :checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-	if( tf == '' ) return;
-
-	//resfresh sums
-	$.post('ajax/payment.php', 'action=sum&timeframe=' + tf, function(data){
-		$sums.empty().html( data );
-	});
-	//refresh forecast
-	$.post('ajax/payment.php', 'action=forecast', function(data){
-		var title = $forecast.children('h2').detach();
-		$forecast.empty().html( data ).prepend( title );
-	});
-	//refresh payments
-	$.post('ajax/payment.php', 'action=list&timeframe=' + tf, function(data){
-		//empty list then add new elements
-		var $items = $(data);
-		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
-		applyFilters( $container, filters );
-	});
-}
 
 /**
  * display the form errors
@@ -444,16 +487,3 @@ function formErrors( data ) {
 		$('#' + error[0]).parent().append( $('<span>', { 'class': 'tip', 'text': error[1] }) ); //add error message
 	});
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
