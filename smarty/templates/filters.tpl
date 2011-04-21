@@ -14,7 +14,7 @@
 	</section>
 
 	<section>
-		Origine : <output></output>
+		Origine :
 		<select name="origin" id="origin_filter">
 			{strip}
 				<option value="*" selected="selected">Tout</option>

@@ -8,7 +8,7 @@
 				<tr>
 					<th>{$lang_months[$month|substr:-2]}</th>
 					{foreach $sums.fromto as $fromto}
-						<th class="fromto">{$origins[$fromto]|replace:$owners[$owner]:''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}</th>
+						<th class="fromto">{$origins[$fromto]|replace:$owners[$owner]:''|replace:'Liquide ':''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}</th>
 					{/foreach}
 				</tr>
 			</thead>

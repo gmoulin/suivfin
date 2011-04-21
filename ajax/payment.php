@@ -22,7 +22,7 @@ try {
 
 				if ( empty($formData['errors']) ) {
 					//if it's a new transfert, create the mirror deposit
-					if( empty($oPayment->id) && $oPayment->typeFK == 3 ){
+					if( $action == 'add' && empty($oPayment->id) && $oPayment->typeFK == 3 ){
 						//is the recipient a valid origin ? (also used for limitation)
 						$oRecipient = new recipient($oPayment->recipientFK);
 						$deposit_recipient = origin::existsByLabel($oRecipient->name);
@@ -46,7 +46,7 @@ try {
 
 							if( $mirror->currencyFK != $currency ){
 								$mirror->currencyFK = $currency;
-								if( !empty($mirror->comment) ) $mirror->comment .= "\n";
+								if( strlen($mirror->comment) ) $mirror->comment .= "\n";
 								$mirror->comment .= "Montant à vérifier";
 							}
 

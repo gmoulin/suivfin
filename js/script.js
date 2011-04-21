@@ -34,14 +34,15 @@ $(document).ready(function(){
 		$form.submit(function(e){
 			e.preventDefault();
 
-			if( $(this)[0].checkValidity() ){
+			if( $(this)[0].checkValidity() && $form.data('submitting') != 1 ){
+				$form.data('submitting', 1); //multiple call protection
 				$.ajax({
 					url: 'ajax/payment.php',
 					data: $(':input', '#payment_form').serialize(),
 					type: 'POST',
 					dataType: 'json',
 					complete: function(){
-						$('#formSubmit').data('save_clicked', 0);
+						$form.data('submitting', 0);
 					},
 					success: function(data){
 						if( data == 'ok' ){
@@ -56,6 +57,9 @@ $(document).ready(function(){
 								$form.removeClass('deploy')
 									 .find('datalist, select').loadList();
 								$filter.find('select').loadList();
+
+								//focus the payment add button
+								$('#form_switch a').focus();
 
 							} else {
 								window.location.reload();
@@ -73,17 +77,6 @@ $(document).ready(function(){
 				$form.find('.ownerChoice').fadeIn();
 			} else {
 				$form.find('.ownerChoice:visible').fadeOut();
-			}
-		});
-
-		$('#formSubmit').click(function(e){
-			console.log('formSubmit click');
-
-			//multiple call protection
-			if( $(this).data('save_clicked') != 1 ){
-				$(this).data('save_clicked', 1);
-			} else {
-				e.preventDefault();
 			}
 		});
 
@@ -117,6 +110,7 @@ $(document).ready(function(){
 		$('#originFK').change(function(e){
 			if( this.value != '' && limits[ this.value ] ){
 				$('#currency_' + limits[ this.value ]).attr('checked', 'checked');
+				$('#amount').focus();
 			}
 		});
 
@@ -417,10 +411,17 @@ function applyFilters( $container, filters ){
 function reloadPayments( $container, filters, $sums ){
 	var tf = $('#time_frame :checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
 	if( tf == '' ) return;
-	//do both ajax call to refresh sums and list then reapply filters
+
+	//resfresh sums
 	$.post('ajax/payment.php', 'action=sum&timeframe=' + tf, function(data){
 		$sums.empty().html( data );
-	}),
+	});
+	//refresh forecast
+	$.post('ajax/payment.php', 'action=forecast', function(data){
+		var title = $forecast.children('h2').detach();
+		$forecast.empty().html( data ).prepend( title );
+	});
+	//refresh payments
 	$.post('ajax/payment.php', 'action=list&timeframe=' + tf, function(data){
 		//empty list then add new elements
 		var $items = $(data);
