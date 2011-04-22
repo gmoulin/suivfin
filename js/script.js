@@ -338,12 +338,14 @@ $(document).ready(function(){
 				var $this = $(this),
 					index = $this.parent().children('td').index($this);
 
+				$this.siblings('th').addClass('highlight');
 				$this.closest('table').find('thead th.fromto:eq(' + index + ')').addClass('highlight');
 			})
 			.delegate('tfoot td', 'mouseleave', function(){
 				var $this = $(this),
 					index = $this.parent().children('td').index($this);
 
+				$this.siblings('th').removeClass('highlight');
 				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
 			});
 

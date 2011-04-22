@@ -25,8 +25,11 @@ try {
 
 		$lastModified = 0;
 		$target = $field;
-		if( strpos($field, 'List') !== false ) $target = substr($field, 0, -4);
+
+		if( $field == 'labelList' ) $target = 'payment';
+		elseif( strpos($field, 'List') !== false ) $target = substr($field, 0, -4);
 		elseif( strpos($field, '_filter') !== false ) $target = substr($field, 0, -7);
+
 		if( $browserHasCache ){
 			$ts = new list_timestamp($target);
 			if( !empty($ts->id) ){
@@ -48,6 +51,13 @@ try {
 		$list = array();
 		switch ( $field ){
 			/* form fields */
+			case 'labelList':
+					$oPayement = new Payment();
+					$labels = $oPayment->loadLabelList();
+
+					$ts = new list_timestamp('payment');
+					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
+				break;
 			case 'currencyList':
 			case 'locationList':
 			case 'methodList':

@@ -346,6 +346,41 @@ class payment extends common {
 	}
 
 	/**
+	 * @return array[key][entry]
+	 */
+	public function loadLabelList(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__);
+			$list = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+
+				$loadList = $this->_db->prepare("
+					SELECT DISTINCT(label) FROM ".$this->_table." ORDER BY label
+				");
+
+				$loadList->execute();
+
+				$list = array();
+				while( $rs = $loadList->fetch() ){
+					$list[] = $rs['label'];
+				}
+
+				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+			}
+
+			return $list;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
 	 * overload of common function to manage evolution table
 	 */
 	public function save(){
@@ -394,8 +429,8 @@ class payment extends common {
 					SELECT *
 					FROM ".$this->_table."
 					WHERE ownerFK = :owner
-					AND paymentDate BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
-					AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
+					AND paymentDate BETWEEN IF( DAYOFMONTH(CURDATE()) <= 24, DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-25'), DATE_FORMAT(CURDATE(), '%Y-%m-25') )
+					AND IF( DAYOFMONTH(CURDATE()) <= 24, DATE_FORMAT(CURDATE(), '%Y-%m-24'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-24') )
 					ORDER BY paymentDate desc
 				");
 				$q->execute( array(':owner' => $this->getOwner()) );
@@ -425,7 +460,7 @@ class payment extends common {
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
 			$list = $stash->get();
-			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+			if( 1 || $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				//construct the query and parameters
 				$sql = "
 					SELECT *
@@ -438,11 +473,12 @@ class payment extends common {
 				$frame = explode(',', $frame);
 
 				foreach( $frame as $i => $partialDate ){
-					$where[] = 'paymentDate LIKE :partial'.$i;
-					$params[':partial'.$i] = $partialDate.'-__';
+					$where[] = 'paymentDate BETWEEN DATE_SUB(:partialA'.$i.', INTERVAL 1 MONTH) AND :partialB'.$i;
+					$params[':partialA'.$i] = $partialDate.'-25';
+					$params[':partialB'.$i] = $partialDate.'-24';
 				}
 
-				if( !empty($where) ) $sql .= " AND (".implode(' OR ', $where).")";
+				if( !empty($where) ) $sql .= " AND ( (".implode(') OR (', $where).") )";
 
 				$sql .= " ORDER BY paymentDate desc";
 
@@ -472,10 +508,9 @@ class payment extends common {
 				(`label`, `paymentDate`, `amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, `statusFK`, `ownerFK`, `locationFK`, `creationDate`, `modificationDate`)
 				SELECT `label`, DATE_ADD(`paymentDate`, INTERVAL 1 MONTH) AS paymentDate, `amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, 2, `ownerFK`, `locationFK`, NOW(), NOW()
 				FROM ".$this->_table."
-				WHERE paymentDate
-				BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
-				AND DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d')
-				AND recurrent = 1
+				WHERE recurrent = 1
+				AND paymentDate BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-25')
+				AND DATE_FORMAT(CURDATE(), '%Y-%m-24')
 			");
 
 			$q->execute();
@@ -535,7 +570,7 @@ class payment extends common {
 			$sums = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
-				//get the balance of each origin per month by getting the previous month last day balance
+				//get the balance of each origin per month by getting the previous month last day balance (24)
 				$sql = "
 					SELECT amount, DATE_FORMAT(DATE_ADD(evolutionDate, INTERVAL 1 MONTH), '%y-%m') AS `month`, e.originFK, currencyFK
 					FROM evolution e
@@ -547,8 +582,8 @@ class payment extends common {
 				$where = array();
 				$params = array(':owner' => $this->getOwner());
 				foreach( $frame as $i => $partialDate ){
-					$where[] = 'evolutionDate = DATE_FORMAT(DATE_SUB(:partial'.$i.', INTERVAL 1 MONTH), \'%Y-%m-25\')';
-					$params[':partial'.$i] = $partialDate.'-01';
+					$where[] = 'evolutionDate = DATE_SUB(:partial'.$i.', INTERVAL 1 MONTH)';
+					$params[':partial'.$i] = $partialDate.'-24';
 				}
 				if( !empty($where) ) $sql .= "AND (".implode(' OR ', $where).")";
 
@@ -562,7 +597,9 @@ class payment extends common {
 				if( $e->rowCount() > 0 ){
 					while( $r = $e->fetch() ){
 						$sums['balance'][ $r['month'] ][ $r['originFK'] ][ $r['currencyFK'] ] = $r['amount'];
+						$sums['fromto'][] = $r['originFK'];
 					}
+					$sums['fromto'] = array_unique($sums['fromto']);
 				}
 
 
@@ -593,13 +630,12 @@ class payment extends common {
 					) sub
 				";
 
-
 				$where = array();
 				$params = array(':owner1' => $this->getOwner(), ':owner2' => $this->getOwner());
 				foreach( $frame as $i => $partialDate ){
-					$where[] = 'paymentDate BETWEEN DATE_FORMAT(DATE_SUB(:partialA'.$i.', INTERVAL 1 MONTH), \'%Y-%m-25\') AND DATE_FORMAT(:partialB'.$i.', \'%Y-%m-24\')';
-					$params[':partialA'.$i] = $partialDate.'-01';
-					$params[':partialB'.$i] = $partialDate.'-01';
+					$where[] = 'paymentDate BETWEEN DATE_SUB(:partialA'.$i.', INTERVAL 1 MONTH) AND :partialB'.$i;
+					$params[':partialA'.$i] = $partialDate.'-25';
+					$params[':partialB'.$i] = $partialDate.'-24';
 				}
 
 				if( !empty($where) ) $sql .= "WHERE ".implode(' OR ', $where);
@@ -613,8 +649,6 @@ class payment extends common {
 
 				if( $q->rowCount() > 0 ){
 					while( $r = $q->fetch() ){
-						$sums['fromto'][] = $r['fromto'];
-
 						$sums['list'][ $r['month'] ][ $r['typeFK'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
 
 						if( !isset($sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ]) ){
@@ -633,7 +667,6 @@ class payment extends common {
 							$sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ] -= $r['sum'];
 						}
 					}
-					$sums['fromto'] = array_unique($sums['fromto']);
 				}
 
 				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
@@ -667,7 +700,7 @@ class payment extends common {
 					AND typeFK != 1
 					AND statusFK IN (2,4)
 					AND paymentDate BETWEEN IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(CURDATE(), '%Y-%m-25'), DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-25') )
-					AND DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL 1 MONTH)), '%Y-%m-25')
+					AND IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m-24'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-24') )
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
 				");

@@ -7,13 +7,11 @@
 			<table>
 				<thead>
 					<tr>
-						<th>{$lang_months[$month|substr:-2]}</th>
+						<th title="du 24 précédent au 25">{$lang_months[$month|substr:-2]}</th>
 						{foreach $sums.fromto as $ori}
-							{if isset($origins[$ori])}
-								<th class="fromto">
-									{$origins[$ori]|replace:$owners[$owner]:''|replace:'Liquide ':''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}
-								</th>
-							{/if}
+							<th class="fromto">
+								{$origins[$ori]|replace:$owners[$owner]:''|replace:'Liquide ':''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}
+							</th>
 						{/foreach}
 					</tr>
 				</thead>

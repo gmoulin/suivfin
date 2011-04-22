@@ -33,6 +33,7 @@
 			</li>
 			<li>
 				<input type="text" id="label" name="label" value="" autocomplete="off" required placeholder="courses">
+				<datalist id="labelList"></datalist>
 			</li>
 
 			<li>

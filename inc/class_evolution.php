@@ -91,7 +91,7 @@ class evolution extends common {
 				$q->execute( array(':origin' => $origin) );
 
 				$this->originFK = $origin;
-				$this->evolutionDate = '2011-01-01';
+				$this->evolutionDate = '2010-12-24';
 				$this->amount = 0;
 
 				$rs = $q->fetch();
