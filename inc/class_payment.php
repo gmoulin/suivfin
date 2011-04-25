@@ -460,7 +460,7 @@ class payment extends common {
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
 			$list = $stash->get();
-			if( 1 || $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				//construct the query and parameters
 				$sql = "
 					SELECT *
