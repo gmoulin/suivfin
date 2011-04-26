@@ -368,8 +368,13 @@ $(document).ready(function(){
 			title = $forecast.children('h2').detach();
 		$forecast.empty().html( data.forecasts ).prepend( title );
 
+		//prepare jQuery Template
+		if( !$('#paymentListTemplate').data('tmpl') ){
+			$('#paymentListTemplate').template('paymentList');
+		}
+
 		//empty list then add new elements
-		var $items = $( data.payments );
+		var $items = $.tmpl('paymentList', data);
 		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
 		applyFilters();
 	}
@@ -484,11 +489,63 @@ $.fn.resetForm = function(){
  * use ".class ~ .tip" css rules
  * @param array [[field id, message, error type]]
  */
-function formErrors( data ) {
+function formErrors( data ){
 	console.log('formErrors');
 	$.each(data, function(index, error){
 		$('#' + error[0]).addClass(error[2]).siblings('.tip').remove(); //remove previous error message if present
 
 		$('#' + error[0]).parent().append( $('<span>', { 'class': 'tip', 'text': error[1] }) ); //add error message
 	});
+}
+
+//functions for payment list jquery template
+String.prototype.formatDate = function(){
+	var tmp = this.substr(0, 10).split('-');
+	return tmp[2] + '-' + tmp[1] + '-' + tmp[0];
+}
+
+String.prototype.timestamp = function(){
+	var d = this.substr(0, 10).split('-'),
+		tmp = new Date(d[0], d[1], d[2]);
+	return tmp.getTime();
+}
+
+String.prototype.capitalize = function(){
+	return this.charAt(0).toUpperCase() + this.substr(1);
+}
+
+String.prototype.format = function(sepa, thousandSepa){
+	var num = this,
+		res = "",
+		cent = "",
+		sepa = '.',
+		thousand = '\'';
+
+	if( arguments[0] != undefined ) sepa = arguments[0];
+	if( arguments[1] != undefined ) thousand = arguments[1];
+
+	if( num.indexOf('.') != -1 ){
+		cent = num.slice( num.lastIndexOf('.') + 1, num.length );
+		num = num.slice( 0, num.lastIndexOf('.') );
+	}
+
+	if( num.length > 3 ){
+		while( num.length > 3 ){
+			res = num.slice( num.length - 3, num.length ) + (res.length ? thousand + res : res);
+			num = num.slice( 0, num.length - 3 );
+		}
+	}
+	if( num.length ) res = num + (res.length ? thousand + res : res);
+
+	if( cent.length ) res += sepa + cent;
+
+	return res;
+}
+
+function getValue( data, index ){
+	return data[index];
+}
+
+function getSymbol( data, index ){
+	return data[index].symbol;
 }

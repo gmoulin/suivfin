@@ -1,16 +1,16 @@
 {include "html_header.tpl"}
 
 {* Navigation - top left*}
-<nav id="owners">
+<nav id="owners" class="button-group">
 	{strip}
 		{foreach $owners as $id => $name}
-			<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill {if $name@first}left{elseif $name@last}right{else}middle{/if} {if $id == $owner}primary{/if}">{$name}</a>
+			<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill {if $id == $owner}primary{/if}">{$name}</a>
 		{/foreach}
 	{/strip}
 </nav>
 
 <aside id="next_month">
-	<a href="#" class="button pill" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
+	<a href="#" class="button pill danger" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
 </aside>
 
 {include "form.tpl"}
@@ -47,15 +47,17 @@
 
 {* bottom right *}
 <aside id="sort">
-	Tri :
-	{strip}
-		<a href="#date" class="primary button pill left">date</a>
-		<a href="#recipient" class="button pill middle">bénéficiaire</a>
-		<a href="#method" class="button pill middle">méthode</a>
-		<a href="#origin" class="button pill middle">origine</a>
-		<a href="#status" class="button pill middle">statut</a>
-		<a href="#amount" class="button pill right">montant</a>
-	{/strip}
+	<h2>Tri : </h2>
+	<div class="button-group">
+		{strip}
+			<a href="#date" class="primary button pill">date</a>
+			<a href="#recipient" class="button pill">bénéficiaire</a>
+			<a href="#method" class="button pill">méthode</a>
+			<a href="#origin" class="button pill">origine</a>
+			<a href="#status" class="button pill">statut</a>
+			<a href="#amount" class="button pill">montant</a>
+		{/strip}
+	</div>
 </aside>
 
 {include "payment.tpl"}

@@ -1,8 +1,8 @@
-{if !$partial}
-	<section id="sums">
-{/if}
-{if !empty($sums.list)}
-	{strip}
+{strip}
+	{if !$partial}
+		<section id="sums">
+	{/if}
+	{if !empty($sums.list)}
 		{foreach $sums.list as $month => $sum_types}
 			<table>
 				<thead>
@@ -60,8 +60,8 @@
 			</table>
 			{if !$sum_types@last}<hr />{/if}
 		{/foreach}
-	{/strip}
-{/if}
-{if !$partial}
-	</section>
-{/if}
+	{/if}
+	{if !$partial}
+		</section>
+	{/if}
+{/strip}

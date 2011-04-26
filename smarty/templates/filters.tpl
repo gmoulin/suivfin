@@ -4,11 +4,11 @@
 
 	<section>
 		Fréquence : <output></output>
-		<div>
+		<div class="button-group">
 		{strip}
-			<a href="#" class="primary button pill left" data-group="recurrent" data-filter="*">Tout</a>
-			<a href="#" class="button pill middle" data-group="recurrent" data-filter=".recurrent">Récurrent</a>
-			<a href="#" class="button pill right" data-group="recurrent" data-filter=".punctual">Ponctuel</a>
+			<a href="#" class="primary button pill" data-group="recurrent" data-filter="*">Tout</a>
+			<a href="#" class="button pill" data-group="recurrent" data-filter=".recurrent">Récurrent</a>
+			<a href="#" class="button pill" data-group="recurrent" data-filter=".punctual">Ponctuel</a>
 		{/strip}
 		</div>
 	</section>
@@ -27,11 +27,11 @@
 
 	<section>
 		Status : <output></output>
-		<div>
+		<div class="button-group">
 			{strip}
-				<a href="#" class="primary button pill left" data-group="status" data-filter="*">Tout</a>
+				<a href="#" class="primary button pill" data-group="status" data-filter="*">Tout</a>
 				{foreach $statuses as $id => $name}
-					<a href="#" class="button pill {if $name@last}right{else}middle{/if}" data-group="status" data-filter=".status_{$id}" class="status_{$id}">{$name}</a>
+					<a href="#" class="button pill" data-group="status" data-filter=".status_{$id}" class="status_{$id}">{$name}</a>
 				{/foreach}
 			{/strip}
 		</div>
@@ -51,23 +51,23 @@
 
 	<section>
 		Type : <output></output>
-		<div>
+		<div class="button-group">
 			{strip}
-				<a href="#" class="primary button pill left" data-group="type" data-filter="*">Tout</a>
+				<a href="#" class="primary button pill" data-group="type" data-filter="*">Tout</a>
 				{foreach $types as $id => $name}
-					<a href="#" class="button pill {if $name@last}right{else}middle{/if}" data-group="type" data-filter=".type_{$id}">{$name}</a>
+					<a href="#" class="button pill" data-group="type" data-filter=".type_{$id}">{$name}</a>
 				{/foreach}
 			{/strip}
-		<div>
+		</div>
 	</section>
 
 	<section>
 		Monnaie : <output></output>
-		<div>
+		<div class="button-group">
 			{strip}
-				<a href="#" class="primary button pill left" data-group="currency" data-filter="*">Tout</a>
+				<a href="#" class="primary button pill" data-group="currency" data-filter="*">Tout</a>
 				{foreach $currencies as $id => $name}
-					<a href="#" class="button pill {if $name@last}right{else}middle{/if}" data-group="currency" data-filter=".currency_{$id}">{$name}</a>
+					<a href="#" class="button pill" data-group="currency" data-filter=".currency_{$id}">{$name}</a>
 				{/foreach}
 			{/strip}
 		</div>
@@ -75,11 +75,11 @@
 
 	<section>
 		Méthode : <output></output>
-		<div>
+		<div class="button-group">
 			{strip}
-				<a href="#" class="primary button pill left" data-group="method" data-filter="*">Tout</a>
+				<a href="#" class="primary button pill" data-group="method" data-filter="*">Tout</a>
 				{foreach $methods as $id => $name}
-					<a href="#" class="button pill {if $name@last}right{else}middle{/if}" data-group="method" data-filter=".method_{$id}">{$name}</a>
+					<a href="#" class="button pill" data-group="method" data-filter=".method_{$id}">{$name}</a>
 				{/foreach}
 			{/strip}
 		</div>

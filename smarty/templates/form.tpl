@@ -118,8 +118,8 @@
 			</li>
 		</ul>
 		<div class="formButtons">
-			<button type="submit" id="formSubmit" class="big button positive">Enregistrer</button>
-			<button type="reset" id="formCancel" class="big button negative">Annuler</button>
+			<button type="submit" id="formSubmit" class="big button">Enregistrer</button>
+			<button type="reset" id="formCancel" class="big button danger">Annuler</button>
 		</div>
 	</fieldset>
 </form>

@@ -280,7 +280,7 @@ function getFreshData( &$smarty ){
 	}
 
 	$oPayement = new payment();
-	$smarty->assign('payments', $oPayement->loadForTimeFrame($frame));
+	$payments = $oPayement->loadForTimeFrame($frame);
 	$smarty->assign('sums', $oPayement->getSums($frame));
 	$smarty->assign('forecasts', $oPayement->getForecasts());
 
@@ -290,22 +290,28 @@ function getFreshData( &$smarty ){
 
 	//get all related lists, normaly they are stashed
 	$oOrigin = new origin();
-	$smarty->assign('origins', $oOrigin->loadListForFilter());
+	$origins = $oOrigin->loadListForFilter();
+	$smarty->assign('origins', $origins);
 
 	$oStatus = new status();
-	$smarty->assign('statuses', $oStatus->loadListForFilter());
+	$statuses = $oStatus->loadListForFilter();
+	$smarty->assign('statuses', $statuses);
 
 	$oRecipient = new recipient();
-	$smarty->assign('recipients', $oRecipient->loadListForFilter());
+	$recipients = $oRecipient->loadListForFilter();
+	$smarty->assign('recipients', $recipients);
 
 	$oType = new type();
-	$smarty->assign('types', $oType->loadListForFilter());
+	$types = $oType->loadListForFilter();
+	$smarty->assign('types', $types);
 
 	$oCurrency = new currency();
-	$smarty->assign('currenciesWSymbol', $oCurrency->loadList());
+	$currenciesWSymbol = $oCurrency->loadList();
+	$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
 	$oMethod = new method();
-	$smarty->assign('methods', $oMethod->loadListForFilter());
+	$methods = $oMethod->loadListForFilter();
+	$smarty->assign('methods', $methods);
 
 	$oLocation = new location();
 	$smarty->assign('locations', $oLocation->loadListForFilter());
@@ -314,7 +320,13 @@ function getFreshData( &$smarty ){
 	$smarty->assign('partial', true);
 
 	$response = array();
-	$response['payments'] = $smarty->fetch('payment.tpl');
+	$response['payments'] = $payments;
+	$response['origins'] = $origins;
+	$response['statuses'] = $statuses;
+	$response['recipients'] = $recipients;
+	$response['types'] = $types;
+	$response['currenciesWSymbol'] = $currenciesWSymbol;
+	$response['methods'] = $methods;
 	$response['sums'] = $smarty->fetch('sum.tpl');
 	$response['forecasts'] = $smarty->fetch('forecast.tpl');
 
