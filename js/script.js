@@ -38,9 +38,11 @@ $(document).ready(function(){
 			if( $(this)[0].checkValidity() && $form.data('submitting') != 1 ){
 				$form.data('submitting', 1); //multiple call protection
 
-				//is next month present in time frame
+				//is payment month present in time frame
 				var paymentDate = $('#paymentDate').val().split('/'),
-					newMonth = paymentDate[2] + '-' + paymentDate[1];
+					tmp = new Date(paymentDate[2], paymentDate[1], paymentDate[0]),
+					tmp = (tmp.getDay() >= 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
+					newMonth = tmp.getFullYear() + '-' + tmp.getMonth();
 
 				var needReload = false;
 				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){

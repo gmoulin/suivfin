@@ -536,7 +536,7 @@ class payment extends common {
 			$range = $stash->get();
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
-					SELECT DATE_FORMAT(paymentDate, '%Y') AS `year`, DATE_FORMAT(paymentDate, '%m') AS `month`
+					SELECT IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%Y'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%Y') ) AS `year`,IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%m'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%m') ) AS `month`
 					FROM ".$this->_table."
 					WHERE ownerFK = :owner
 					GROUP BY `year`, `month`
