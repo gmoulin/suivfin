@@ -6,7 +6,7 @@
 
 	{if !empty($forecasts)}
 		{foreach $forecasts as $month => $fc_statuses}
-			<strong>{$lang_months[$month]} :&nbsp;</strong>
+			<strong>{$monthsTranslation[$month]} :&nbsp;</strong>
 			<ul class="statuses">
 				{foreach $fc_statuses as $status => $fc_currencies}
 					<li class="status_{$status}">

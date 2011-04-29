@@ -11,6 +11,7 @@
 		<!-- scripts concatenated and minified via ant build script-->
 		<script src="js/mylibs/jquery.isotope.min.js"></script>
 		<script src="js/mylibs/jquery.tmpl.min.js"></script>
+		<script src="js/mylibs/highcharts.js"></script>
 		<script src="js/plugins.js"></script>
 		<script src="js/script.js?v={$js}"></script>
 		<!-- end scripts-->
@@ -32,9 +33,9 @@
 						data-amount="${payment.amount}"
 					>
 						<div class="buttons button-group">
-							<a class="button pill icon edit" href="${payment.id}" title="Editer ce paiement">Editer</a>
-							<a class="button pill icon fork" href="${payment.id}" title="Duppliquer ce paiement">Duppliquer</a>
-							<a class="button pill icon delete" href="${payment.id}" title="Supprimer ce paiement">Supprimer</a>
+							<a class="button pill icon edit icon-only" href="${payment.id}" title="Editer ce paiement">Editer</a>
+							<a class="button pill icon fork icon-only" href="${payment.id}" title="Duppliquer ce paiement">Duppliquer</a>
+							<a class="button pill icon trash icon-only" href="${payment.id}" title="Supprimer ce paiement">Supprimer</a>
 						</div>
 						<dl>
 							<dd>

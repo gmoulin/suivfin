@@ -39,6 +39,8 @@ class evolution extends common {
 				':origin' => $origin,
 			) );
 
+			$this->_cleanCaches();
+
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}
@@ -137,5 +139,69 @@ class evolution extends common {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}
 	}
+
+
+	/**
+	 * compile evolution data for chart rendering
+	 */
+	public function getEvolutionData(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$result = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$oCurrency = new currency();
+				$currenciesWSymbol = $oCurrency->loadList();
+
+				$oOrigin = new origin();
+				$origins = $oOrigin->loadListForFilter();
+
+				$oOwner = new owner();
+				$tmp = $oOwner->getLimits();
+				$limits = array();
+				foreach( $tmp as $limit ){
+					$limits[ $limit['originFK'] ] = $currenciesWSymbol[ $limit['currencyFK'] ]['symbol'];
+				}
+				$owner = $this->getOwner();
+
+				$q = $this->_db->prepare("
+					SELECT e.originFK, amount
+					FROM ".$this->_table." e
+					INNER JOIN limits l ON l.originFK = e.originFK
+					WHERE ownerFK = :owner
+					AND evolutionDate >= '2011-02-01'
+					ORDER BY e.originFK, evolutionDate
+				");
+
+				$q->execute( array(':owner' => $owner) );
+
+				$result = array();
+				$data = $q->fetchAll();
+
+				if( !empty($data) ){
+					$result = array();
+
+					foreach( $data as $d ){
+						if( !isset($result['sums'][ $origins[ $d['originFK'] ] ]['symbol']) ){
+							$result['sums'][ $origins[ $d['originFK'] ] ]['symbol'] = $limits[ $d['originFK'] ];
+						}
+						$result['sums'][ $origins[ $d['originFK'] ] ]['amounts'][] = $d['amount'];
+					}
+				}
+
+				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+			}
+
+			return $result;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
 }
 ?>

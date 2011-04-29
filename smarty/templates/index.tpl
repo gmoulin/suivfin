@@ -30,7 +30,7 @@
 						<li>
 							<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if $y == $currentYear && $m == $currentMonth}checked="checked"{/if} autocomplete="off">
 							<label for="year_{$y}_month_{$m}">
-								{$lang_months[$m]}
+								{$monthsTranslation[$m]}
 							</label>
 						</li>
 					{/foreach}
@@ -62,5 +62,21 @@
 
 {include "payment.tpl"}
 {include "sum.tpl"}
+
+
+<aside id="switch_view">
+	<a href="#" class="button pill" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+</aside>
+<aside id="chart_type">
+	<h2>Type : </h2>
+	<div class="button-group">
+		{strip}
+			<a href="#" rel="expense" class="primary button pill">Dépenses</a>
+			<a href="#" rel="evolution" class="button pill">Total</a>
+			<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>
+		{/strip}
+	</div>
+</aside>
+<section id="chart"></section>
 
 {include "html_footer.tpl"}

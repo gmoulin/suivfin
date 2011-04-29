@@ -15,9 +15,10 @@
 					data-amount="{$payment['amount']}"
 				>
 
-					<div class="buttons">
-						<a class="button edit" href="{$payment['id']}" title="Editer ce paiement"><span class="pen icon"></span>Editer</a>
-						<a class="button delete" href="{$payment['id']}" title="Supprimer ce paiement"><span class="trash icon"></span>Supprimer</a>
+					<div class="buttons button-group">
+						<a class="button pill edit icon icon-only" href="{$payment['id']}" title="Editer ce paiement">Editer</a>
+						<a class="button pill fork icon icon-only" href="{$payment['id']}" title="Duppliquer ce paiement">Duppliquer</a>
+						<a class="button pill delete danger trash icon icon-only" href="{$payment['id']}" title="Supprimer ce paiement">Supprimer</a>
 					</div>
 					<dl>
 						<dd>

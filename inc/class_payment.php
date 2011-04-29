@@ -722,5 +722,186 @@ class payment extends common {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
 		}
 	}
+
+
+	/**
+	 * compile payments data for chart rendering
+	 */
+	public function getExpenseData(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$result = $stash->get();
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$oType = new type();
+				$types = $oType->loadListForFilter();
+
+				$oCurrency = new currency();
+				$currenciesWSymbol = $oCurrency->loadList();
+
+				$q = $this->_db->prepare("
+					SELECT IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%Y-%m'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%Y-%m') ) AS `month`, SUM( amount ) AS `sum`, typeFK, recurrent, currencyFK
+					FROM ".$this->_table."
+					WHERE ownerFK = :owner
+					AND typeFK = 2
+					AND paymentDate >= '2011-01-25'
+					GROUP BY currencyFK, typeFK, recurrent, `month`
+					ORDER BY currencyFK, typeFK, recurrent, `month`
+				");
+
+				$q->execute( array(':owner' => $this->getOwner()) );
+
+				$monthsTranslation = init::getInstance()->getMonthsTranslation();
+				$result = array();
+				$data = $q->fetchAll();
+
+				if( !empty($data) ){
+					$tmp = array();
+					$months = array();
+
+					foreach( $data as $d ){
+						$months[] = $d['month'];
+
+						if( !isset($tmp[ $d['currencyFK'] ][ $d['typeFK'].'_'.$d['recurrent'] ]) ){
+							$tmp[ $d['currencyFK'] ][ $d['typeFK'].'_'.$d['recurrent'] ] = array();
+						}
+						$tmp[ $d['currencyFK'] ][ $d['typeFK'].'_'.$d['recurrent'] ][ $d['month'] ] = $d['sum'];
+					}
+
+					//get unique month, sort then translate
+					$months = array_unique($months);
+					sort( $months );
+
+					$result['months'] = $months;
+					foreach( $result['months'] as $key => $value ){
+						$result['months'][$key] = $monthsTranslation[ substr($value, 5, 2) ].' '.substr($value, 0, 4);
+					}
+
+					//compile the data in the chart library format
+					foreach( $tmp as $currencyFK => $parts ){
+						$symbol = $currenciesWSymbol[ $currencyFK ]['symbol'];
+						$label = $currenciesWSymbol[ $currencyFK ]['name'];
+
+						foreach( $parts as $key => $data ){
+							$key = explode('_', $key); //index 0 for typeFK value, 1 for recurrent value
+							$frequency = ($key[1] == 0 ? ($key[0] == 2 ? 'ponctuelles' : 'ponctuels') : ($key[0] == 2 ? 'récurrentes' : 'récurrents') );
+
+							foreach( $months as $m ){
+								if( !isset($data[$m]) ) $data[$m] = 0;
+							}
+
+							ksort($data);
+							$data = array_values($data);
+
+							$result['sums'][] = array(
+								'name' => $types[ $key[0] ].'s '.$frequency.' en '.$label.'s',
+								'data' => $data,
+								'stack' => ($key[0] == 1 ? 'A' : 'B').'_'.$currencyFK
+							);
+						}
+					}
+				}
+
+				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+			}
+
+			return $result;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+
+	/**
+	 * compile payments data for chart rendering
+	 */
+	public function getRecipientData(){
+		try {
+			//stash cache init
+			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+			StashBox::setHandler($stashFileSystem);
+
+			StashManager::setHandler(get_class( $this ), $stashFileSystem);
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$result = $stash->get();
+			if( 1 || $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+				$result = array();
+
+				$oRecipient = new recipient();
+				$recipients = $oRecipient->loadListForFilter();
+
+				$oCurrency = new currency();
+				$currenciesWSymbol = $oCurrency->loadList();
+				foreach( $currenciesWSymbol as $c ){
+					$result['currencies'][ $c['id'] ] = $c['symbol'];
+				}
+
+				$q = $this->_db->prepare("
+					SELECT IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%Y-%m'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%Y-%m') ) AS `month`, SUM( amount ) AS `sum`, currencyFK, recipientFK
+					FROM ".$this->_table."
+					WHERE ownerFK = :owner
+					AND typeFK = 2
+					AND paymentDate >= '2011-01-25'
+					GROUP BY currencyFK, recipientFK, `month`
+					ORDER BY currencyFK, recipientFK, `month`
+				");
+
+				$q->execute( array(':owner' => $this->getOwner()) );
+
+				$data = $q->fetchAll();
+
+				if( !empty($data) ){
+					$tmp = array();
+					$months = array();
+
+					foreach( $data as $d ){
+						$months[] = $d['month'];
+
+						$tmp[ $d['currencyFK'] ][ $d['recipientFK'] ][ $d['month'] ] = $d['sum'];
+					}
+
+					//get unique month, sort then translate
+					$months = array_unique($months);
+					sort( $months );
+
+					$monthsTranslation = init::getInstance()->getMonthsTranslation();
+					foreach( $months as $key => $value ){
+						$result['months'][$key] = $monthsTranslation[ substr($value, 5, 2) ].' '.substr($value, 0, 4);
+					}
+
+					//percentages and data compilation in chart library format
+					foreach( $tmp as $currency => $recip ){
+						foreach( $recip as $recipient => $sums ){
+							foreach($months as $m){
+								if( !isset($sums[ $m ]) ){
+									$sums[ $m ] = 0;
+								}
+							}
+							ksort($sums); //reorder the sums by month, so array_values will be in the correct order
+
+							$result['sums'][] = array(
+								'name' => $recipients[ $recipient ],
+								'data' => array_values($sums),
+								'stack' => $currency,
+							);
+						}
+					}
+				}
+
+				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+			}
+
+			return $result;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
 }
 ?>

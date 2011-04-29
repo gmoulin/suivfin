@@ -631,6 +631,49 @@
 			position: relative;
 		}
 
+	/* switch view */
+		#switch_view {
+			position: fixed;
+			bottom: 0;
+			left: 43%;
+			background-color: #ccc;
+			border-width: 1px 1px 0 1px;
+			border-color: #000 #000 #000 #000;
+			border-style: solid solid solid solid;
+			border-radius: 6px 6px 0 0;
+			padding: 5px;
+			z-index: 100;
+		}
+
+	/* charts */
+		#chart_type {
+			position: fixed;
+			bottom: 0;
+			right: 0;
+			background-color: #ccc;
+			border-width: 1px 0 0 1px;
+			border-color: #000 #000 #000 #000;
+			border-style: solid solid solid solid;
+			border-radius: 6px 0 0 0;
+			padding: 3px 5px;
+			z-index: 100;
+			display: none;
+		}
+
+		#chart_type h2 {
+			bottom: 10px;
+			position: relative;
+		}
+
+		#chart {
+			display: none;
+			margin: 0 auto;
+			padding: 50px 5px;
+			min-height: 75%;
+			max-height: 90%;
+			max-width: 90%;
+		}
+
 	/* ------------------------------------------
 	CSS3 GITHUB BUTTONS (Nicolas Gallagher)
 	Licensed under Unlicense
@@ -712,7 +755,13 @@
 			width: 12px;
 			height: 12px;
 			margin: 0 0.75em 0 -0.25em;
-			background: url(gh-icons.png) 0 99px no-repeat;
+			background: url(../img/gh-icons.png) 0 99px no-repeat;
+		}
+		.button.icon-only {
+			text-indent: -999em;
+		}
+		.button.icon-only:before {
+			margin: 0 0 0 -0.5em;
 		}
 
 		.button.arrowup.icon:before { background-position: 0 0; }

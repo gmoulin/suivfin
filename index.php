@@ -25,6 +25,9 @@ try {
 	init::getInstance()->setOwner( $owner );
 	$smarty->assign('owner', $owner);
 
+	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
+
+
 	$currentYear = date('Y');
 	$smarty->assign('currentYear', $currentYear);
 	$currentMonth = date('m');

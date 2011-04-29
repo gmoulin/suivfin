@@ -7,7 +7,9 @@ $(document).ready(function(){
 		$filter = $('#filter'),
 		$timeframe = $('#time_frame'),
 		filters = {},
-		buffer = null;
+		buffer = null,
+		chart = null,
+		legendCurrency = [];
 
 	//ajax global management
 		$('#ajax_loader').ajaxStart(function(){
@@ -169,11 +171,14 @@ $(document).ready(function(){
 			masonryHorizontal: {
 				rowHeight: 200
 			}
-		}).delegate('.edit', 'click', function(e){
+		}).delegate('.edit, .fork', 'click', function(e){
 			e.preventDefault();
 			$form.resetForm()
 				 .addClass('deploy');
-			$('#action').val('update');
+
+			//edit is for update
+			//fork is for dupplication, so action is "add" an id has no value
+			if( $(this).hasClass('edit') ) $('#action').val('update');
 
 			$.post('ajax/payment.php', 'action=get&id=' + $(this).attr('href'), function(data){
 				var decoder = $('textarea'),
@@ -204,10 +209,9 @@ $(document).ready(function(){
 						$radio.attr('checked', 'checked');
 					}
 				});
-
-
+				if( $(this).hasClass('fork') ) $('#id').val('');
 			});
-		}).delegate('.delete', 'click', function(e){
+		}).delegate('.trash', 'click', function(e){
 			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
@@ -352,10 +356,36 @@ $(document).ready(function(){
 			});
 
 	//remove <a.button> active state after click
-		$('#filter, #sort, #next_month, #owners').delegate('.button', 'click', function(){
+		$('#filter, #sort, #next_month, #owners, #switch_view, #chart_type').delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
 
+	//switch between chart and isotope view
+		$('#switch_view a').data('view', 'isotope').click(function(e){
+			var $this = $(this),
+				sections = [$container, $sums, $filter, $timeframe, '#sort', '#next_month', '#form_switch', '#forecasts', '#chart', '#chart_type'];
+
+			$this.data('view', $this.data('view') == 'isotope' ? 'chart' : 'isotope' )
+				 .toggleClass('isotope chart');
+
+			$.each(sections, function(index, section){
+				if( typeof section == 'string' ){
+					$(section).stop(true, true).toggle();
+				} else {
+					section.stop(true, true).toggle();
+				}
+			});
+
+			if( $this.data('view') == 'chart' ){
+				reloadChart( null );
+			}
+		});
+
+	//chart type
+		$('#chart_type a').click(function(e){
+			e.preventDefault();
+			reloadChart( this.rel );
+		});
 
 	/**
 	 * refresh the payments, forecast and sum parts with ajax return
@@ -377,6 +407,8 @@ $(document).ready(function(){
 		var $items = $.tmpl('paymentList', data);
 		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
 		applyFilters();
+
+		charts( data );
 	}
 
 
@@ -415,6 +447,377 @@ $(document).ready(function(){
 
 		var sortName = $('#sort a.primary').attr('href').substr(1);
 		$container.isotope({ sortBy: sortName });
+	}
+
+
+	/**
+	 * Gray theme for Highcharts JS
+	 * @author Torstein Hønsi
+	 */
+		Highcharts.theme = {
+			colors: ["#DDDF0D", "#7798BF", "#55BF3B", "#DF5353", "#aaeeee", "#ff0066", "#eeaaee",
+				"#55BF3B", "#000066", "#FF9900", "#097054", "#FEB729", "#669966", "#00275E",
+				"#BD2031", "#9BE1FB", "#FFFF00", "#C5EFFD", "#990099", "#669900", "#006295", "#FFDE00",
+				"#5BC236", "#C7EB6E", "#D75A20", "#F8F2E5", "#00FF00"],
+			chart: {
+				backgroundColor: {
+					linearGradient: [0, 0, 0, 400],
+					stops: [
+						[0, 'rgb(96, 96, 96)'],
+						[1, 'rgb(16, 16, 16)']
+					]
+				},
+				borderWidth: 0,
+				borderRadius: 15,
+				plotBackgroundColor: null,
+				plotShadow: false,
+				plotBorderWidth: 0
+			},
+			lang: {
+				decimalPoint: '.',
+				thousandsSep: "'",
+				loading: 'chargement...',
+				months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+				weekdays: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+			},
+			title: {
+				style: {
+					color: '#FFF',
+					font: '16px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+				}
+			},
+			subtitle: {
+				style: {
+					color: '#DDD',
+					font: '12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+				}
+			},
+			xAxis: {
+				gridLineWidth: 0,
+				lineColor: '#999',
+				tickColor: '#999',
+				labels: {
+					style: {
+						color: '#999',
+						fontWeight: 'bold'
+					}
+				},
+				title: {
+					style: {
+						color: '#AAA',
+						font: 'bold 12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+					}
+				}
+			},
+			yAxis: {
+				alternateGridColor: null,
+				minorTickInterval: null,
+				gridLineColor: 'rgba(255, 255, 255, .1)',
+				lineWidth: 0,
+				tickWidth: 0,
+				labels: {
+					style: {
+						color: '#999',
+						fontWeight: 'bold'
+					}
+				},
+				title: {
+					style: {
+						color: '#AAA',
+						font: 'bold 12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+					}
+				}
+			},
+			legend: {
+				itemStyle: {
+					color: '#CCC'
+				},
+				itemHoverStyle: {
+					color: '#FFF'
+				},
+				itemHiddenStyle: {
+					color: '#333'
+				}
+			},
+			labels: {
+				style: {
+					color: '#CCC'
+				}
+			},
+			tooltip: {
+				backgroundColor: {
+					linearGradient: [0, 0, 0, 50],
+					stops: [
+						[0, 'rgba(96, 96, 96, .8)'],
+						[1, 'rgba(16, 16, 16, .8)']
+					]
+				},
+				borderWidth: 0,
+				style: {
+					color: '#FFF'
+				}
+			},
+			plotOptions: {
+				line: {
+					dataLabels: {
+						color: '#CCC'
+					},
+					marker: {
+						lineColor: '#333'
+					}
+				},
+				spline: {
+					marker: {
+						lineColor: '#333'
+					}
+				},
+				scatter: {
+					marker: {
+						lineColor: '#333'
+					}
+				}
+			},
+
+			toolbar: {
+				itemStyle: {
+					color: '#CCC'
+				}
+			},
+
+			navigation: {
+				buttonOptions: {
+					backgroundColor: {
+						linearGradient: [0, 0, 0, 20],
+						stops: [
+							[0.4, '#606060'],
+							[0.6, '#333333']
+						]
+					},
+					borderColor: '#000000',
+					symbolStroke: '#C0C0C0',
+					hoverSymbolStroke: '#FFFFFF'
+				}
+			},
+
+			exporting: {
+				buttons: {
+					exportButton: {
+						symbolFill: '#55BE3B'
+					},
+					printButton: {
+						symbolFill: '#7797BE'
+					}
+				}
+			},
+
+			// special colors for some of the demo examples
+			legendBackgroundColor: 'rgba(48, 48, 48, 0.8)',
+			legendBackgroundColorSolid: 'rgb(70, 70, 70)',
+			dataLabelsColor: '#444',
+			textColor: '#E0E0E0',
+			maskColor: 'rgba(255,255,255,0.3)'
+		};
+
+		// Apply the theme
+		var highchartsOptions = Highcharts.setOptions(Highcharts.theme);
+
+	/** charts options **/
+		var expenseOptions = {
+			chart: {
+				renderTo: 'chart',
+				defaultSeriesType: 'column'
+			},
+
+			title: {
+				text: 'Sommes selon monnaie, récurrence et type par mois'
+			},
+
+			xAxis: {
+				categories: []
+			},
+
+			yAxis: {
+				title: {
+					text: 'Montant'
+				}
+			},
+
+			tooltip: {
+				formatter: function() {
+					return '<b>'+ this.x +'</b><br/>'+
+						'<span style="color:' + this.series.color + '">' + this.series.name + '</span>: ' + this.y + '<br/>' +
+						'Total: '+ this.point.stackTotal;
+				}
+			},
+
+			plotOptions: {
+				column: {
+					stacking: 'normal'
+				}
+			},
+			series: []
+		};
+
+		var evolutionOptions = {
+			chart: {
+				renderTo: 'chart',
+				zoomType: 'xy',
+				spacingRight: 20
+			},
+			title: {
+				text: 'Evolution des comptes'
+			},
+			subtitle: {
+				text: document.ontouchstart === undefined ?
+					'Sélectionner une partie de la courbe pour zoomer' :
+					'Faite glisser votre doigt sur une partie de la courbe pour zoomer'
+			},
+			xAxis: {
+				type: 'datetime',
+				maxZoom: 14 * 24 * 3600 * 1000, // fourteen days
+				title: {
+					text: null
+				},
+				dateTimeLabelFormats: {
+					day: '%e %b'
+				}
+			},
+			yAxis: {
+				title: {
+					text: 'Montant'
+				},
+				startOnTick: false,
+				showFirstLabel: false
+			},
+			legend: {
+				align: 'right',
+				verticalAlign: 'top',
+				y: 20,
+				floating: true,
+				borderWidth: 0
+			},
+			tooltip: {
+				shared: true,
+				formatter: function() {
+					var s = '<b>'+ Highcharts.dateFormat('%A %d %B', this.x) +'</b>';
+
+					$.each(this.points, function(i, point) {
+						s += '<br/><span style="color:' + point.series.color + ';">' + point.series.name +'</span>: '+ Highcharts.numberFormat(point.y, 2, '.', '\'') + ' ' + legendCurrency[i];
+					});
+
+					return s;
+				},
+			},
+			plotOptions: {
+				series: {
+					lineWidth: 1,
+					marker: {
+						enabled: false,
+						states: {
+							hover: {
+								enabled: true,
+								radius: 5
+							}
+						}
+					},
+					states: {
+						hover: {
+							lineWidth: 1
+						}
+					}
+				}
+			},
+			series: []
+		};
+
+		var recipientOptions = {
+			chart: {
+				renderTo: 'chart',
+				defaultSeriesType: 'column'
+			},
+			title: {
+				text: 'Dépenses par bénéficiaire en pourcentage'
+			},
+			xAxis: {
+				categories: []
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: 'Pourcentage'
+				}
+			},
+			tooltip: {
+				formatter: function(){
+					return '<b>' + this.series.name + '</b>: ' + this.y + ' ' + legendCurrency[ this.series.stackKey.substr(-1) ] + ' (' + Math.round(this.percentage) + '%)';
+				}
+			},
+			plotOptions: {
+				column: {
+					stacking: 'percent'
+				}
+			},
+			series: []
+		};
+
+	function reloadChart( type ){
+		//chart type
+		if( type == null ) type = $('#chart_type a.primary').attr('rel');
+
+		//get graph data
+		$.post('ajax/payment.php', 'action=chart&type=' + type, function(data){
+			if( data.sums ){
+				try{
+					switch( type ){
+						default:
+						case 'expense':
+								expenseOptions.xAxis.categories = data.months;
+
+								//json encode transform the sums in string, float are needed
+								$.each( data.sums, function(i, sum){
+									data.sums[i].data = $.map(sum.data, function(s){ return parseFloat(s); });
+								});
+								expenseOptions.series = data.sums;
+
+								chart = new Highcharts.Chart(expenseOptions);
+							break;
+						case 'evolution':
+								legendCurrency = [];
+
+								$.each(data.sums, function(origin, infos){
+									evolutionOptions.series.push({
+										name: origin,
+										pointInterval: 24 * 3600 * 1000,
+										pointStart: Date.UTC(2011, 01, 01), //javascript month start at 0
+										data: $.map(infos.amounts, function(a){ return parseFloat(a); })
+									});
+
+									legendCurrency.push(infos.symbol);
+								});
+
+								chart = new Highcharts.Chart(evolutionOptions);
+							break;
+						case 'recipient':
+								legendCurrency = data.currencies;
+
+								recipientOptions.xAxis.categories = data.months;
+
+								//json encode transform the sums in string, float are needed
+								$.each( data.sums, function(i, infos){
+									data.sums[i].data = $.map(infos.data, function(s){ return parseFloat(s); });
+								});
+								recipientOptions.series = data.sums;
+
+								chart = new Highcharts.Chart(recipientOptions);
+							break;
+					}
+				} catch(e) {
+					alert(e.message);
+				}
+			} else {
+				alert( data );
+			}
+		});
 	}
 });
 

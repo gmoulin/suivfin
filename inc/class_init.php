@@ -23,6 +23,23 @@ class init {
 	//account
 	private $_ownerID = null;
 
+	//months translation
+	private $_monthsTranslation = array(
+		'01' => 'Janvier',
+		'02' => 'Février',
+		'03' => 'Mars',
+		'04' => 'Avril',
+		'05' => 'Mai',
+		'06' => 'Juin',
+		'07' => 'Juillet',
+		'08' => 'Août',
+		'09' => 'Septembre',
+		'10' => 'Octobre',
+		'11' => 'Novembre',
+		'12' => 'Décembre',
+	);
+
+
 	//constructor
 	private function __construct(){
 		try {
@@ -75,6 +92,13 @@ class init {
 	public function setOwner( $id ){
 		$this->_ownerID = $id;
 		$_SESSION['_ownerID'] = $id; //always refresh it in case of chosen owner switch
+	}
+
+	/**
+	 * @return database handler
+	 */
+	public function getMonthsTranslation(){
+		return $this->_monthsTranslation;
 	}
 
 	/**

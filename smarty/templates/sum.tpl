@@ -7,7 +7,7 @@
 			<table>
 				<thead>
 					<tr>
-						<th title="du 24 précédent au 25">{$lang_months[$month|substr:-2]}</th>
+						<th title="du 24 précédent au 25">{$monthsTranslation[$month|substr:-2]}</th>
 						{foreach $sums.fromto as $ori}
 							<th class="fromto">
 								{$origins[$ori]|replace:$owners[$owner]:''|replace:'Liquide ':''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}
