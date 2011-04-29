@@ -245,10 +245,11 @@ class common {
 	}
 
 	/**
-	 * @param string $order: field for the ORDER BY
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[key][entry]
 	 */
-	public function loadList( $order = null ){
+	public function loadList( $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -256,11 +257,22 @@ class common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__);
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$list = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
-					SELECT t.* FROM ".$this->_table." t ".(!empty($order) ? " ORDER BY ".$order : "")."
+					SELECT t.* FROM ".$this->_table." t
 				");
 
 				$loadList->execute();
@@ -272,10 +284,19 @@ class common {
 					}
 				}
 
-				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+				if( !empty($list) ){
+					$stash->store($list, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $list;
+			if( $returnTs ){
+				return array($ts, $list);
+			} else {
+				return $list;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -283,9 +304,11 @@ class common {
 	}
 
 	/**
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[key][entry]
 	 */
-	public function loadListForFilter(){
+	public function loadListForFilter( $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -293,7 +316,18 @@ class common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__);
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$list = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
@@ -307,10 +341,19 @@ class common {
 					$list[ $rs['id'] ] = $rs['name'];
 				}
 
-				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+				if( !empty($list) ){
+					$stash->store($list, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $list;
+			if( $returnTs ){
+				return array($ts, $list);
+			} else {
+				return $list;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -318,9 +361,11 @@ class common {
 	}
 
 	/**
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[key][entry]
 	 */
-	public function loadListForFilterByOwner(){
+	public function loadListForFilterByOwner( $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -328,7 +373,18 @@ class common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$list = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
@@ -346,10 +402,19 @@ class common {
 					$list[ $rs['id'] ] = $rs['name'];
 				}
 
-				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+				if( !empty($list) ){
+					$stash->store($list, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $list;
+			if( $returnTs ){
+				return array($ts, $list);
+			} else {
+				return $list;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -428,9 +493,7 @@ class common {
 				$this->_data['id'] = $this->_db->lastInsertId();
 			}
 
-			if( get_class( $this ) != 'list_timestamp' ){
-				$this->_cleanCaches();
-			}
+			$this->_cleanCaches();
 
 			return true;
 
@@ -583,10 +646,6 @@ class common {
 
 		$stash->setupKey( get_class($this) );
 		$stash->clear();
-
-		//update caches timestamps
-		$ts = new list_timestamp();
-		$ts->refresh( get_class($this) );
 	}
 }
 ?>

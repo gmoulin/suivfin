@@ -9,7 +9,7 @@ try {
 	header('Cache-Control: max-age=' . $expires.', must-revalidate'); //must-revalidate to force browser to used the cache control rules sended
 
 	if( !filter_has_var(INPUT_GET, 'field') ){
-		throw new Exception('Chargement des listes déroulantes : paramètre manquante.');
+		throw new Exception('Chargement des listes déroulantes : paramètre manquant.');
 	} else {
 		$field = filter_input(INPUT_GET, 'field', FILTER_SANITIZE_STRING);
 		if( is_null($field) || $field === false ){
@@ -23,40 +23,31 @@ try {
 			$modifiedSince = strtotime($request_headers['If-Modified-Since']);
 		}
 
-		$lastModified = 0;
+		$lastModified = null;
 		$target = $field;
 
 		if( $field == 'labelList' ) $target = 'payment';
 		elseif( strpos($field, 'List') !== false ) $target = substr($field, 0, -4);
 		elseif( strpos($field, '_filter') !== false ) $target = substr($field, 0, -7);
 
-		if( $browserHasCache ){
-			$ts = new list_timestamp($target);
-			if( !empty($ts->id) ){
-				$lastModified = strtotime($ts->stamp);
-				//browser has list in cache and list was not modified
-				if( $modifiedSince == $lastModified ){
-					header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
-					die;
-				}
-			} else { //create the timestamp
-				$ts->id = $target;
-				$ts->save();
-
-				$ts->load($target);
-				$lastModified = strtotime($ts->stamp);
-			}
-		}
-
-		$list = array();
+		$data = array();
 		switch ( $field ){
 			/* form fields */
 			case 'labelList':
-					$oPayement = new Payment();
-					$labels = $oPayment->loadLabelList();
+					$oPayment = new Payment();
 
-					$ts = new list_timestamp('payment');
-					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
+					if( $browserHasCache && $modifiedSince != 0 ){
+						$ts = $oPayment->loadLabelList( null, true );
+						if( !is_null($ts) ){
+							//browser has list in cache and list was not modified
+							if( $modifiedSince == $ts ){
+								header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+								die;
+							}
+						}
+					}
+
+					list($lastModified, $data) = $oPayment->loadLabelList( true );
 				break;
 			case 'currencyList':
 			case 'locationList':
@@ -67,32 +58,48 @@ try {
 			case 'ownerList':
 			case 'recipientList':
 					$target = ( strpos($field, 'List') !== false ? substr($field, 0, strlen($field)-4 ) : $field );
-
 					$obj = new $target();
-					$list = $obj->loadListForFilter();
 
-					$ts = new list_timestamp($target);
-					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
+					if( $browserHasCache && $modifiedSince != 0 ){
+						$ts = $obj->loadListForFilter( null, true );
+						if( !is_null($ts) ){
+							//browser has list in cache and list was not modified
+							if( $modifiedSince == $ts ){
+								header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+								die;
+							}
+						}
+					}
+
+					list($lastModified, $data) = $obj->loadListForFilter(true);
 				break;
 
 			case 'origin_filter':
 			case 'recipient_filter':
 			case 'location_filter':
 					$target = substr($field, 0, -7);
-
 					$obj = new $target();
-					$list = $obj->loadListForFilterByOwner();
 
-					$ts = new list_timestamp($target); //not optimal as the list has not always changed for a specific owner
-					if( !empty($ts->id) ) $lastModified = strtotime($ts->stamp);
+					if( $browserHasCache && $modifiedSince != 0 ){
+						$ts = $obj->loadListForFilter( null, true );
+						if( !is_null($ts) ){
+							//browser has list in cache and list was not modified
+							if( $modifiedSince == $ts ){
+								header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+								die;
+							}
+						}
+					}
+
+					list($lastModified, $data) = $obj->loadListForFilterByOwner(true);
 				break;
 			default:
 				throw new Exception('Chargement de liste : cible non reconnue.');
 		}
 
-		if( $lastModified != 0 ) header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModified) . " GMT");
+		if( !is_null($lastModified) ) header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModified) . " GMT");
 
-		echo json_encode($list);
+		echo json_encode($data);
 		die;
 	}
 } catch (Exception $e) {

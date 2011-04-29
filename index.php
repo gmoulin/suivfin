@@ -27,10 +27,16 @@ try {
 
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
+	$day = date('d');
+	if( $day > 24 ){
+		$currentYear = date('Y', strtotime("+1 months"));
+		$currentMonth = date('m', strtotime("+1 months"));
+	} else {
+		$currentYear = date('Y');
+		$currentMonth = date('m');
+	}
 
-	$currentYear = date('Y');
 	$smarty->assign('currentYear', $currentYear);
-	$currentMonth = date('m');
 	$smarty->assign('currentMonth', $currentMonth);
 
 	//get payments for current month
@@ -78,7 +84,7 @@ try {
 	$owners = $oOwner->loadListForFilter();
 	$smarty->assign('owners', $owners);
 
-	$limits = $oOwner->getLimits(true);
+	$limits = $oOwner->getLimits();
 	$tmp = array();
 	foreach( $limits as $limit ){
 		$tmp[ $origins[ $limit['originFK'] ] ] = $limit['currencyFK'];

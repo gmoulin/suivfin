@@ -346,9 +346,11 @@ class payment extends common {
 	}
 
 	/**
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[key][entry]
 	 */
-	public function loadLabelList(){
+	public function loadLabelList( $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -356,7 +358,18 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__);
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$list = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
@@ -370,10 +383,19 @@ class payment extends common {
 					$list[] = $rs['label'];
 				}
 
-				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+				if( !empty($list) ){
+					$stash->store($list, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $list;
+			if( $returnTs ){
+				return array($ts, $list);
+			} else {
+				return $list;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -449,9 +471,12 @@ class payment extends common {
 
 	/**
 	 * get all payments for a given time frame
+	 * @param string $frame : months separated by comma (format yyyy-mm)
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[][]
 	 */
-	public function loadForTimeFrame( $frame ){
+	public function loadForTimeFrame( $frame, $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -459,7 +484,18 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$list = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				//construct the query and parameters
 				$sql = "
@@ -487,10 +523,19 @@ class payment extends common {
 
 				$list = $q->fetchAll();
 
-				if( !empty($list) ) $stash->store($list, STASH_EXPIRE);
+				if( !empty($list) ){
+					$stash->store($list, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $list;
+			if( $returnTs ){
+				return array($ts, $list);
+			} else {
+				return $list;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -558,8 +603,10 @@ class payment extends common {
 
 	/**
 	 * sum the payment by month-year, type, origin and currency
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 */
-	public function getSums( $frame ){
+	public function getSums( $frame, $returnTs = false, $tsOnly = false ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -567,7 +614,18 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), $frame);
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$sums = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				//get the balance of each origin per month by getting the previous month last day balance (24)
@@ -669,10 +727,19 @@ class payment extends common {
 					}
 				}
 
-				if( !empty($sums) ) $stash->store($sums, STASH_EXPIRE);
+				if( !empty($sums) ){
+					$stash->store($sums, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $sums;
+			if( $returnTs ){
+				return array($ts, $sums);
+			} else {
+				return $sums;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -682,8 +749,10 @@ class payment extends common {
 
 	/**
 	 * sum the expanses for the current month and the next one
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 */
-	public function getForecasts(){
+	public function getForecasts($returnTs = false, $tsOnly = false){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -691,7 +760,18 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$forecasts = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$q = $this->_db->prepare("
 					SELECT IF( DAYOFMONTH(paymentDate) <= 24, DATE_FORMAT(paymentDate, '%m'), DATE_FORMAT(DATE_ADD(paymentDate, INTERVAL 1 MONTH), '%m') ) AS `month`, SUM( amount ) AS `sum`, statusFK, currencyFK
@@ -713,10 +793,19 @@ class payment extends common {
 						$forecasts[ $r['month'] ][ $r['statusFK'] ][ $r['currencyFK'] ] = $r['sum'];
 					}
 				}
-				if( !empty($forecasts) ) $stash->store($forecasts, STASH_EXPIRE);
+				if( !empty($forecasts) ){
+					$stash->store($forecasts, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $forecasts;
+			if( $returnTs ){
+				return array($ts, $forecasts);
+			} else {
+				return $forecasts;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -726,8 +815,10 @@ class payment extends common {
 
 	/**
 	 * compile payments data for chart rendering
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 */
-	public function getExpenseData(){
+	public function getExpenseData($returnTs = false, $tsOnly = false){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -735,7 +826,18 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$result = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$oType = new type();
 				$types = $oType->loadListForFilter();
@@ -806,10 +908,19 @@ class payment extends common {
 					}
 				}
 
-				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+				if( !empty($result) ){
+					$stash->store($result, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $result;
+			if( $returnTs ){
+				return array($ts, $result);
+			} else {
+				return $result;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -819,8 +930,10 @@ class payment extends common {
 
 	/**
 	 * compile payments data for chart rendering
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 */
-	public function getRecipientData(){
+	public function getRecipientData($returnTs = false, $tsOnly = false){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -828,8 +941,19 @@ class payment extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$result = $stash->get();
-			if( 1 || $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+			$ts = null;
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$result = array();
 
 				$oRecipient = new recipient();
@@ -893,10 +1017,19 @@ class payment extends common {
 					}
 				}
 
-				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+				if( !empty($result) ){
+					$stash->store($result, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $result;
+			if( $returnTs ){
+				return array($ts, $result);
+			} else {
+				return $result;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

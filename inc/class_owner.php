@@ -21,7 +21,8 @@ class owner extends common {
 	}
 
 	/**
-	 * return the linked origins (bank accounts) and currencies for a given owner
+	 * @param boolean $forAll : flag for the function to get the limits for all the owner or only the current one
+	 * @return array : the linked origins (bank accounts) and currencies for a given owner
 	 */
 	public function getLimits( $forAll = false ){
 		try {

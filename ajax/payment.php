@@ -3,6 +3,8 @@
 try {
 	include('../conf.ini.php');
 
+	header('Content-type: application/json');
+
 	$action = filter_has_var(INPUT_POST, 'action');
 	if( is_null($action) || $action === false ){
 		throw new Exception('Gestion des paiements : action manquante.');
@@ -11,6 +13,26 @@ try {
 	$action = filter_var($_POST['action'], FILTER_SANITIZE_STRING);
 	if( $action === false ){
 		throw new Exception('Gestion des paiements : action incorrecte.');
+	}
+
+	//check the request headers for "If-Modified-Since"
+	$request_headers = apache_request_headers();
+	$browserHasCache = ( array_key_exists('If-Modified-Since', $request_headers) ? true : false );
+	if( $browserHasCache ){
+		$modifiedSince = strtotime($request_headers['If-Modified-Since']);
+	}
+
+	$lastModified = null;
+
+	$frame = filter_has_var(INPUT_POST, 'timeframe');
+	if( !is_null($frame) && $frame !== false ){
+		$frame = filter_var($_POST['timeframe'], FILTER_SANITIZE_STRING);
+		if( $frame !== false ){
+			$tmp = explode(',', $frame);
+			if( empty($tmp) ){
+				$frame = null;
+			}
+		}
 	}
 
 	switch ( $action ){
@@ -72,7 +94,7 @@ try {
 					}
 
 					$oPayment->save();
-					$response = getFreshData( $smarty );
+					$response = getFreshData( $smarty, $frame );
 				} else {
 					$response = $formData['errors'];
 				}
@@ -91,7 +113,7 @@ try {
 				$oPayment = new payment($id);
 				$oPayment->delete();
 
-				$response = getFreshData( $smarty );
+				$response = getFreshData( $smarty, $frame );
 			break;
 		case 'get':
 				$id = filter_has_var(INPUT_POST, 'id');
@@ -112,14 +134,32 @@ try {
 
 				$response = $oPayment->getData();
 			break;
-		case 'refresh':
-				$response = getFreshData( $smarty );
-			break;
 		case 'initNextMonth':
 				$oPayment = new payment();
 				$oPayment->initNextMonthPayment();
 
 				$response = getFreshData( $smarty );
+			break;
+		case 'refresh':
+				if( $browserHasCache && $modifiedSince != 0 ){
+					$oPayment = new payment();
+
+					//get timestamp for each part
+					$tsPayment = $oPayment->loadForTimeFrame($frame, null, true);
+					$tsSums = $oPayment->getSums($frame, null, true);
+					$tsForecasts = $oPayment->getForecasts(null, true);
+
+					if( !is_null($tsPayment) && !is_null($tsSums) && !is_null($tsForecasts) ){
+						$maxTs = max( $tsPayment, $tsSums, $tsForecasts );
+						//browser has list in cache and list was not modified
+						if( $modifiedSince == $maxTs ){
+							header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+							die;
+						}
+					}
+				}
+
+				list($lastModified, $response) = getFreshData( $smarty, $frame, true );
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -136,15 +176,45 @@ try {
 					case 'expense':
 					default:
 							$oPayment = new payment();
-							$response = $oPayment->getExpenseData();
+
+							if( $browserHasCache && $modifiedSince != 0 ){
+								$ts = $oPayment->getExpenseData(null, true);
+								//browser has list in cache and list was not modified
+								if( $modifiedSince == $ts ){
+									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+									die;
+								}
+							}
+
+							list($lastModified, $response) = $oPayment->getExpenseData(true);
 						break;
 					case 'evolution':
 							$oEvolution = new Evolution();
-							$response = $oEvolution->getEvolutionData();
+
+							if( $browserHasCache && $modifiedSince != 0 ){
+								$ts = $oEvolution->getEvolutionData(null, true);
+								//browser has list in cache and list was not modified
+								if( $modifiedSince == $ts ){
+									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+									die;
+								}
+							}
+
+							list($lastModified, $response) = $oEvolution->getEvolutionData(true);
 						break;
 					case 'recipient':
 							$oPayment = new payment();
-							$response = $oPayment->getRecipientData();
+
+							if( $browserHasCache && $modifiedSince != 0 ){
+								$ts = $oPayment->getRecipientData(null, true);
+								//browser has list in cache and list was not modified
+								if( $modifiedSince == $ts ){
+									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+									die;
+								}
+							}
+
+							list($lastModified, $response) = $oPayment->getRecipientData(true);
 						break;
 				}
 			break;
@@ -152,7 +222,8 @@ try {
 			throw new Exception('Gestion des paiements : action non reconnue.');
 	}
 
-	header('Content-type: application/json');
+	if( !is_null($lastModified) ) header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModified) . " GMT");
+
 	echo json_encode($response);
 	die;
 
@@ -162,28 +233,26 @@ try {
 	die;
 }
 
-function getFreshData( &$smarty ){
-	$frame = filter_has_var(INPUT_POST, 'timeframe');
-	if( is_null($frame) || $frame === false ){
-		return 'ok';
-	}
+/*
+ * @param object $smarty
+ * @param mixed (string | null) $frame : months separated by commas (format yyyy-mm)
+ * @param boolean $getTs : flag for returning the biggest timestamp from each part
+ */
+function getFreshData( &$smarty, $frame, $getTs = false ){
+	if( empty($frame) ){
+		if( $getTs ) return array(null, null);
 
-	$frame = filter_var($_POST['timeframe'], FILTER_SANITIZE_STRING);
-	if( $frame === false ){
-		return 'ok';
-	}
-
-	$tmp = explode(',', $frame);
-	if( empty($tmp) ){
-		return 'ok';
+		return null;
 	}
 
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
-	$oPayement = new payment();
-	$payments = $oPayement->loadForTimeFrame($frame);
-	$smarty->assign('sums', $oPayement->getSums($frame));
-	$smarty->assign('forecasts', $oPayement->getForecasts());
+	$oPayment = new payment();
+	list($tsPayments, $payments) = $oPayment->loadForTimeFrame($frame, true);
+	list($tsSums, $sums) = $oPayment->getSums($frame, true);
+	$smarty->assign('sums', $sums);
+	list($tsForecasts, $forecasts) = $oPayment->getForecasts(true);
+	$smarty->assign('forecasts', $forecasts);
 
 	$oOwner = new owner();
 	$smarty->assign('owners', $oOwner->loadListForFilter());
@@ -215,7 +284,8 @@ function getFreshData( &$smarty ){
 	$smarty->assign('methods', $methods);
 
 	$oLocation = new location();
-	$smarty->assign('locations', $oLocation->loadListForFilter());
+	$location = $oLocation->loadListForFilter();
+	$smarty->assign('locations', $location);
 
 	//generate the payments details
 	$smarty->assign('partial', true);
@@ -230,6 +300,11 @@ function getFreshData( &$smarty ){
 	$response['methods'] = $methods;
 	$response['sums'] = $smarty->fetch('sum.tpl');
 	$response['forecasts'] = $smarty->fetch('forecast.tpl');
+
+	if( $getTs ){
+		$max = max($tsPayments, $tsSums, $tsForecasts);
+		return array($max, $response);
+	}
 
 	return $response;
 }

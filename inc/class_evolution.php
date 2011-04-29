@@ -143,8 +143,10 @@ class evolution extends common {
 
 	/**
 	 * compile evolution data for chart rendering
+	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
+	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 */
-	public function getEvolutionData(){
+	public function getEvolutionData($returnTs = false, $tsOnly = false){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
@@ -152,7 +154,18 @@ class evolution extends common {
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
 			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+
+			if( $tsOnly ){
+				$ts = $stash->getTimestamp();
+				if( $stash->isMiss() ){
+					return null;
+				} else {
+					return $ts;
+				}
+			}
+
 			$result = $stash->get();
+			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$oCurrency = new currency();
 				$currenciesWSymbol = $oCurrency->loadList();
@@ -193,10 +206,19 @@ class evolution extends common {
 					}
 				}
 
-				if( !empty($result) ) $stash->store($result, STASH_EXPIRE);
+				if( !empty($result) ){
+					$stash->store($result, STASH_EXPIRE);
+					$ts = $stash->getTimestamp();
+				}
+			} elseif( $returnTs ){
+				$ts = $stash->getTimestamp();
 			}
 
-			return $result;
+			if( $returnTs ){
+				return array($ts, $result);
+			} else {
+				return $result;
+			}
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

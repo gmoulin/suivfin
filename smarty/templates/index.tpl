@@ -1,6 +1,7 @@
 {include "html_header.tpl"}
 
 {* Navigation - top left*}
+<input type="hidden" id="currentOwner" value="{$owner}">
 <nav id="owners" class="button-group">
 	{strip}
 		{foreach $owners as $id => $name}

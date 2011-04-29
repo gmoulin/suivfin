@@ -29,9 +29,15 @@ $(document).ready(function(){
 	//forms actions
 		$('#form_switch a').click(function(e){
 			e.preventDefault();
+			e.stopPropagation(); //else it will fire $(document).click() listener
 
 			$form.resetForm()
 				 .addClass('deploy');
+
+			//hide the form when clicking outside
+			$('body').click(function(e){
+				$form.removeClass('deploy');
+			});
 		});
 
 		$form.submit(function(e){
@@ -42,9 +48,10 @@ $(document).ready(function(){
 
 				//is payment month present in time frame
 				var paymentDate = $('#paymentDate').val().split('/'),
-					tmp = new Date(paymentDate[2], paymentDate[1], paymentDate[0]),
-					tmp = (tmp.getDay() >= 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
-					newMonth = tmp.getFullYear() + '-' + tmp.getMonth();
+					tmp = new Date(paymentDate[2], parseInt(paymentDate[1]) - 1, paymentDate[0]),
+					tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
+					m = tmp.getMonth() + 1, //javascript month index start at 0
+					newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
 
 				var needReload = false;
 				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
@@ -94,18 +101,24 @@ $(document).ready(function(){
 			} else {
 				$form.find('.ownerChoice:visible').fadeOut();
 			}
+		}).find('fieldset').click(function(e){
+			e.stopPropagation();
 		});
 
 		$('#formCancel').click(function(){
 			console.log('formCancel click');
 
+			$('body').unbind('click');
 			$form.removeClass('deploy').resetForm();
 		});
 
 		$(document).unbind('keypress').keypress(function(e){
 			// ESCAPE key pressed
 			if( e.keyCode == 27 ){
-				$('#payment_form.deploy').removeClass('deploy');
+				if( $form.hasClass('deploy') ){
+					$('body').unbind('click');
+					$form.removeClass('deploy');
+				}
 			}
 		}).unbind('keydown').keydown(function(e){
 			//"a" pressed for add
@@ -192,7 +205,9 @@ $(document).ready(function(){
 						$radio = null;
 					}
 					if( $field.length ){
-						if( $field.is('input[type=text][list]') ){ //datalist
+						//all datalist are for inputs corresponding to foreign key columns (value is an integer)
+						//label column is an exception (value is a string)
+						if( key != 'label' && $field.is('input[type=text][list]') ){ //datalist
 							$field.val( $( $field.attr('list') ).children('[data-id=' + value + ']').text() );
 
 						} else if( $field.is('textarea') ){
@@ -209,6 +224,7 @@ $(document).ready(function(){
 						$radio.attr('checked', 'checked');
 					}
 				});
+
 				if( $(this).hasClass('fork') ) $('#id').val('');
 			});
 		}).delegate('.trash', 'click', function(e){
@@ -276,7 +292,7 @@ $(document).ready(function(){
 				//is next month present in time frame
 				var now = new Date(),
 					next = new Date(now.getFullYear(), now.getMonth()+1, 1),
-					newMonth = next.getFullYear() + '-' + next.getMonth();
+					newMonth = next.getFullYear() + '-' + (next.getMonth() + 1);
 
 				var needReload = false;
 				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
@@ -356,7 +372,7 @@ $(document).ready(function(){
 			});
 
 	//remove <a.button> active state after click
-		$('#filter, #sort, #next_month, #owners, #switch_view, #chart_type').delegate('.button', 'click', function(){
+		$('body').delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
 
@@ -419,12 +435,47 @@ $(document).ready(function(){
 		var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
 		if( tf == '' ) return;
 
+		var cachedData,
+			lastModified = 0,
+			key = $('#currentOwner').val() + '_' + tf;
+
+		try {
+			cachedData = localStorage.getObject(key);
+			if( cachedData ){
+				lastModified = cachedData.lastModified;
+			}
+		} catch( e ){
+			alert(e);
+		}
+
 		//resfresh sums
-		$.post('ajax/payment.php', 'action=refresh&timeframe=' + tf, function(data){
-			if( data.payments ){
-				resfreshParts( data );
-			} else {
-				alert( data );
+		$.ajax('ajax/payment.php', {
+			data: 'action=refresh&timeframe=' + tf,
+			dataType: 'json',
+			type: 'post',
+			headers: {
+				'If-Modified-Since': lastModified
+			},
+			success: function(data, textStatus, jqXHR){
+				//server will send a 304 status if the list has not changed
+				if( jqXHR.status == 200 ){
+					try {
+						lastModified = jqXHR.getResponseHeader('Last-Modified');
+
+						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+					} catch( e ){
+						alert(e);
+					}
+
+				} else {
+					data = cachedData.data;
+				}
+
+				if( data.payments ){
+					resfreshParts( data );
+				} else {
+					alert( data );
+				}
 			}
 		});
 	}
@@ -764,75 +815,144 @@ $(document).ready(function(){
 		//chart type
 		if( type == null ) type = $('#chart_type a.primary').attr('rel');
 
+		var cachedData,
+			lastModified = 0,
+			key = $('#currentOwner').val() + '_' + type;
+
+		try {
+			cachedData = localStorage.getObject(key);
+			if( cachedData ){
+				lastModified = cachedData.lastModified;
+			}
+		} catch( e ){
+			alert(e);
+		}
+
 		//get graph data
-		$.post('ajax/payment.php', 'action=chart&type=' + type, function(data){
-			if( data.sums ){
-				try{
-					switch( type ){
-						default:
-						case 'expense':
-								expenseOptions.xAxis.categories = data.months;
+		$.ajax('ajax/payment.php', {
+			data: 'action=chart&type=' + type,
+			dataType: 'json',
+			type: 'post',
+			headers: {
+				'If-Modified-Since': lastModified
+			},
+			success: function(data, textStatus, jqXHR){
+				//server will send a 304 status if the list has not changed
+				if( jqXHR.status == 200 ){
+					try {
+						lastModified = jqXHR.getResponseHeader('Last-Modified');
 
-								//json encode transform the sums in string, float are needed
-								$.each( data.sums, function(i, sum){
-									data.sums[i].data = $.map(sum.data, function(s){ return parseFloat(s); });
-								});
-								expenseOptions.series = data.sums;
+						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+					} catch( e ){
+						alert(e);
+					}
 
-								chart = new Highcharts.Chart(expenseOptions);
-							break;
-						case 'evolution':
-								legendCurrency = [];
+				} else {
+					data = cachedData.data;
+				}
 
-								$.each(data.sums, function(origin, infos){
-									evolutionOptions.series.push({
-										name: origin,
-										pointInterval: 24 * 3600 * 1000,
-										pointStart: Date.UTC(2011, 01, 01), //javascript month start at 0
-										data: $.map(infos.amounts, function(a){ return parseFloat(a); })
+				if( data.sums ){
+					try{
+						switch( type ){
+							default:
+							case 'expense':
+									expenseOptions.xAxis.categories = data.months;
+
+									//json encode transform the sums in string, float are needed
+									$.each( data.sums, function(i, sum){
+										data.sums[i].data = $.map(sum.data, function(s){ return parseFloat(s); });
+									});
+									expenseOptions.series = data.sums;
+
+									chart = new Highcharts.Chart(expenseOptions);
+								break;
+							case 'evolution':
+									legendCurrency = [];
+									evolutionOptions.series = [];
+
+									$.each(data.sums, function(origin, infos){
+										evolutionOptions.series.push({
+											name: origin,
+											pointInterval: 24 * 3600 * 1000,
+											pointStart: Date.UTC(2011, 01, 01), //javascript month start at 0
+											data: $.map(infos.amounts, function(a){ return parseFloat(a); })
+										});
+
+										legendCurrency.push(infos.symbol);
 									});
 
-									legendCurrency.push(infos.symbol);
-								});
+									chart = new Highcharts.Chart(evolutionOptions);
+								break;
+							case 'recipient':
+									legendCurrency = data.currencies;
 
-								chart = new Highcharts.Chart(evolutionOptions);
-							break;
-						case 'recipient':
-								legendCurrency = data.currencies;
+									recipientOptions.xAxis.categories = data.months;
 
-								recipientOptions.xAxis.categories = data.months;
+									//json encode transform the sums in string, float are needed
+									$.each( data.sums, function(i, infos){
+										data.sums[i].data = $.map(infos.data, function(s){ return parseFloat(s); });
+									});
+									recipientOptions.series = data.sums;
 
-								//json encode transform the sums in string, float are needed
-								$.each( data.sums, function(i, infos){
-									data.sums[i].data = $.map(infos.data, function(s){ return parseFloat(s); });
-								});
-								recipientOptions.series = data.sums;
-
-								chart = new Highcharts.Chart(recipientOptions);
-							break;
+									chart = new Highcharts.Chart(recipientOptions);
+								break;
+						}
+					} catch(e) {
+						alert(e.message);
 					}
-				} catch(e) {
-					alert(e.message);
+				} else {
+					alert( data );
 				}
-			} else {
-				alert( data );
 			}
 		});
 	}
+
 });
 
 /**
  * ajax load for <datalist> and <select> options
+ * use localStorage to cache results
+ * use 'If-Modified-Since' / 'Last-Modified' header and 200 / 304 statuses pairs to get only fresh data when needed
  */
 $.fn.loadList = function(){
 	return this.each(function(){
-		var $list = $(this);
+		var $list = $(this),
+			key = $list.attr('id').replace(/FK$/g, 'List'),
+			decoder = $('<textarea>'),
+			cachedData,
+			lastModified = 0;
+
+		try {
+			cachedData = localStorage.getObject(key);
+			if( cachedData ){
+				lastModified = cachedData.lastModified;
+			}
+		} catch( e ){
+			alert(e);
+		}
 
 		//ask the list values to the server and create the <option>s with it
-		var decoder = $('<textarea>');
-		$.get( 'ajax/loadList.php?field=' + $list.attr('id').replace(/FK$/g, 'List'), function(data, textStatus, jqXHR){
-			//server will send a 304 status if the list has not changed
-			if( jqXHR.status == 200 ){
+		$.ajax('ajax/loadList.php', {
+			data: 'field=' + key,
+			dataType: 'json',
+			headers: {
+				'If-Modified-Since': lastModified
+			},
+			success: function(data, textStatus, jqXHR){
+				//server will send a 304 status if the list has not changed
+				if( jqXHR.status == 200 ){
+					try {
+						lastModified = jqXHR.getResponseHeader('Last-Modified');
+
+						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+					} catch( e ){
+						alert(e);
+					}
+
+				} else {
+					data = cachedData.data;
+				}
+
 				var isDatalist = $list.is('datalist');
 
 				if( isDatalist ) $list.empty();
@@ -945,6 +1065,15 @@ String.prototype.format = function(sepa, thousandSepa){
 	return res;
 }
 
+Storage.prototype.setObject = function(key, value){
+	this.setItem(key, JSON.stringify(value));
+}
+
+Storage.prototype.getObject = function(key){
+	return this.getItem(key) && JSON.parse( this.getItem(key) );
+}
+
+/* jquery template getter functions */
 function getValue( data, index ){
 	return data[index];
 }
