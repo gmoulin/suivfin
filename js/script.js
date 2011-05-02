@@ -79,6 +79,7 @@ $(document).ready(function(){
 
 						} else if( data.payments ){
 							//form hide
+							$('body').unbind('click');
 							$form.removeClass('deploy')
 								 .find('datalist, select').loadList();
 							$filter.find('select').loadList();
