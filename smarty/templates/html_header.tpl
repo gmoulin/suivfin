@@ -4,7 +4,7 @@
 <!--[if IE 7 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie7 ielt9 ielt8"><![endif]-->
 <!--[if IE 8 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie8 ielt9"><![endif]-->
 <!--[if IE 9 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie9"><![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--><html lang="<?php echo $lang; ?>" class="no-js"><!--<![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--><html lang="{$lang}" class="no-js"><!--<![endif]-->
 <head>
 	<title>SuivFin</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
