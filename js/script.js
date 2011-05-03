@@ -36,15 +36,15 @@ $(document).ready(function(){
 
 			//hide the form when clicking outside
 			$('body').click(function(e){
-				$form.removeClass('deploy');
+				$form.removeClass('deploy').removeClass('submitting');
 			});
 		});
 
 		$form.submit(function(e){
 			e.preventDefault();
 
-			if( $(this)[0].checkValidity() && $form.data('submitting') != 1 ){
-				$form.data('submitting', 1); //multiple call protection
+			if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
+				$form.addClass('submitting'); //multiple call protection and visual loading display
 
 				//is payment month present in time frame
 				var paymentDate = $('#paymentDate').val().split('/'),
@@ -69,10 +69,10 @@ $(document).ready(function(){
 					type: 'POST',
 					dataType: 'json',
 					complete: function(){
-						$form.data('submitting', 0);
+						$form.removeClass('submitting');
 					},
 					success: function(data){
-						$form.data('submitting', 0); //security, sometimes complete() is not called...
+						$form.removeClass('submitting'); //security, sometimes complete() is not called...
 						if( data == 'ok' ){
 							if( needReload ) window.location.reload();
 							else reloadParts();
@@ -110,7 +110,7 @@ $(document).ready(function(){
 			console.log('formCancel click');
 
 			$('body').unbind('click');
-			$form.removeClass('deploy').resetForm();
+			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
 
 		$(document).unbind('keypress').keypress(function(e){
@@ -118,7 +118,7 @@ $(document).ready(function(){
 			if( e.keyCode == 27 ){
 				if( $form.hasClass('deploy') ){
 					$('body').unbind('click');
-					$form.removeClass('deploy');
+					$form.removeClass('deploy').removeClass('submitting');
 				}
 			}
 		}).unbind('keydown').keydown(function(e){
@@ -190,11 +190,13 @@ $(document).ready(function(){
 			$form.resetForm()
 				 .addClass('deploy');
 
+			var $this = $(this);
+
 			//edit is for update
 			//fork is for dupplication, so action is "add" an id has no value
-			if( $(this).hasClass('edit') ) $('#action').val('update');
+			if( $this.hasClass('edit') ) $('#action').val('update');
 
-			$.post('ajax/payment.php', 'action=get&id=' + $(this).attr('href'), function(data){
+			$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
 				var decoder = $('textarea'),
 					$field = null,
 					$radio = null;
@@ -226,7 +228,7 @@ $(document).ready(function(){
 					}
 				});
 
-				if( $(this).hasClass('fork') ) $('#id').val('');
+				if( $this.hasClass('fork') ) $('#id').val('');
 			});
 		}).delegate('.trash', 'click', function(e){
 			e.preventDefault();
@@ -952,6 +954,11 @@ $.fn.loadList = function(){
 
 				} else {
 					data = cachedData.data;
+
+					if( $this.find('option:gt(0)').length ){
+						//options already present, no need to fill the field
+						return;
+					}
 				}
 
 				var isDatalist = $list.is('datalist');
@@ -992,7 +999,8 @@ $.fn.loadList = function(){
 $.fn.resetForm = function(){
 	console.log('resetForm');
 	return this.each(function(){
-		var $f = $(this);
+		var $f = $(this),
+			d = new Date();
 
 		$f.removeClass('deploy')
 			.find(':input:visible, #id').each(function(i, field){
@@ -1000,6 +1008,7 @@ $.fn.resetForm = function(){
 				else field.value = '';
 			});
 		$f.find('.ownerChoice').hide();
+		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth() ) + '/' + d.getFullYear());
 		$('#recurrent_0').attr('checked', 'checked');
 		$('#type_2').attr('checked', 'checked');
 		$('#action').val('add');
@@ -1066,6 +1075,9 @@ String.prototype.format = function(sepa, thousandSepa){
 	return res;
 }
 
+/**
+ * localStorage method for caching javascript objects
+ */
 Storage.prototype.setObject = function(key, value){
 	this.setItem(key, JSON.stringify(value));
 }

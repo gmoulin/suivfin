@@ -504,6 +504,85 @@
 			display: none;
 		}
 
+		#formSubmit::before {
+			content: "";
+			position: absolute;
+			left: -50px;
+			top: 0;
+			display: block;
+			height: 16px;
+			width: 16px;
+			opacity: 0;
+
+			border-radius: 50%;
+
+			background-image: -moz-radial-gradient(40px 40px, ellipse farthest-corner, aqua 0%, rgba(0, 0, 255, 0) 100%, blue 95%);
+			background-repeat: no-repeat;
+			background-size: 16px 16px;
+		}
+
+		.submitting #formSubmit::before {
+			opacity: 1;
+
+			-webkit-transition: opacity 0.3s linear 0s;
+			   -moz-transition: opacity 0.3s linear 0s;
+					transition: opacity 0.3s linear 0s;
+
+			-webkit-transform: rotate(360deg);
+			-webkit-animation-name: loader;
+			-webkit-animation-duration: 1s;
+			-webkit-animation-iteration-count: infinite;
+			-webkit-animation-direction: linear;
+
+			-moz-transform: rotate(360deg);
+			-moz-animation-name: loader;
+			-moz-animation-duration: 1s;
+			-moz-animation-iteration-count: infinite;
+			-moz-animation-direction: linear;
+
+			transform: rotate(360deg);
+			animation-name: loader;
+			animation-duration: 1s;
+			animation-iteration-count: infinite;
+			animation-direction: linear;
+		}
+
+		@-webkit-keyframes loader{
+			0%, 100%  { -webkit-transform: rotate(0deg);   }
+			50% { -webkit-transform: rotate(180deg); }
+			99% { -webkit-transform: rotate(360deg); }
+		}
+
+		@-moz-keyframes loader{
+			0%, 100%  { -moz-transform: rotate(0deg);   }
+			50% { -moz-transform: rotate(180deg); }
+			99% { -moz-transform: rotate(360deg); }
+		}
+
+		@keyframes loader{
+			0%  { transform: rotate(0deg);   }
+			5%  { transform: rotate(18deg);  }
+			10% { transform: rotate(36deg);  }
+			15% { transform: rotate(54deg);  }
+			20% { transform: rotate(72deg);  }
+			25% { transform: rotate(90deg);  }
+			30% { transform: rotate(108deg); }
+			35% { transform: rotate(126deg); }
+			40% { transform: rotate(144deg); }
+			45% { transform: rotate(162deg); }
+			50% { transform: rotate(180deg); }
+			55% { transform: rotate(198deg); }
+			60% { transform: rotate(216deg); }
+			65% { transform: rotate(234deg); }
+			70% { transform: rotate(252deg); }
+			75% { transform: rotate(270deg); }
+			80% { transform: rotate(288deg); }
+			85% { transform: rotate(306deg); }
+			90% { transform: rotate(324deg); }
+			95% { transform: rotate(342deg); }
+			100%{ transform: rotate(360deg); }
+		}
+
 	/* next month recurrent payments generation button */
 		#next_month {
 			position: fixed;
