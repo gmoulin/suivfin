@@ -57,7 +57,6 @@ try {
 			case 'statusList':
 			case 'ownerList':
 			case 'recipientList':
-					$target = ( strpos($field, 'List') !== false ? substr($field, 0, strlen($field)-4 ) : $field );
 					$obj = new $target();
 
 					if( $browserHasCache && $modifiedSince != 0 ){
@@ -77,11 +76,10 @@ try {
 			case 'origin_filter':
 			case 'recipient_filter':
 			case 'location_filter':
-					$target = substr($field, 0, -7);
 					$obj = new $target();
 
 					if( $browserHasCache && $modifiedSince != 0 ){
-						$ts = $obj->loadListForFilter( null, true );
+						$ts = $obj->loadListForFilterByOwner( null, true );
 						if( !is_null($ts) ){
 							//browser has list in cache and list was not modified
 							if( $modifiedSince == $ts ){

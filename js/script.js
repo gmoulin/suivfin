@@ -53,16 +53,16 @@ $(document).ready(function(){
 					m = tmp.getMonth() + 1, //javascript month index start at 0
 					newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
 
-				var needReload = false;
-				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+				var needReload = false,
+					$cb = $('#time_frame').find('input[value=' + newMonth + ']');
+				if( $cb.length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
+					if( !$cb.is(':checked') ) $('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
 				} else {
 					needReload = true;
 				}
 
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-
 				$.ajax({
 					url: 'ajax/payment.php',
 					data: $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' ),
@@ -71,7 +71,7 @@ $(document).ready(function(){
 					complete: function(){
 						$form.removeClass('submitting');
 					},
-					success: function(data){
+					success: function(data, textStatus, jqXHR){
 						$form.removeClass('submitting'); //security, sometimes complete() is not called...
 						if( data == 'ok' ){
 							if( needReload ) window.location.reload();
@@ -80,15 +80,25 @@ $(document).ready(function(){
 						} else if( data.payments ){
 							//form hide
 							$('body').unbind('click');
-							$form.removeClass('deploy')
-								 .find('datalist, select').loadList();
+							$form.removeClass('deploy');
+
+							try {
+								lastModified = jqXHR.getResponseHeader('Last-Modified');
+
+								var key = $('#currentOwner').val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
+								localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+							} catch( e ){
+								alert(e);
+							}
+
+							refreshParts( data );
+
+							$form.find('datalist, select').loadList();
 							$filter.find('select').loadList();
 
 							//focus the payment add button
 							$('#form_switch a').focus();
-
-							refreshParts( data );
-
 						} else {
 							//form errors display
 							formErrors(data);
@@ -338,9 +348,11 @@ $(document).ready(function(){
 				$(this).closest('ul').parent().find('.year').attr('checked', 'checked');
 			}
 
-			//wait 500ms before reloading data, help when user check several checkboxes quickly
-			clearTimeout(buffer);
-			buffer = setTimeout(function(){ reloadParts(); }, 500);
+			if( !$form.hasClass('submitting') ){
+				//wait 500ms before reloading data, help when user check several checkboxes quickly
+				clearTimeout(buffer);
+				buffer = setTimeout(function(){ reloadParts(); }, 500);
+			}
 		});
 
 	//sums cells hover
@@ -410,7 +422,7 @@ $(document).ready(function(){
 	 * refresh the payments, forecast and sum parts with ajax return
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
-	function resfreshParts( data ){
+	function refreshParts( data ){
 		$sums.empty().html( data.sums );
 
 		var $forecast = $('#forecasts'),
@@ -426,8 +438,6 @@ $(document).ready(function(){
 		var $items = $.tmpl('paymentList', data);
 		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
 		applyFilters();
-
-		charts( data );
 	}
 
 
@@ -475,7 +485,7 @@ $(document).ready(function(){
 				}
 
 				if( data.payments ){
-					resfreshParts( data );
+					refreshParts( data );
 				} else {
 					alert( data );
 				}
@@ -955,7 +965,7 @@ $.fn.loadList = function(){
 				} else {
 					data = cachedData.data;
 
-					if( $this.find('option:gt(0)').length ){
+					if( $list.find('option:gt(0)').length ){
 						//options already present, no need to fill the field
 						return;
 					}
@@ -1008,7 +1018,7 @@ $.fn.resetForm = function(){
 				else field.value = '';
 			});
 		$f.find('.ownerChoice').hide();
-		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( d.getMonth() < 10 ? '0' + d.getMonth() : d.getMonth() ) + '/' + d.getFullYear());
+		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear());
 		$('#recurrent_0').attr('checked', 'checked');
 		$('#type_2').attr('checked', 'checked');
 		$('#action').val('add');
