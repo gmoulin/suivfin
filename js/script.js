@@ -57,7 +57,7 @@ $(document).ready(function(){
 					$cb = $('#time_frame').find('input[value=' + newMonth + ']');
 				if( $cb.length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					if( !$cb.is(':checked') ) $('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
+					if( !$cb.is(':checked') ) $('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
 				} else {
 					needReload = true;
 				}
@@ -149,7 +149,7 @@ $(document).ready(function(){
 
 		$('#originFK').change(function(e){
 			if( this.value != '' && limits[ this.value ] ){
-				$('#currency_' + limits[ this.value ]).attr('checked', 'checked');
+				$('#currency_' + limits[ this.value ]).prop({checked: true});
 				$('#amount').focus();
 			}
 		});
@@ -220,8 +220,8 @@ $(document).ready(function(){
 					if( $field.length ){
 						//all datalist are for inputs corresponding to foreign key columns (value is an integer)
 						//label column is an exception (value is a string)
-						if( key != 'label' && $field.is('input[type=text][list]') ){ //datalist
-							$field.val( $( $field.attr('list') ).children('[data-id=' + value + ']').text() );
+						if( key != 'label' && $field.is('[list]') ){ //datalist
+							$field.val( $('#' + $field.attr('list') ).children('[data-id=' + value + ']').text() );
 
 						} else if( $field.is('textarea') ){
 							$field.val( decoder.html( value ).text() );
@@ -234,7 +234,7 @@ $(document).ready(function(){
 							$field.val( decoder.html( value ).text() );
 						}
 					} else if( $radio.length ){
-						$radio.attr('checked', 'checked');
+						$radio.prop({checked: true});
 					}
 				});
 
@@ -310,7 +310,7 @@ $(document).ready(function(){
 				var needReload = false;
 				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$('#time_frame').find('input[value=' + newMonth + ']').attr('checked', 'checked').change();
+					$('#time_frame').find('input[value=' + newMonth + ']').pro({ checked: true }).change();
 				} else {
 					needReload = true;
 				}
@@ -345,7 +345,7 @@ $(document).ready(function(){
 
 			//check the year checkbox if needed
 			} else {
-				$(this).closest('ul').parent().find('.year').attr('checked', 'checked');
+				$(this).closest('ul').parent().find('.year').prop({ checked: true });
 			}
 
 			if( !$form.hasClass('submitting') ){
@@ -1019,8 +1019,8 @@ $.fn.resetForm = function(){
 			});
 		$f.find('.ownerChoice').hide();
 		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear());
-		$('#recurrent_0').attr('checked', 'checked');
-		$('#type_2').attr('checked', 'checked');
+		$('#recurrent_0').prop({ checked: true });
+		$('#type_2').prop({ checked: true });
 		$('#action').val('add');
 	});
 }

@@ -107,10 +107,10 @@ class init {
 	private function initialize(){
 		$suivfin_infos = parse_ini_file( SF_PATH . "/inc/suivfin.ini", true );
 
-		$this->_host	= $suivfin_infos['database']['host'];
-		$this->_dbname	= $suivfin_infos['database']['dbname'];
-		$this->_user	= $suivfin_infos['database']['user'];
-		$this->_pass	= $suivfin_infos['database']['pass'];
+		$this->_host	= $suivfin_infos[ ENV ]['host'];
+		$this->_dbname	= $suivfin_infos[ ENV ]['dbname'];
+		$this->_user	= $suivfin_infos[ ENV ]['user'];
+		$this->_pass	= $suivfin_infos[ ENV ]['pass'];
 	}
 }
 

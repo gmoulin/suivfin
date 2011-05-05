@@ -9,10 +9,14 @@ session_start();
 */
 define('SF_PATH', dirname(__FILE__));
 
-if( strpos('_DEV', $_SERVER['LOCATION']) !== false ){
-	define( "SERVER_NAME", 'http://suivfin.dev' );
+if( !isset($_SERVER['LOCATION']) || empty($_SERVER['LOCATION']) ){
+	define('ENV', 'WEB');
+
+} elseif( strpos('_DEV', $_SERVER['LOCATION']) !== false ){
+	define('ENV', 'LOCAL_DEV');
+
 } else {
-	define( "SERVER_NAME", 'http://suivfin' );
+	define('ENV', 'LOCAL');
 }
 
 date_default_timezone_set('Europe/Zurich');
