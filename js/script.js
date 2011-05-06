@@ -180,20 +180,6 @@ $(document).ready(function(){
 				amount: function( $elem ){
 					return parseFloat( $elem.data('amount') );
 				}
-			},
-			cellsByRow: {
-				columnWidth: 240,
-				rowHeight: 200
-			},
-			cellsByColumn: {
-				columnWidth: 240,
-				rowHeight: 200
-			},
-			masonry: {
-				columnWidth: 240
-			},
-			masonryHorizontal: {
-				rowHeight: 200
 			}
 		}).delegate('.edit, .fork', 'click', function(e){
 			e.preventDefault();
@@ -766,7 +752,7 @@ $(document).ready(function(){
 					var s = '<b>'+ Highcharts.dateFormat('%A %d %B', this.x) +'</b>';
 
 					$.each(this.points, function(i, point) {
-						s += '<br/><span style="color:' + point.series.color + ';">' + point.series.name +'</span>: '+ Highcharts.numberFormat(point.y, 2, '.', '\'') + ' ' + legendCurrency[i];
+						s += '<br/><span style="color:' + point.series.color + ';">' + point.series.name +'</span>: '+ Highcharts.numberFormat(point.y, 2, '.', '\'') + ' ' + legendCurrency[point.series.name];
 					});
 
 					return s;
@@ -891,7 +877,7 @@ $(document).ready(function(){
 											data: $.map(infos.amounts, function(a){ return parseFloat(a); })
 										});
 
-										legendCurrency.push(infos.symbol);
+										legendCurrency[ origin ] = infos.symbol;
 									});
 
 									chart = new Highcharts.Chart(evolutionOptions);
