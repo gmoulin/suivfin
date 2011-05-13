@@ -1,33 +1,144 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
+
+var cacheStatusValues = [];
+cacheStatusValues[0] = 'uncached';
+cacheStatusValues[1] = 'idle';
+cacheStatusValues[2] = 'checking';
+cacheStatusValues[3] = 'downloading';
+cacheStatusValues[4] = 'updateready';
+cacheStatusValues[5] = 'obsolete';
+
+var cache = window.applicationCache;
+cache.addEventListener('cached', logEvent, false);
+cache.addEventListener('checking', logEvent, false);
+cache.addEventListener('downloading', logEvent, false);
+cache.addEventListener('error', logEvent, false);
+cache.addEventListener('noupdate', logEvent, false);
+cache.addEventListener('obsolete', logEvent, false);
+cache.addEventListener('progress', logEvent, false);
+cache.addEventListener('updateready', logEvent, false);
+
+function logEvent(e) {
+    var online, status, type, message;
+    online = (navigator.onLine) ? 'yes' : 'no';
+    status = cacheStatusValues[cache.status];
+    type = e.type;
+    message = 'online: ' + online;
+    message+= ', event: ' + type;
+    message+= ', status: ' + status;
+    if (type == 'error' && navigator.onLine) {
+        message+= ' (prolly a syntax error in manifest)';
+    }
+    console.log(message);
+}
+
+window.applicationCache.addEventListener(
+    'updateready',
+    function(){
+        window.applicationCache.swapCache();
+		window.location.reload();
+        console.log('swap cache has been called');
+    },
+    false
+);
+
+setInterval(function(){cache.update()}, 10000);
+
 $(document).ready(function(){
-	var $container = $('#container'),
+	var $body = $('body'),
+		$container = $('#container'),
 		$sums = $('#sums'),
 		$form = $('#payment_form'),
 		$filter = $('#filter'),
 		$timeframe = $('#time_frame'),
+		$currentOwner = $('#current_owner'),
 		filters = {},
 		buffer = null,
 		chart = null,
 		legendCurrency = [];
 
+	/* online - offline modes */
+		window.addEventListener("online", function(){
+			$body.removeClass("offline")
+					.data('internet', 'online');
+
+			var deletions = localStorage.getObject('deletions') || [] ,
+				modifications = localStorage.getObject('modifications') || [];
+
+			if( deletions.length ){
+				var todo = deletions;
+				$.each( deletions, function(i, deletion){
+					$.post('ajax/payment.php', deletion + '&offline=1', function(data){
+						if( data != 'ok' ){
+							alert(data);
+						} else {
+							todo.shift();
+						}
+					});
+				});
+
+				if( todo.length ){
+					alert('not all deletions actions have been sent');
+					localStorage.setObject('deletions', todo);
+				} else {
+					localStorage.removeItem('deletions');
+				}
+			}
+
+			if( modifications.length ){
+				var todo = modifications;
+				$.each( modifications, function(i, modification){
+					$.post('ajax/payment.php', modification + '&offline=1', function(data){
+						if( data != 'ok' ){
+							alert(data);
+						} else {
+							todo.shift();
+						}
+					});
+				});
+
+				if( todo.length ){
+					alert('not all deletions actions have been sent');
+					localStorage.setObject('modifications', todo);
+				} else {
+					localStorage.removeItem('modifications');
+				}
+			}
+
+			//reload the parts, will throw a 304 and use localStorage if nothing has changed server-side
+			reloadParts();
+		}, true);
+
+		window.addEventListener("offline", function(){
+			$body.addClass("offline")
+					.data('internet', 'offline');
+		}, true);
+
+		if( navigator.onLine ){
+			$body.removeClass("offline")
+					.data('internet', 'online');
+		} else {
+			$body.addClass("offline")
+					.data('internet', 'offline');
+		}
+
 	//ajax global management
+	/*
 		$('#ajax_loader').ajaxStart(function(){
-			console.log('ajaxStart');
 			$('#ajax_loader').addClass('loading');
 			$(this).empty(); //global error message deletion
 		})
 		.ajaxStop(function(){
-			console.log('ajaxStop');
 			$('#ajax_loader').removeClass('loading');
 		})
 		.ajaxError(function(event, xhr, settings, exception){
-			console.log('ajaxError');
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
+	*/
 
 	//forms actions
-		$('#form_switch a').click(function(e){
+		$('.form_switch a').click(function(e){
 			e.preventDefault();
 			e.stopPropagation(); //else it will fire $(document).click() listener
 
@@ -62,49 +173,64 @@ $(document).ready(function(){
 					needReload = true;
 				}
 
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-				$.ajax({
-					url: 'ajax/payment.php',
-					data: $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' ),
-					type: 'POST',
-					dataType: 'json',
-					complete: function(){
-						$form.removeClass('submitting');
-					},
-					success: function(data, textStatus, jqXHR){
-						$form.removeClass('submitting'); //security, sometimes complete() is not called...
-						if( data == 'ok' ){
-							if( needReload ) window.location.reload();
-							else reloadParts();
+				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
+					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
 
-						} else if( data.payments ){
-							//form hide
-							$('body').unbind('click');
-							$form.removeClass('deploy');
+				if( $body.data('internet') == 'offline' ){
+					var modifications = localStorage.getObject('modifications') || [];
+					modifications.push(params + '&owner=' + $currentOwner.val() );
+					localStorage.setObject('modifications', modifications);
 
-							try {
-								lastModified = jqXHR.getResponseHeader('Last-Modified');
+					//form hide
+					$('body').unbind('click');
+					$form.removeClass('submitting').removeClass('deploy');
 
-								var key = $('#currentOwner').val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
 
-								localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-							} catch( e ){
-								alert(e);
+				} else {
+					$.ajax({
+						url: 'ajax/payment.php',
+						data: params,
+						type: 'POST',
+						dataType: 'json',
+						complete: function(){
+							$form.removeClass('submitting');
+						},
+						success: function(data, textStatus, jqXHR){
+							$form.removeClass('submitting'); //security, sometimes complete() is not called...
+							if( data == 'ok' ){
+								if( needReload ) window.location.reload();
+								else reloadParts();
+
+							} else if( data.payments ){
+								//form hide
+								$('body').unbind('click');
+								$form.removeClass('deploy');
+
+								try {
+									lastModified = jqXHR.getResponseHeader('Last-Modified');
+
+									var key = $currentOwner.val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
+									localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+								} catch( e ){
+									alert(e);
+								}
+
+								refreshParts( data );
+
+								$form.find('datalist, select').loadList();
+								$filter.find('select').loadList();
+
+								//focus the payment add button
+								$('.form_switch:visible a').focus();
+							} else {
+								//form errors display
+								formErrors(data);
 							}
-
-							refreshParts( data );
-
-							$form.find('datalist, select').loadList();
-							$filter.find('select').loadList();
-
-							//focus the payment add button
-							$('#form_switch a').focus();
-						} else {
-							//form errors display
-							formErrors(data);
 						}
-					}
-				});
+					});
+				}
 			}
 		}).delegate('input[name=typeFK]', 'change', function(e){
 			if( this.id == 'type_3' ){
@@ -117,26 +243,23 @@ $(document).ready(function(){
 		});
 
 		$('#formCancel').click(function(){
-			console.log('formCancel click');
 
 			$('body').unbind('click');
 			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
 
-		$(document).unbind('keypress').keypress(function(e){
-			// ESCAPE key pressed
-			if( e.keyCode == 27 ){
-				if( $form.hasClass('deploy') ){
-					$('body').unbind('click');
-					$form.removeClass('deploy').removeClass('submitting');
-				}
-			}
-		}).unbind('keydown').keydown(function(e){
+		$(document).unbind('keydown').keydown(function(e){
 			//"a" pressed for add
 			if( e.which == 65 ){
 				$('#payment_form:not(.deploy)')
 					.resetForm()
 					.addClass('deploy');
+
+			} else if( e.keyCode == 27 ){
+				if( $form.hasClass('deploy') ){
+					$('body').unbind('click');
+					$form.removeClass('deploy').removeClass('submitting');
+				}
 			}
 		}).delegate('#amount', 'keydown', function(e){
 			if( e.which == 188 ){ //, pressed (comma)
@@ -192,59 +315,116 @@ $(document).ready(function(){
 			//fork is for dupplication, so action is "add" an id has no value
 			if( $this.hasClass('edit') ) $('#action').val('update');
 
-			$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
-				var decoder = $('textarea'),
-					$field = null,
-					$radio = null;
-				$.each(data, function(key, value){
-					$field = $('#' + key);
-					if( !isNaN(parseInt(value)) ){
-						$radio = $('#' + key.replace(/FK/, '') + '_' + value);
-					} else {
-						$radio = null;
-					}
-					if( $field.length ){
-						//all datalist are for inputs corresponding to foreign key columns (value is an integer)
-						//label column is an exception (value is a string)
-						if( key != 'label' && $field.is('[list]') ){ //datalist
-							$field.val( $('#' + $field.attr('list') ).children('[data-id=' + value + ']').text() );
+			//in online mode take the values directly from database
+			//in offline mode, get the values from DOM
+			if( $body.data('internet') == 'offline' ){
+				$('#id').val( $this.attr('href') );
 
-						} else if( $field.is('textarea') ){
-							$field.val( decoder.html( value ).text() );
+				var $item = $this.closest('.item'),
+					classes = $item.attr('class');
+				classes.split(' ');
+				$.each(classes, function(i, c){
+					if( c == 'recurrent' || c == 'punctual' ){
+						$('#recurrent_' + ( c == 'recurrent' ? 1 : 0 )).prop({checked: true});
 
-						} else if( $field.is('input[type=date]') ){
-							var d = value.split('-');
-							$field.val( d[2] + '/' + d[1] + '/' + d[0] );
-
-						} else {
-							$field.val( decoder.html( value ).text() );
-						}
-					} else if( $radio.length ){
-						$radio.prop({checked: true});
+					} else if( c.indexOf('type_') != -1 || c.indexOf('currency_') != -1 || c.indexOf('location_') != -1 ){
+						$('#' + c).prop({checked: true});
 					}
 				});
 
+				$('#label').val( $item.find('dd:eq(1)').text() );
+
+				var d = new Date( $item.data('date') );
+				$('#paymentDate').val( d.getDate() + '/' + d.getMonth + '/' + d.getFullYear() );
+
+				//comment
+				$('#comment').val( $item.data('comment') );
+
+				//originFK
+				$('#originFK').val( $('#originList').children('[data-id=' + $item.data('origin') + ']').text() );
+
+				//amount
+				$('#amount').val( $item.data('amount') );
+
+				//methodFK
+				$('#methodFK').val( $('#methodList').children('[data-id=' + $item.data('method') + ']').text() );
+
+				//recipientFK
+				$('#recipientFK').val( $('#recipientList').children('[data-id=' + $item.data('recipient') + ']').text() );
+
+				//statusFK
+				$('#' + $item.data('status') ).prop({checked: true});
+
 				if( $this.hasClass('fork') ) $('#id').val('');
-			});
+
+			} else {
+				$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
+					var decoder = $('textarea'),
+						$field = null,
+						$radio = null;
+					$.each(data, function(key, value){
+						$field = $('#' + key);
+						if( !isNaN(parseInt(value)) ){
+							$radio = $('#' + key.replace(/FK/, '') + '_' + value);
+						} else {
+							$radio = null;
+						}
+						if( $field.length ){
+							//all datalist are for inputs corresponding to foreign key columns (value is an integer)
+							//label column is an exception (value is a string)
+							if( key != 'label' && $field.is('[list]') ){ //datalist
+								$field.val( $('#' + $field.attr('list') ).children('[data-id=' + value + ']').text() );
+
+							} else if( $field.is('textarea') ){
+								$field.val( decoder.html( value ).text() );
+
+							} else if( $field.is('input[type=date]') ){
+								var d = value.split('-');
+								$field.val( d[2] + '/' + d[1] + '/' + d[0] );
+
+							} else {
+								$field.val( decoder.html( value ).text() );
+							}
+						} else if( $radio.length ){
+							$radio.prop({checked: true});
+						}
+					});
+
+					if( $this.hasClass('fork') ) $('#id').val('');
+				});
+			}
 		}).delegate('.trash', 'click', function(e){
 			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
+					params = 'action=delete&id=' + $(this).attr('href') + '&timeframe=' + tf;
 
-				$.post('ajax/payment.php', 'action=delete&id=' + $(this).attr('href') + '&timeframe=' + tf, function(data){
-					if( data.payments ){
-						$form.find('datalist, select').loadList();
-						$filter.find('select').loadList();
+				if( $body.data('internet') == 'offline' ){
+					var deletions = localStorage.getObject('deletions') || [];
+					deletions.push(params + '&owner=' + $currentOwner.val() );
+					localStorage.setObject('deletions', deletions);
 
-						refreshParts( data );
-					} else {
-						alert( data );
-					}
-				});
+					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
+
+					$container.isotope('remove', $(this).closest('.item')).isotope('reLayout');
+					applyFilters();
+
+				} else {
+					$.post('ajax/payment.php', params, function(data){
+						if( data.payments ){
+							$form.find('datalist, select').loadList();
+							$filter.find('select').loadList();
+
+							refreshParts( data );
+						} else {
+							alert( data );
+						}
+					});
+				}
 			}
 		});
 
-		$('#sort a').click(function(e){
+		$('.sort a').click(function(e){
 			e.preventDefault();
 			// get href attribute, minus the '#'
 			var sortName = $(this).attr('href').substr(1);
@@ -284,7 +464,7 @@ $(document).ready(function(){
 		});
 
 	//next month recurrent payments generation
-		$('#next_month a').click(function(e){
+		$('.next_month a').click(function(e){
 			e.preventDefault();
 			if( confirm("Êtes-vous sûr ?\nAucune vérification ne sera réalisée !") ){
 
@@ -380,21 +560,29 @@ $(document).ready(function(){
 	//switch between chart and isotope view
 		$('#switch_view a').data('view', 'isotope').click(function(e){
 			var $this = $(this),
-				sections = [$container, $sums, $filter, $timeframe, '#sort', '#next_month', '#form_switch', '#forecasts', '#chart', '#chart_type'];
+				paymentSections = ['#container', '#filter', '#time_frame', '.sort', '.next_month', '.form_switch', '#calculs'],
+				chartSections = ['#chart', '#chart_type'],
+				currentView;
 
-			$this.data('view', $this.data('view') == 'isotope' ? 'chart' : 'isotope' )
+			$this.data('view', $(this).data('view') == 'isotope' ? 'chart' : 'isotope' )
 				 .toggleClass('isotope chart');
+			currentView = $this.data('view');
 
-			$.each(sections, function(index, section){
-				if( typeof section == 'string' ){
-					$(section).stop(true, true).toggle();
-				} else {
-					section.stop(true, true).toggle();
-				}
+			$.each(paymentSections, function(index, section){
+				currentView == 'isotope' ? $(section).css('display', '') : $(section).css('display', 'none');
 			});
 
-			if( $this.data('view') == 'chart' ){
+			$.each(chartSections, function(index, section){
+				currentView == 'chart' ? $(section).css('display', 'block') : $(section).css('display', 'none');
+			});
+
+			if( currentView == 'chart' ){
+				$('#chart').height( $('body').height() - 200); //force the chart to use all the available viewport height
 				reloadChart( null );
+
+			} else if( chart ){ //destroy the chart if present, clean memory and timers
+				chart.destroy();
+				chart = null;
 			}
 		});
 
@@ -414,6 +602,10 @@ $(document).ready(function(){
 		var $forecast = $('#forecasts'),
 			title = $forecast.children('h2').detach();
 		$forecast.empty().html( data.forecasts ).prepend( title );
+
+		var $balance = $('#balances'),
+			title = $balance.children('h2').detach();
+		$balance.empty().html( data.balances ).prepend( title );
 
 		//prepare jQuery Template
 		if( !$('#paymentListTemplate').data('tmpl') ){
@@ -436,10 +628,11 @@ $(document).ready(function(){
 
 		var cachedData,
 			lastModified = 0,
-			key = $('#currentOwner').val() + '_' + tf;
+			key = $currentOwner.val() + '_' + tf;
 
 		try {
 			cachedData = localStorage.getObject(key);
+
 			if( cachedData ){
 				lastModified = cachedData.lastModified;
 			}
@@ -495,7 +688,7 @@ $(document).ready(function(){
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
 		$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
 
-		var sortName = $('#sort a.primary').attr('href').substr(1);
+		var sortName = $('.sort:visible a.primary').attr('href').substr(1);
 		$container.isotope({ sortBy: sortName });
 	}
 
@@ -816,7 +1009,7 @@ $(document).ready(function(){
 
 		var cachedData,
 			lastModified = 0,
-			key = $('#currentOwner').val() + '_' + type;
+			key = $currentOwner.val() + '_' + type;
 
 		try {
 			cachedData = localStorage.getObject(key);
@@ -852,6 +1045,7 @@ $(document).ready(function(){
 
 				if( data.sums ){
 					try{
+						if( chart ) chart.destroy();
 						switch( type ){
 							default:
 							case 'expense':
@@ -906,6 +1100,8 @@ $(document).ready(function(){
 		});
 	}
 
+
+	reloadParts();
 });
 
 /**
@@ -993,7 +1189,6 @@ $.fn.loadList = function(){
  * reset the payment form fields
  */
 $.fn.resetForm = function(){
-	console.log('resetForm');
 	return this.each(function(){
 		var $f = $(this),
 			d = new Date();
@@ -1019,7 +1214,6 @@ $.fn.resetForm = function(){
  * @param array [[field id, message, error type]]
  */
 function formErrors( data ){
-	console.log('formErrors');
 	$.each(data, function(index, error){
 		$('#' + error[0]).addClass(error[2]).siblings('.tip').remove(); //remove previous error message if present
 

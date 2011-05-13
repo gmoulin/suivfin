@@ -13,6 +13,7 @@
 					data-origin="{$origins[ $payment['originFK'] ]}"
 					data-status="{$statuses[ $payment['statusFK'] ]}"
 					data-amount="{$payment['amount']}"
+					data-comment="{$payment['comment']}"
 				>
 
 					<div class="buttons button-group">

@@ -1,12 +1,10 @@
 {* add / update form, slide down from center top *}
-<aside id="form_switch">
-	<a href="#" title="afficher le formulaire" class="button pill">Ajouter</a>
-</aside>
 <form id="payment_form" action="" method="post">
 	<input type="hidden" id="id" name="id" value="">
 	<input type="hidden" id="action" name="action" value="add">
 	<fieldset>
 		<h1>Paiement par {$owners[$owner]}</h1>
+		<h2 class="offlineWarning">Les ajouts et modifications seront pris en compte lorsque vous repasserez en ligne.</h2>
 		<ul class="clearfix">
 			<li>
 				<label for="type_1">Type</label>

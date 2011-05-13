@@ -1,0 +1,34 @@
+CACHE MANIFEST
+
+# v0.6
+
+CACHE:
+# html files
+/index.php
+
+# css files
+/css/style.css
+
+# js files
+/js/libs/modernizr-1.7.min.js
+/js/libs/jquery-1.6.min.js
+/js/mylibs/jquery.isotope.min.js
+/js/mylibs/jquery.tmpl.min.js
+/js/mylibs/highcharts.js
+/js/mylibs/helper.js
+/js/plugins.js
+/js/script.js
+
+# images
+#img/apple-touch-icon.png
+#/img/apple-touch-icon-114x114-precomposed.png
+#/img/apple-touch-icon-57x57-precomposed.png
+#/img/apple-touch-icon-72x72-precomposed.png
+#/img/apple-touch-icon-precomposed.png
+/img/splash.png
+/img/gh-icons.png
+
+FALLBACK:
+
+NETWORK:
+*

@@ -1,6 +1,6 @@
 {strip}
 	{if !$partial}
-		<section id="sums">
+		<section id="sums" class="clearfix">
 	{/if}
 	{if !empty($sums.list)}
 		{foreach $sums.list as $month => $sum_types}

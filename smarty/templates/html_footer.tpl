@@ -12,12 +12,16 @@
 		<script src="js/mylibs/jquery.isotope.min.js"></script>
 		<script src="js/mylibs/jquery.tmpl.min.js"></script>
 		<script src="js/mylibs/highcharts.js"></script>
+		<script src="js/mylibs/helper.js"></script>
 		<script src="js/plugins.js"></script>
 		<script src="js/script.js?v={$js}"></script>
 		<!-- end scripts-->
 
 		<script>
 			var limits = {$limits|json_encode};
+
+			// iPhone Scale Bug Fix, read this when using http://www.blog.highub.com/mobile-2/a-fix-for-iphone-viewport-scale-bug/
+			MBP.scaleFix();
 		</script>
 		{literal}
 			<script id="paymentListTemplate" type="text/x-jquery-tmpl">
@@ -31,8 +35,9 @@
 						data-origin="${getValue(origins, payment.originFK)}"
 						data-status="${getValue(statuses, payment.statusFK)}"
 						data-amount="${payment.amount}"
+						data-amount="${payment.comment}"
 					>
-						<div class="buttons button-group">
+						<div class="buttons button-group vertical">
 							<a class="button pill icon edit icon-only" href="${payment.id}" title="Editer ce paiement">Editer</a>
 							<a class="button pill icon fork icon-only" href="${payment.id}" title="Duppliquer ce paiement">Duppliquer</a>
 							<a class="button pill icon trash icon-only" href="${payment.id}" title="Supprimer ce paiement">Supprimer</a>

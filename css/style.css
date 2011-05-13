@@ -61,7 +61,7 @@
 /**
  * Font normalization inspired by YUI Library's fonts.css: developer.yahoo.com/yui/
  */
-	body { font:13px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
+	body { font:11px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
 	select, input, textarea, button { font:99% sans-serif; }
 
 /* Normalize monospace sizing:
@@ -163,6 +163,10 @@
  *
  * Author: Guillaume Moulin
  */
+	html, body {
+		height: 100%;
+	}
+
 	body {
 		background-color: hsl(0, 0%, 91%);
 	}
@@ -197,25 +201,74 @@
 			font-style: italic;
 		}
 
-	/* statuses */
+	/* statuses colors */
 		.status_1 { /* vérifié - green */
-			background: -moz-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
 			border: 1px solid rgb(0, 255, 82);
 		}
+		.button.status_1,
+		.status_1 { /* vérifié - green */
+			background: -o-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -webkit-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -moz-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		}
 
-		.status_2 { /* à prévisible - orange */
-			background: -moz-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.status_2 { /* vérifié - green */
 			border: 1px solid rgb(255, 169, 0);
 		}
-
-		.status_3 { /* à vérifier - light blue */
-			background: -moz-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			border: 1px solid rgb(0, 183, 255);
+		.button.status_2,
+		.status_2 { /* à prévisible - orange */
+			background: -o-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -webkit-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -moz-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
 		}
 
-		.status_4 { /* à payer - red */
-			background: -moz-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.status_3 { /* vérifié - green */
+			border: 1px solid rgb(0, 183, 255);
+		}
+		.button.status_3,
+		.status_3 { /* à vérifier - light blue */
+			background: -o-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -webkit-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -moz-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		}
+
+		.status_4 { /* vérifié - green */
 			border: 1px solid rgb(242, 47, 34);
+		}
+		.button.status_4,
+		.status_4 { /* à payer - red */
+			background: -o-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -webkit-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+			background: -moz-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		}
+
+	/* header */
+		header {
+			width: 100%;
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: 100;
+			text-align: center;
+			overflow: show;
+		}
+
+	/* footer */
+		footer {
+			width: 100%;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			z-index: 100;
+			text-align: center;
+			padding: 5px 0 2px;
+			margin: 0;
+			background-color: #ccc;
+			border-width: 1px 0 0 0;
+			border-color: #000;
+			border-style: solid;
+			height: 28px;
+			overflow: hidden;
 		}
 
 	/* list */
@@ -233,101 +286,172 @@
 			display: none;
 			position: absolute;
 			top: 0;
-			left: 0;
-			width: 100%;
+			right: 0;
 		}
 
 		.item:hover .buttons {
 			display: block;
 		}
 
-	/* sum and forecast */
-		#sums {
-			position: fixed;
-			top: 45px;
-			right: 0;
-			max-width: 22%;
-			max-height: 800px;
-			overflow-y: auto;
-			overflow-x: hidden;
-			background-color: #ccc;
-			border-width: 1px 0 1px 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 6px 0 0 6px;
-			padding: 5px;
+	/* calculs result column */
+		#calculs {
 			z-index: 99;
+			background-color: #ccc;
+			border-width: 1px 0;
+			border-color: #000 #000 #666;
+			border-style: solid;
+			vertical-align: top;
+			margin-top: 41px;
+			padding: 3px 0;
+			text-align: center;
+		}
+
+		#sums,
+		#forecasts,
+		#balances {
+			display: inline-block;
+			vertical-align: top;
+			padding: 0;
+			margin: 5px 20px;
+			text-align: left;
 			font-size: 11px;
 		}
 
-		#sums table,
-		#sums th,
-		#sums td {
-			border: none;
-		}
+		/* balances */
+			#balances * {
+				line-height: 20px;
+			}
 
-		#sums th,
-		#sums td {
-			padding: 3px 10px;
-			white-space: nowrap;
-		}
-		#sums tr td:first-child {
-			font-weight: bold;
-			padding-left: 0;
-			text-indent: 4px;
-		}
-		#sums tr td:last-child {
-			padding-right: 2px;
-		}
+			#balances h2 {
+				display: block;
+			}
 
-		#sums .highlight {
-			background-color: rgba(102, 102, 102, 0.5);
-			color: rgb(255, 255, 255);
-			border-radius: 4px;
-		}
+			#balances strong,
+			#balances span {
+				display: inline-block;
+			}
 
-		#sums td:not(.type) {
-			text-align: right;
-		}
+			#balances strong {
+				min-width: 125px;
+			}
 
-		#sums table {
-			width: 100%;
-		}
+			#balances span:nth-child(odd) {
+				text-align: right;
+				min-width: 50px;
+			}
 
-		#sums hr {
-			width: 100%;
-			height: 2px;
-			background-color: #fff;
-			border-top: 1px solid #666;
-		}
+			#balances span:nth-child(even) {
+				text-indent: 3px;
+			}
 
-		#forecasts {
-			padding: 50px 0 0 10px;
-		}
-		#forecasts * {
-			line-height: 20px;
-			height: 20px;
-		}
-		#forecasts li {
+		/* forecast */
+			#forecasts * {
+				line-height: 20px;
+			}
+
+			#forecasts h2 {
+				display: block;
+				float: left;
+			}
+
+			#forecasts strong {
+				float: left;
+				clear: left;
+				width: 80px;
+			}
+
+			#forecasts .statuses {
+				display: block;
+				float: left;
+			}
+			#forecasts .statuses + .statuses {
+				margin-left: 85px;
+			}
+
+			#forecasts ul {
+				display: inline;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+
+			#forecasts li {
+				display: inline;
+			}
+
+			#forecasts strong,
+			#forecasts .statuses > li {
+				display: block;
+				margin-bottom: 3px;
+				padding: 2px;
+			}
+
+		/* sum */
+			#sums {
+				margin: 0;
+			}
+
+			#sums table,
+			#sums th,
+			#sums td {
+				border: none;
+			}
+
+			#sums th,
+			#sums td {
+				padding: 3px 10px;
+				white-space: nowrap;
+			}
+
+			#sums tr td:first-child {
+				font-weight: bold;
+				padding-left: 0;
+				text-indent: 4px;
+			}
+
+			#sums tr td:last-child {
+				padding-right: 2px;
+			}
+
+			#sums .highlight {
+				background-color: rgba(102, 102, 102, 0.5);
+				color: rgb(255, 255, 255);
+				border-radius: 4px;
+			}
+
+			#sums td:not(.type) {
+				text-align: right;
+			}
+
+			#sums table {
+				float: left;
+				width: 30%;
+				margin: 5px 10px;
+			}
+
+			#sums th {
+				text-align: center;
+			}
+
+			#sums hr {
+				display: none;
+				width: 100%;
+				height: 2px;
+				background-color: #fff;
+				border-top: 1px solid #666;
+			}
+
+	/* Payments Container */
+		#container {
 			padding: 0;
-			display: inline-block;
-		}
-		#forecasts ul {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-			display: inline-block;
-		}
-		#forecasts h2,
-		#forecasts > ul {
-			margin-right: 20px;
+			margin: 0 0 35px 0;
+			visibility: hidden; /* hide the payments blocks on page load before isotope rendering */
 		}
 
-		#forecasts .statuses > li {
-			padding: 0 3px;
+		#container.isotope {
+			visibility: visible;
 		}
 
-	/* Isotope styles */
 		/* Isotope Filtering */
 			.isotope-item {
 			  z-index: 2;
@@ -358,66 +482,77 @@
 					  transition-property:         transform, opacity;
 			}
 
-		/* isotope required for containers to inherit vertical size from window */
-			html,
-			body {
-				height: 100%;
-			}
-
-			#container {
-				padding: 0;
-				margin: 0 0 30px 0;
-				max-width: 77%;
-				visibility: hidden; /* hide the payments blocks on page load before isotope rendering */
-			}
-
-			#container.isotope {
-				visibility: visible;
-			}
-
 	/* owner list */
-		#owners {
-			position: fixed;
-			top: 0;
-			left: 0;
+		.owners {
+			float: left;
 			background-color: #ccc;
 			border-width: 0 1px 1px 0;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
+			border-color: #000;
+			border-style: solid;
 			border-radius: 0 0 6px 0;
-			padding: 5px;
-			z-index: 100;
 		}
-		#owners ul {
+
+		.owners.button-group {
+			padding: 5px;
+		}
+
+		.owners.button-group + .owners.icons.button-group {
+			margin-left: 0;
+		}
+
+		.owners ul {
 			padding: 0;
 			margin: 0;
 			display: inline-block;
 		}
 
-	/* form */
-		#form_switch {
-			position: fixed;
-			top: 0px;
-			left: 45%;
-			background-color: #ccc;
-			border-width: 0 1px 1px 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 0 0 6px 6px;
-			padding: 5px;
-			z-index: 99;
+		.owners:not(.icons) {
+			display: none;
 		}
 
+	/* form switch */
+		.form_switch {
+			background-color: #ccc;
+			border-color: #000;
+			border-style: solid;
+		}
+
+		header .form_switch {
+			border-width: 0 1px 1px 1px;
+			border-radius: 0 0 6px 6px;
+			margin: 0 auto;
+			padding: 5px;
+			display: none;
+		}
+
+		footer .next_month.icon {
+			margin-top: 2px;
+		}
+
+		footer .next_month .button.icon-only {
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			padding: 0;
+		}
+
+		footer .next_month .button.icon-only:before {
+			left: 4px;
+			top: 4px;
+			margin: 0;
+		}
+
+	/* payment form */
 		#payment_form {
 			position: fixed;
-			top: -100%;
+			top: -750px;
 			left: 0;
 			width: 100%;
 			text-align: center;
 
-			-webkit-transition: top 0.5s ease-in-out 0s;
-			-moz-transition: top 0.5s ease-in-out 0s;
-			transition: top 0.5s ease-in-out 0s;
+			-webkit-transition: top 0.3s ease-in-out 0s;
+			-moz-transition: top 0.3s ease-in-out 0s;
+			transition: top 0.3s ease-in-out 0s;
 		}
 
 		#payment_form.deploy {
@@ -425,26 +560,21 @@
 		}
 
 		#payment_form fieldset {
-			display: inline-block;
-			margin: 0 auto;
-			max-height: 700px;
-			width: auto;
-			overflow-y: auto;
 			background-color: #ccc;
-			border-width: 0 1px 1px 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 0 0 6px 6px;
-			padding: 15px;
+			padding: 5px;
 			z-index: 102;
-			text-align: left;
+			text-align: center;
 			position: relative;
+			border-color: #000;
+			border-style: solid;
 		}
 
 		#payment_form ul {
 			list-style: none;
-			margin: 15px 0 0;
+			margin: 15px auto 0;
 			padding: 0;
+			text-align: left;
+			display: inline-block;
 		}
 
 		#payment_form h1 {
@@ -454,17 +584,29 @@
 			font-size: 1.2em;
 		}
 
+		#payment_form fieldset {
+			display: block;
+			border-width: 0 0 1px 0;
+			border-radius: 0;
+		}
+
 		#payment_form li:nth-child(odd) {
 			float: left;
 			clear: both;
-			padding: 3px 15px 4px 0;
-			width: 150px
+			padding: 3px 3px 4px 0;
+			width: 80px
 		}
+
 		#payment_form li:nth-child(even) {
 			float: left;
-			display: inline;
+			display: block;
 			padding: 3px 0 4px 0;
-			width: 370px;
+			width: 210px;
+		}
+
+		#payment_form input:not([type=radio]),
+		#payment_form textarea {
+			width: 200px;
 		}
 
 		#payment_form .formButtons {
@@ -472,14 +614,10 @@
 			text-align: center;
 		}
 
-		#payment_form input:not([type=radio]),
-		#payment_form textarea {
-			width: 350px;
-		}
-
 		#payment_form label {
 			font-weight: bold;
 		}
+
 		#payment_form input + label {
 			font-weight: normal;
 		}
@@ -493,6 +631,14 @@
 			border-radius: 3px;
 			color: #FFFFFF;
 			text-shadow: none;
+		}
+
+		#payment_form #status_1 + label,
+		#payment_form #status_2 + label,
+		#payment_form #status_3 + label,
+		#payment_form #status_4 + label {
+			min-width: 70px;
+			display: inline-block;
 		}
 
 		.required ~ .tip,
@@ -620,37 +766,38 @@
 		}
 
 	/* next month recurrent payments generation button */
-		#next_month {
-			position: fixed;
-			bottom: 0;
-			left: 0;
-			background-color: #ccc;
-			border-width: 1px 1px 0 0;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 0 6px 0 0;
-			padding: 5px;
-			z-index: 100;
+		.next_month {
+			float: left;
+			margin-left: 5px;
+		}
+
+		.next_month:not(.icon) {
+			display: none;
 		}
 
 	/* time frame */
 		#time_frame {
-			position: fixed;
-			top: 0;
-			right: 0;
+			float: right;
+			position: relative;
 			background-color: #ccc;
 			border-width: 0 0 1px 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
+			border-color: #000;
+			border-style: solid;
 			border-radius: 0 0 0 6px;
-			padding: 5px 0 5px 5px;
-			z-index: 100;
-			height: 20px;
-			line-height: 20px;
+			z-index: 101;
+			line-height: 25px;
+			padding-left: 5px;
+			text-align: left;
 		}
+
+		#time_frame input[type="checkbox"] {
+			top: -7px;
+		}
+
 		#time_frame > ul {
 			display: inline-block;
 		}
+
 		#time_frame ul {
 			list-style: none;
 			margin: 0;
@@ -659,13 +806,13 @@
 		#time_frame > ul > li {
 			display: inline-block;
 			position: relative;
-			padding: 0 5px;
+			padding: 5px;
 		}
 
 		#time_frame li > ul {
 			display: block;
 			position: absolute;
-			top: 25px;
+			top: 35px;
 			right: 0;
 			max-height: 0;
 			overflow: hidden;
@@ -677,8 +824,8 @@
 			background-color: #ccc;
 			padding: 0;
 			border-width: 0 0 0 0;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
+			border-color: #000;
+			border-style: solid;
 			z-index: 101;
 		}
 
@@ -689,6 +836,7 @@
 			border-width: 0 1px 1px 1px;
 			border-radius: 0 0 6px 6px;
 		}
+
 		#time_frame ul > li:last-child:hover > ul {
 			border-width: 0 0 1px 1px;
 			border-radius: 0 0 0 6px;
@@ -702,25 +850,27 @@
 
 	/* filters */
 		#filter {
-			padding: 10px 0 25px 10px;
+			padding: 10px 10px 25px;
+			background-color: #ccc;
+			border-width: 1px 0;
+			border-color: #fff #000 #666;
+			border-style: solid;
 		}
+
 		#filter section {
-			display: inline;
+			display: block;
 			padding: 5px;
 			position: relative;
+			white-space: nowrap;
 		}
+
+		#filter output {
+			display: none;
+		}
+
 		#filter div {
 			padding: 0;
 			margin: 0;
-			display: none;
-			position: absolute;
-			top: 90%;
-			left: 0;
-		}
-		#filter section:hover div {
-			display: block;
-			z-index: 2;
-			white-space: nowrap;
 		}
 
 		#filter select {
@@ -728,50 +878,33 @@
 		}
 
 	/* sorts */
-		#sort {
-			position: fixed;
-			bottom: 0;
-			right: 0;
-			background-color: #ccc;
-			border-width: 1px 0 0 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 6px 0 0 0;
-			padding: 3px 5px;
-			z-index: 100;
-		}
-
-		#sort h2 {
+		.sort h2 {
 			bottom: 10px;
 			position: relative;
 		}
 
+		body > .sort {
+			padding: 5px;
+			background-color: #ccc;
+			border-width: 1px 0;
+			border-color: #fff #000 #000;
+			border-style: solid;
+		}
+
+		footer .sort {
+			display: none;
+		}
+
 	/* switch view */
 		#switch_view {
-			position: fixed;
-			bottom: 0;
-			left: 43%;
-			background-color: #ccc;
-			border-width: 1px 1px 0 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 6px 6px 0 0;
-			padding: 5px;
-			z-index: 100;
+			float: right;
+			margin-right: 5px;
 		}
 
 	/* charts */
 		#chart_type {
-			position: fixed;
-			bottom: 0;
-			right: 0;
-			background-color: #ccc;
-			border-width: 1px 0 0 1px;
-			border-color: #000 #000 #000 #000;
-			border-style: solid solid solid solid;
-			border-radius: 6px 0 0 0;
-			padding: 3px 5px;
-			z-index: 100;
+			float: left;
+			margin-left: 5px;
 			display: none;
 		}
 
@@ -784,9 +917,32 @@
 			display: none;
 			margin: 0 auto;
 			padding: 50px 5px;
-			min-height: 75%;
-			max-height: 90%;
 			max-width: 90%;
+		}
+
+	/* online offline */
+		#internet {
+			display: none;
+			position: fixed;
+			top: 0px;
+			left: 220px;
+			color: #990000;
+			background-color: #ccc;
+			border-width: 0 1px 1px 1px;
+			border-color: #000;
+			border-style: solid;
+			border-radius: 0 0 6px 6px;
+			padding: 5px;
+			z-index: 99;
+		}
+		.offline #internet {
+			display: block;
+		}
+		.offlineWarning {
+			display: none;
+		}
+		.offline .offlineWarning {
+			display: block;
 		}
 
 	/* ------------------------------------------
@@ -805,7 +961,7 @@
 			margin: 0;
 			text-decoration: none;
 			text-shadow: 1px 1px 0 #fff;
-			font:11px/normal sans-serif;
+			font:10px/normal sans-serif;
 			color: #333;
 			white-space: nowrap;
 			cursor: pointer;
@@ -874,6 +1030,10 @@
 		}
 		.button.icon-only {
 			text-indent: -999em;
+			text-shadow: none;
+		}
+		.button.icon-only:after {
+			margin: 0 -0.5em 0 0;
 		}
 		.button.icon-only:before {
 			margin: 0 0 0 -0.5em;
@@ -1034,6 +1194,26 @@
 		.button.user.icon:focus:before,
 		.button.user.icon:active:before { background-position: -12px -360px; }
 
+		.button.couple {
+			position: relative;
+			width: 5px;
+		}
+		.button.couple.icon:after {
+			content: "";
+			position: absolute;
+			top: 6px;
+			left: 14px;
+			width: 12px;
+			height: 12px;
+			margin: 0 0.75em 0 -0.25em;
+			background: url(../img/gh-icons.png) 0 99px no-repeat;
+		}
+
+		.button.couple.icon:after { background-position: 0 -360px; }
+		.button.couple.icon:hover:after,
+		.button.couple.icon:focus:after,
+		.button.couple.icon:active:after { background-position: -12px -360px; }
+
 
 		/* ------------------------------------------------------------------------------------------------------------- BUTTON EXTENSIONS */
 
@@ -1153,6 +1333,40 @@
 			border-bottom-left-radius: 0;
 		}
 
+		/*............................................................................................................ vertical */
+		.button-group.vertical {
+			top: 2px;
+			right: 2px;
+		}
+		.button-group.vertical .button {
+			float: left;
+			clear: left;
+			display: block;
+			margin-top: -1px;
+			margin-left: 0;
+			padding: 0.4em 0 0.2em;
+			width: 16px;
+		}
+		.button-group.vertical > .button:first-child {
+			margin-top: 0;
+			-webkit-border-radius: 50em 50em 0 0;
+			   -moz-border-radius: 50em 50em 0 0;
+			        border-radius: 50em 50em 0 0;
+		}
+		.button-group.vertical > .button:last-child {
+			-webkit-border-radius: 0 0 50em 50em;
+			   -moz-border-radius: 0 0 50em 50em;
+			        border-radius: 0 0 50em 50em;
+		}
+		.button-group.vertical .button.icon-only:before {
+			top: 50%;
+			left: 2px;
+			float: left;
+			width: 12px;
+			height: 12px;
+			margin: 0;
+		}
+
 		/* ............................................................................................................. Minor */
 
 		.button-group.minor-group .button {
@@ -1213,29 +1427,225 @@
 	.clearfix { zoom: 1; }
 
 
-
 /**
  * Media queries for responsive design.
  *
  * These follow after primary styles so they will successfully override.
  */
-	@media all and (orientation:portrait) {
-	  /* Style adjustments for portrait mode goes here */
 
+	/*480px __________________________________________________________________________________________________________ */
+	@media only screen and (min-width: 520px) {
+		/* body { background-color: red; } */
+		body { font:13px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
+
+		.button {
+			font:11px/normal sans-serif;
+		}
+
+		.owners.icons {
+			display: none;
+		}
+		.owners:not(.icons) {
+			display: inline-block;
+		}
+
+		.next_month:not(.icon) {
+			display: block;
+		}
+
+		.next_month.icon {
+			display: none;
+		}
+
+		#payment_form fieldset {
+			padding: 15px;
+		}
+
+		#payment_form li:nth-child(odd) {
+			padding: 3px 5px 4px 0;
+			width: 120px
+		}
+
+		#payment_form li:nth-child(even) {
+			width: 320px;
+			display: inline;
+		}
+
+		#payment_form input:not([type=radio]),
+		#payment_form textarea {
+			width: 300px;
+		}
+
+		#payment_form #status_1 + label,
+		#payment_form #status_2 + label,
+		#payment_form #status_3 + label,
+		#payment_form #status_4 + label {
+			min-width: auto;
+			display: inline;
+		}
 	}
 
-	@media all and (orientation:landscape) {
-	  /* Style adjustments for landscape mode goes here */
+	/*768px __________________________________________________________________________________________________________ */
+	@media only screen and (min-width: 768px) {
+		/* body { background-color: blue; } */
 
+		body {
+			min-width: 520px;
+		}
+
+		header .form_switch {
+			display: inline-block;
+		}
+
+		footer .form_switch {
+			display: none;
+		}
+
+		.sort {
+			display: block;
+		}
+
+		footer .sort {
+			display: none;
+		}
+
+		#filter {
+			border-bottom-color: #666;
+		}
+
+		#payment_form fieldset {
+			display: inline-block;
+			border-width: 0 1px 1px 1px;
+			border-radius: 0 0 6px 6px;
+			margin: 0 auto;
+			width: auto;
+		}
+
+		#payment_form li:nth-child(odd) {
+			padding: 3px 15px 4px 0;
+			width: 150px
+		}
+
+		#payment_form li:nth-child(even) {
+			width: 370px;
+		}
+
+		#payment_form input:not([type=radio]),
+		#payment_form textarea {
+			width: 350px;
+		}
 	}
 
-	/* Grade-A Mobile Browsers (Opera Mobile, Mobile Safari, Android Chrome)
-	   consider this: www.cloudfour.com/css-media-query-for-mobile-is-fools-gold/ */
-	@media screen and (max-device-width: 480px) {
+	/*992px __________________________________________________________________________________________________________ */
+	@media only screen and (min-width: 992px) {
+		/* body { background-color: green; } */
 
+		.sort {
+			display: none;
+		}
 
-	  /* Uncomment if you don't want iOS and WinMobile to mobile-optimize the text for you: j.mp/textsizeadjust */
-	  /* html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
+		footer .sort {
+			display: block;
+			float: right;
+			margin-right: 5px;
+		}
+
+		#filter {
+			border-bottom-color: #000;
+		}
+
+		#switch_view {
+			float: none;
+			margin: 0 auto;
+			display: inline;
+		}
+
+		#filter section {
+			display: inline;
+		}
+
+		#filter output {
+			display: inline
+		}
+
+		#filter div {
+			display: none;
+			position: absolute;
+			top: 90%;
+			left: 0;
+		}
+
+		#filter section:hover div {
+			display: block;
+			z-index: 2;
+			white-space: nowrap;
+		}
+	}
+
+	/*1382px __________________________________________________________________________________________________________ */
+	@media only screen and (min-width: 1382px) {
+		/* body { background-color: #ebf8da; } */
+
+		#container {
+			max-width: 75%;
+		}
+
+		#calculs {
+			max-width: 25%;
+			position: absolute;
+			top: 39px;
+			right: 0;
+			z-index: 99;
+			background: none;
+			border: none;
+			border-radius: 0;
+			margin-top: 0;
+			padding: 0;
+		}
+
+		#calculs > section {
+			display: block;
+			padding: 5px;
+			margin: 2px 0 3px;
+		}
+
+		#sums,
+		#forecasts,
+		#balances {
+			background-color: #ccc;
+			border-width: 1px 0 1px 1px;
+			border-color: #000;
+			border-style: solid;
+			border-radius: 6px 0 0 6px;
+			font-size: 11px;
+			float: right;
+			clear: right;
+		}
+
+		#sums table {
+			float: none;
+			width: 100%;
+			margin: 0;
+		}
+
+		#sums hr {
+			display: block;
+		}
+
+		#filter {
+			padding-top: 50px;
+			max-width: 83%;
+			background-color: transparent;
+			border: none;
+		}
+	}
+
+	/* iPhone 4, Opera Mobile 11 and other high pixel ratio devices ----------- */
+	@media
+	only screen and (-webkit-min-device-pixel-ratio: 1.5),
+	only screen and (-o-min-device-pixel-ratio: 3/2),
+	only screen and (min-device-pixel-ratio: 1.5) {
+	  /* Styles */
 	}
 
 

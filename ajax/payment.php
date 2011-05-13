@@ -38,6 +38,19 @@ try {
 	switch ( $action ){
 		case 'add':
 		case 'update':
+				//in offline mode the owner is added to the requests sended when returning online
+				$offline = filter_has_var(INPUT_POST, 'offline');
+				if( !is_null($offline) && $offline !== false ){
+					$owner = filter_has_var(INPUT_POST, 'owner');
+					if( !is_null($owner) && $owner !== false ){
+						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $owner === false ){
+							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
+						}
+						init::getInstance()->setOwner( $owner );
+					}
+				}
+
 				$oPayment = new payment();
 
 				$formData = $oPayment->checkAndPrepareFormData();
@@ -94,7 +107,13 @@ try {
 					}
 
 					$oPayment->save();
-					$response = getFreshData( $smarty, $frame );
+
+					//when returning online the refresh will be done aside and only one time
+					if( $offline ){
+						$response = 'ok';
+					} else {
+						$response = getFreshData( $smarty, $frame );
+					}
 				} else {
 					$response = $formData['errors'];
 				}
@@ -110,10 +129,28 @@ try {
 					throw new Exception('Gestion des paiements : identifiant incorrect.');
 				}
 
+				//in offline mode the owner is added to the requests sended when returning online
+				$offline = filter_has_var(INPUT_POST, 'offline');
+				if( !is_null($offline) && $offline !== false ){
+					$owner = filter_has_var(INPUT_POST, 'owner');
+					if( !is_null($owner) && $owner !== false ){
+						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $owner === false ){
+							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
+						}
+						init::getInstance()->setOwner( $owner );
+					}
+				}
+
 				$oPayment = new payment($id);
 				$oPayment->delete();
 
-				$response = getFreshData( $smarty, $frame );
+				//when returning online the refresh will be done aside and only one time
+				if( $offline ){
+					$response = 'ok';
+				} else {
+					$response = getFreshData( $smarty, $frame );
+				}
 			break;
 		case 'get':
 				$id = filter_has_var(INPUT_POST, 'id');
@@ -141,16 +178,30 @@ try {
 				$response = getFreshData( $smarty );
 			break;
 		case 'refresh':
+				//in offline mode the owner is added to the requests sended when returning online
+				$owner = filter_has_var(INPUT_POST, 'owner');
+				if( !is_null($owner) && $owner !== false ){
+					$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
+					if( $owner === false ){
+						throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
+					}
+					init::getInstance()->setOwner( $owner );
+				}
+
 				if( $browserHasCache && $modifiedSince != 0 ){
 					$oPayment = new payment();
+					$oEvolution = new evolution();
 
 					//get timestamp for each part
 					$tsPayment = $oPayment->loadForTimeFrame($frame, null, true);
 					$tsSums = $oPayment->getSums($frame, null, true);
 					$tsForecasts = $oPayment->getForecasts(null, true);
+					$tsBalances = $oEvolution->getTodayBalances(null, true);
+					if( is_null($tsForecasts) ) $tsForecasts = 0; //null when there is no forecast
+					if( is_null($tsBalances) ) $tsBalances = 0; //null after evolution table reset
 
-					if( !is_null($tsPayment) && !is_null($tsSums) && !is_null($tsForecasts) ){
-						$maxTs = max( $tsPayment, $tsSums, $tsForecasts );
+					if( !is_null($tsPayment) && !is_null($tsSums) ){
+						$maxTs = max( $tsPayment, $tsSums, $tsForecasts, $tsBalances );
 						//browser has list in cache and list was not modified
 						if( $modifiedSince == $maxTs ){
 							header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
@@ -254,6 +305,10 @@ function getFreshData( &$smarty, $frame, $getTs = false ){
 	list($tsForecasts, $forecasts) = $oPayment->getForecasts(true);
 	$smarty->assign('forecasts', $forecasts);
 
+	$oEvolution = new evolution();
+	list($tsBalances, $balances) = $oEvolution->getTodayBalances(true);
+	$smarty->assign('balances', $balances);
+
 	$oOwner = new owner();
 	$smarty->assign('owners', $oOwner->loadListForFilter());
 	$smarty->assign('owner', $oOwner->getOwner());
@@ -300,9 +355,10 @@ function getFreshData( &$smarty, $frame, $getTs = false ){
 	$response['methods'] = $methods;
 	$response['sums'] = $smarty->fetch('sum.tpl');
 	$response['forecasts'] = $smarty->fetch('forecast.tpl');
+	$response['balances'] = $smarty->fetch('balance.tpl');
 
 	if( $getTs ){
-		$max = max($tsPayments, $tsSums, $tsForecasts);
+		$max = max($tsPayments, $tsSums, $tsForecasts, $tsBalances);
 		return array($max, $response);
 	}
 

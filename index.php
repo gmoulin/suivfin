@@ -41,12 +41,22 @@ try {
 
 	//get payments for current month
 	$oPayment = new payment();
-	$payments = $oPayment->loadForCurrentMonth();
-	$smarty->assign('payments', $payments);
-	$sums = $oPayment->getSums( $currentYear.'-'.$currentMonth );
-	$smarty->assign('sums', $sums);
-	$forecasts = $oPayment->getForecasts();
-	$smarty->assign('forecasts', $forecasts);
+//	$payments = $oPayment->loadForCurrentMonth();
+//	$smarty->assign('payments', $payments);
+	$smarty->assign('payments', array());
+
+//	$sums = $oPayment->getSums( $currentYear.'-'.$currentMonth );
+//	$smarty->assign('sums', $sums);
+	$smarty->assign('sums', array());
+
+//	$forecasts = $oPayment->getForecasts();
+//	$smarty->assign('forecasts', $forecasts);
+	$smarty->assign('forecasts', array());
+
+//	$oEvolution = new evolution();
+//	list($tsBalances, $balances) = $oEvolution->getTodayBalances();
+	$smarty->assign('balances', array());
+
 
 	//get all related lists
 	$oOrigin = new origin();

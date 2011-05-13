@@ -31,7 +31,7 @@
 			{strip}
 				<a href="#" class="primary button pill" data-group="status" data-filter="*">Tout</a>
 				{foreach $statuses as $id => $name}
-					<a href="#" class="button pill" data-group="status" data-filter=".status_{$id}" class="status_{$id}">{$name}</a>
+					<a href="#" class="button pill status_{$id}" data-group="status" data-filter=".status_{$id}" class="status_{$id}">{$name}</a>
 				{/foreach}
 			{/strip}
 		</div>
