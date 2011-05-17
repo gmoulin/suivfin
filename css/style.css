@@ -612,31 +612,33 @@
 			text-align: center;
 		}
 
-		#payment_form label {
+		#payment_form li:nth-child(odd) label {
 			font-weight: bold;
 		}
 
-		#payment_form input + label {
-			font-weight: normal;
+		#payment_form li:nth-child(even) label {
+			margin-right: 5px;
+			padding: 2px 5px;
 		}
 
-		#payment_form input + label {
-			margin-right: 10px;
-		}
-
-		#payment_form input + label:hover {
+		#payment_form li:nth-child(even) label:hover {
 			background: none repeat scroll 0 0 rgba(0, 0, 0, 0.5);
 			border-radius: 3px;
 			color: #FFFFFF;
 			text-shadow: none;
 		}
 
-		#payment_form #status_1 + label,
-		#payment_form #status_2 + label,
-		#payment_form #status_3 + label,
-		#payment_form #status_4 + label {
+		#payment_form label[for=status_1],
+		#payment_form label[for=status_2],
+		#payment_form label[for=status_3],
+		#payment_form label[for=status_4] {
 			min-width: 70px;
 			display: inline-block;
+			position: relative;
+		}
+
+		#payment_form label input[type=radio] {
+			vertical-align: text-top;
 		}
 
 		.required ~ .tip,
@@ -1484,7 +1486,7 @@
 
 		#payment_form li:nth-child(odd) {
 			padding: 3px 5px 4px 0;
-			width: 120px
+			width: 120px;
 		}
 
 		#payment_form li:nth-child(even) {
@@ -1497,12 +1499,12 @@
 			width: 300px;
 		}
 
-		#payment_form #status_1 + label,
-		#payment_form #status_2 + label,
-		#payment_form #status_3 + label,
-		#payment_form #status_4 + label {
+		#payment_form label[for=status_1],
+		#payment_form label[for=status_2],
+		#payment_form label[for=status_3],
+		#payment_form label[for=status_4] {
 			min-width: auto;
-			display: inline;
+			display: inline-block;
 		}
 	}
 
@@ -1536,7 +1538,7 @@
 
 		#payment_form li:nth-child(odd) {
 			padding: 3px 15px 4px 0;
-			width: 150px
+			width: 150px;
 		}
 
 		#payment_form li:nth-child(even) {
@@ -1567,7 +1569,7 @@
 			border-bottom-color: #000;
 		}
 
-		.switch_view {
+		.switch_view:not(.icon) {
 			float: none;
 			margin: 0 auto;
 			display: inline;

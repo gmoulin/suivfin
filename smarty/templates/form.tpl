@@ -11,8 +11,7 @@
 			</li>
 			<li>
 				{foreach $types as $id => $name}
-					<input type="radio" name="typeFK" id="type_{$id}" value="{$id}" required>
-					<label for="type_{$id}">{$name}</label>
+					<label for="type_{$id}"><input type="radio" name="typeFK" id="type_{$id}" value="{$id}" required> {$name}</label>
 				{/foreach}
 			</li>
 
@@ -21,8 +20,7 @@
 			</li>
 			<li class="ownerChoice">
 				{foreach $owners as $id => $name}
-					<input type="radio" name="transfert_ownerFK" id="transfert_owner_{$id}" value="{$id}" {if $owner == $id}checked="checked"{/if}>
-					<label for="transfert_owner_{$id}">{$name}</label>
+					<label for="transfert_owner_{$id}"><input type="radio" name="transfert_ownerFK" id="transfert_owner_{$id}" value="{$id}" {if $owner == $id}checked="checked"{/if}> {$name}</label>
 				{/foreach}
 			</li>
 
@@ -52,8 +50,8 @@
 				<label for="recurrent_0">Récurrence</label>
 			</li>
 			<li>
-				<input type="radio" id="recurrent_0" name="recurrent" value="0" checked="checked"><label for="recurrent_0">Non</label>
-				<input type="radio" id="recurrent_1" name="recurrent" value="1"><label for="recurrent_1">Oui</label>
+				<label for="recurrent_0"><input type="radio" id="recurrent_0" name="recurrent" value="0" checked="checked"> Non</label>
+				<label for="recurrent_1"><input type="radio" id="recurrent_1" name="recurrent" value="1"> Oui</label>
 			</li>
 
 			<li>
@@ -69,8 +67,7 @@
 			</li>
 			<li>
 				{foreach $currencies as $id => $name}
-					<input type="radio" name="currencyFK" id="currency_{$id}" value="{$id}" required>
-					<label for="currency_{$id}">{$name}</label>
+					<label for="currency_{$id}"><input type="radio" name="currencyFK" id="currency_{$id}" value="{$id}" required> {$name}</label>
 				{/foreach}
 			</li>
 
@@ -102,8 +99,7 @@
 			</li>
 			<li>
 				{foreach $statuses as $id => $name}
-					<input type="radio" name="statusFK" id="status_{$id}" value="{$id}" required>
-					<label for="status_{$id}">{$name}</label>
+					<label for="status_{$id}"><input type="radio" name="statusFK" id="status_{$id}" value="{$id}" required> {$name}</label>
 				{/foreach}
 			</li>
 
