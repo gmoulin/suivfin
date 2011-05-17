@@ -251,6 +251,13 @@
 			z-index: 100;
 			text-align: center;
 			overflow: show;
+			padding: 5px 0 2px;
+			margin: 0;
+			background-color: #ccc;
+			border-width: 0 0 1px 0;
+			border-color: #000;
+			border-style: solid;
+			height: 25px;
 		}
 
 	/* footer */
@@ -269,6 +276,7 @@
 			border-style: solid;
 			height: 28px;
 			overflow: hidden;
+			display: none;
 		}
 
 	/* list */
@@ -301,7 +309,7 @@
 			border-color: #000 #000 #666;
 			border-style: solid;
 			vertical-align: top;
-			margin-top: 41px;
+			margin-top: 31px;
 			padding: 3px 0;
 			text-align: center;
 		}
@@ -485,14 +493,18 @@
 	/* owner list */
 		.owners {
 			float: left;
+		}
+
+		.owners:not(.icons) {
 			background-color: #ccc;
 			border-width: 0 1px 1px 0;
 			border-color: #000;
 			border-style: solid;
 			border-radius: 0 0 6px 0;
+			display: none;
 		}
 
-		.owners.button-group {
+		.owners:not(.icons).button-group {
 			padding: 5px;
 		}
 
@@ -506,18 +518,11 @@
 			display: inline-block;
 		}
 
-		.owners:not(.icons) {
-			display: none;
-		}
-
 	/* form switch */
-		.form_switch {
+		.form_switch:not(.icon) {
 			background-color: #ccc;
 			border-color: #000;
 			border-style: solid;
-		}
-
-		header .form_switch {
 			border-width: 0 1px 1px 1px;
 			border-radius: 0 0 6px 6px;
 			margin: 0 auto;
@@ -525,21 +530,9 @@
 			display: none;
 		}
 
-		footer .next_month.icon {
-			margin-top: 2px;
-		}
-
-		footer .next_month .button.icon-only {
-			border-radius: 50%;
-			width: 20px;
-			height: 20px;
-			padding: 0;
-		}
-
-		footer .next_month .button.icon-only:before {
-			left: 4px;
-			top: 4px;
-			margin: 0;
+		.form_switch.icon {
+			float: left;
+			margin-left: 5px;
 		}
 
 	/* payment form */
@@ -567,6 +560,11 @@
 			position: relative;
 			border-color: #000;
 			border-style: solid;
+
+			-webkit-box-shadow: 0 0 5px 5px #888;
+			   -moz-box-shadow: 0 0 5px 5px #888;
+			     -o-box-shadow: 0 0 5px 5px #888;
+			        box-shadow: 0 0 5px 5px #888;
 		}
 
 		#payment_form ul {
@@ -779,11 +777,6 @@
 		#time_frame {
 			float: right;
 			position: relative;
-			background-color: #ccc;
-			border-width: 0 0 1px 1px;
-			border-color: #000;
-			border-style: solid;
-			border-radius: 0 0 0 6px;
 			z-index: 101;
 			line-height: 25px;
 			padding-left: 5px;
@@ -803,16 +796,21 @@
 			margin: 0;
 			padding: 0;
 		}
+
 		#time_frame > ul > li {
 			display: inline-block;
 			position: relative;
-			padding: 5px;
+			padding: 0 5px 5px;
+		}
+
+		#time_frame > ul > li:hover {
+			padding-bottom: 7px;
 		}
 
 		#time_frame li > ul {
 			display: block;
 			position: absolute;
-			top: 35px;
+			top: 27px;
 			right: 0;
 			max-height: 0;
 			overflow: hidden;
@@ -878,11 +876,6 @@
 		}
 
 	/* sorts */
-		.sort h2 {
-			bottom: 10px;
-			position: relative;
-		}
-
 		body > .sort {
 			padding: 5px;
 			background-color: #ccc;
@@ -896,9 +889,15 @@
 		}
 
 	/* switch view */
-		#switch_view {
+		.switch_view:not(.icon) {
 			float: right;
 			margin-right: 5px;
+			display: none;
+		}
+
+		.switch_view.icon {
+			float: left;
+			margin-left: 5px;
 		}
 
 	/* charts */
@@ -920,30 +919,14 @@
 			max-width: 90%;
 		}
 
-	/* online offline */
-		#internet {
-			display: none;
-			position: fixed;
-			top: 0px;
-			left: 220px;
-			color: #990000;
-			background-color: #ccc;
-			border-width: 0 1px 1px 1px;
-			border-color: #000;
-			border-style: solid;
-			border-radius: 0 0 6px 6px;
-			padding: 5px;
-			z-index: 99;
-		}
-		.offline #internet {
-			display: block;
-		}
-		.offlineWarning {
-			display: none;
-		}
-		.offline .offlineWarning {
-			display: block;
-		}
+	/* online - offline */
+	.offlineWarning {
+		display: none;
+	}
+
+	.offline .offlineWarning {
+		display: block;
+	}
 
 	/* ------------------------------------------
 	CSS3 GITHUB BUTTONS (Nicolas Gallagher)
@@ -1031,6 +1014,8 @@
 		.button.icon-only {
 			text-indent: -999em;
 			text-shadow: none;
+			line-height: 2px;
+			width: 2px;
 		}
 		.button.icon-only:after {
 			margin: 0 -0.5em 0 0;
@@ -1442,19 +1427,55 @@
 			font:11px/normal sans-serif;
 		}
 
+		.sort h2 {
+			bottom: 10px;
+			position: relative;
+		}
+
+		header {
+			padding: 0;
+			margin: 0;
+			background-color: transparent;
+			border: none;
+			height: auto;
+		}
+
+		footer {
+			display: block;
+		}
+
+		.switch_view.icon,
+		.next_month.icon,
+		.form_switch.icon,
 		.owners.icons {
 			display: none;
 		}
+
+		.switch_view:not(.icon),
+		.form_switch:not(.icon),
+		.next_month:not(.icon),
 		.owners:not(.icons) {
 			display: inline-block;
 		}
 
-		.next_month:not(.icon) {
-			display: block;
+		#time_frame {
+			background-color: #ccc;
+			border-width: 0 0 1px 1px;
+			border-color: #000;
+			border-style: solid;
+			border-radius: 0 0 0 6px;
 		}
 
-		.next_month.icon {
-			display: none;
+		#time_frame > ul > li {
+			padding-top: 5px;
+		}
+
+		#time_frame li > ul {
+			top: 35px;
+		}
+
+		#calculs {
+			margin-top: 41px;
 		}
 
 		#payment_form fieldset {
@@ -1491,14 +1512,6 @@
 
 		body {
 			min-width: 520px;
-		}
-
-		header .form_switch {
-			display: inline-block;
-		}
-
-		footer .form_switch {
-			display: none;
 		}
 
 		.sort {
@@ -1554,7 +1567,7 @@
 			border-bottom-color: #000;
 		}
 
-		#switch_view {
+		.switch_view {
 			float: none;
 			margin: 0 auto;
 			display: inline;
@@ -1645,7 +1658,6 @@
 	only screen and (-webkit-min-device-pixel-ratio: 1.5),
 	only screen and (-o-min-device-pixel-ratio: 3/2),
 	only screen and (min-device-pixel-ratio: 1.5) {
-	  /* Styles */
 	}
 
 
@@ -1655,18 +1667,18 @@
  * Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/
  */
 	@media print {
-	  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important;
-	  -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
-	  a, a:visited { color: #444 !important; text-decoration: underline; }
-	  a[href]:after { content: " (" attr(href) ")"; }
-	  abbr[title]:after { content: " (" attr(title) ")"; }
-	  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
-	  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
-	  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
-	  tr, img { page-break-inside: avoid; }
-	  @page { margin: 0.5cm; }
-	  p, h2, h3 { orphans: 3; widows: 3; }
-	  h2, h3{ page-break-after: avoid; }
+		* { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important;
+		-ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
+		a, a:visited { color: #444 !important; text-decoration: underline; }
+		a[href]:after { content: " (" attr(href) ")"; }
+		abbr[title]:after { content: " (" attr(title) ")"; }
+		.ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
+		pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+		thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
+		tr, img { page-break-inside: avoid; }
+		@page { margin: 0.5cm; }
+		p, h2, h3 { orphans: 3; widows: 3; }
+		h2, h3{ page-break-after: avoid; }
 	}
 
 

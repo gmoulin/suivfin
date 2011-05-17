@@ -7,7 +7,7 @@
 <!--[if IEMobile 7 ]><html lang="<?php echo $lang; ?>" class="no-js ie iem7" manifest="site.manifest"><![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--><html lang="{$lang}" class="no-js" manifest="site.manifest"><!--<![endif]-->
 <head>
-	<title>SuivFin</title>
+	<title>Suivi Financier</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
@@ -23,6 +23,7 @@
 	<!-- Mobile viewport optimization http://goo.gl/b9SaQ -->
 	<meta name="HandheldFriendly" content="True">
 	<meta name="MobileOptimized" content="320"/>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
 
 	<!-- Home screen icon  Mathias Bynens http://goo.gl/6nVq0 -->
 	<!-- For iPhone 4 with high-resolution Retina display: -->
@@ -34,24 +35,17 @@
 	<!-- For nokia devices: -->
 	<link rel="shortcut icon" href="img/apple-touch-icon.png">
 
+	<link rel="shortcut icon" href="favicon.ico" type="images/x-icon" />
+
 	<!--iOS web app, deletable if not needed -->
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	<link rel="apple-touch-startup-image" href="img/splash.png">
+	<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 
 	<!-- Mobile IE allows us to activate ClearType technology for smoothing fonts for easy reading -->
 	<meta http-equiv="cleartype" content="on">
 
-	<link href="favicon.ico" rel="shortcut icon" type="images/x-icon" />
-
-	<title>Suivi Financier</title>
-
-	<!-- Mobile viewport optimized: j.mp/bplateviewport -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-	<!-- Place favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
-	<link rel="shortcut icon" href="/favicon.ico">
-	<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 	<!-- CSS: implied media="all" -->
 	<link rel="stylesheet" href="css/style.css?v={$css}">

@@ -17,12 +17,20 @@
 		{/strip}
 	</nav>
 
-	<aside id="internet">
-		mode hors-ligne
+	<aside class="next_month icon">
+		<a href="#" class="button pill danger icon icon-only calendar" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
 	</aside>
 
 	<aside class="form_switch">
 		<a href="#" title="afficher le formulaire" class="button pill">Ajouter</a>
+	</aside>
+
+	<aside class="switch_view icon">
+		<a href="#" class="button pill icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+	</aside>
+
+	<aside class="form_switch icon">
+		<a href="#" title="afficher le formulaire" class="button pill icon icon-only add">Ajouter</a>
 	</aside>
 
 	<aside id="time_frame">
@@ -53,16 +61,9 @@
 	<aside class="next_month">
 		<a href="#" class="button pill danger" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
 	</aside>
-	<aside class="next_month icon">
-		<a href="#" class="button pill danger icon calendar icon-only" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
-	</aside>
 
-	<aside id="switch_view">
+	<aside class="switch_view">
 		<a href="#" class="button pill" title="alterner entre la liste et le graphique">Alterner la présentation</a>
-	</aside>
-
-	<aside class="form_switch">
-		<a href="#" title="afficher le formulaire" class="button pill">Ajouter</a>
 	</aside>
 
 	<aside class="sort">
@@ -119,5 +120,7 @@
 {include "payment.tpl"}
 
 <section id="chart"></section>
+
+
 
 {include "html_footer.tpl"}

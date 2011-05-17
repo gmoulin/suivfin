@@ -1,49 +1,49 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
 
-var cacheStatusValues = [];
-cacheStatusValues[0] = 'uncached';
-cacheStatusValues[1] = 'idle';
-cacheStatusValues[2] = 'checking';
-cacheStatusValues[3] = 'downloading';
-cacheStatusValues[4] = 'updateready';
-cacheStatusValues[5] = 'obsolete';
-
-var cache = window.applicationCache;
-cache.addEventListener('cached', logEvent, false);
-cache.addEventListener('checking', logEvent, false);
-cache.addEventListener('downloading', logEvent, false);
-cache.addEventListener('error', logEvent, false);
-cache.addEventListener('noupdate', logEvent, false);
-cache.addEventListener('obsolete', logEvent, false);
-cache.addEventListener('progress', logEvent, false);
-cache.addEventListener('updateready', logEvent, false);
-
-function logEvent(e) {
-    var online, status, type, message;
-    online = (navigator.onLine) ? 'yes' : 'no';
-    status = cacheStatusValues[cache.status];
-    type = e.type;
-    message = 'online: ' + online;
-    message+= ', event: ' + type;
-    message+= ', status: ' + status;
-    if (type == 'error' && navigator.onLine) {
-        message+= ' (prolly a syntax error in manifest)';
-    }
-    console.log(message);
-}
-
-window.applicationCache.addEventListener(
-    'updateready',
-    function(){
-        window.applicationCache.swapCache();
-		window.location.reload();
-        console.log('swap cache has been called');
-    },
-    false
-);
-
-setInterval(function(){cache.update()}, 10000);
+//var cacheStatusValues = [];
+//cacheStatusValues[0] = 'uncached';
+//cacheStatusValues[1] = 'idle';
+//cacheStatusValues[2] = 'checking';
+//cacheStatusValues[3] = 'downloading';
+//cacheStatusValues[4] = 'updateready';
+//cacheStatusValues[5] = 'obsolete';
+//
+//var cache = window.applicationCache;
+//cache.addEventListener('cached', logEvent, false);
+//cache.addEventListener('checking', logEvent, false);
+//cache.addEventListener('downloading', logEvent, false);
+//cache.addEventListener('error', logEvent, false);
+//cache.addEventListener('noupdate', logEvent, false);
+//cache.addEventListener('obsolete', logEvent, false);
+//cache.addEventListener('progress', logEvent, false);
+//cache.addEventListener('updateready', logEvent, false);
+//
+//function logEvent(e) {
+//    var online, status, type, message;
+//    online = (navigator.onLine) ? 'yes' : 'no';
+//    status = cacheStatusValues[cache.status];
+//    type = e.type;
+//    message = 'online: ' + online;
+//    message+= ', event: ' + type;
+//    message+= ', status: ' + status;
+//    if (type == 'error' && navigator.onLine) {
+//        message+= ' (prolly a syntax error in manifest)';
+//    }
+//    console.log(message);
+//}
+//
+//window.applicationCache.addEventListener(
+//    'updateready',
+//    function(){
+//        window.applicationCache.swapCache();
+//		window.location.reload();
+//        console.log('swap cache has been called');
+//    },
+//    false
+//);
+//
+//setInterval(function(){cache.update()}, 10000);
 
 $(document).ready(function(){
 	var $body = $('body'),
@@ -558,7 +558,7 @@ $(document).ready(function(){
 		});
 
 	//switch between chart and isotope view
-		$('#switch_view a').data('view', 'isotope').click(function(e){
+		$('.switch_view a').data('view', 'isotope').click(function(e){
 			var $this = $(this),
 				paymentSections = ['#container', '#filter', '#time_frame', '.sort', '.next_month', '.form_switch', '#calculs'],
 				chartSections = ['#chart', '#chart_type'],
