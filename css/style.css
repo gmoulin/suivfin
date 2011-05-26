@@ -188,6 +188,23 @@
 		display: none;
 	}
 
+	/* asides and nav background styles */
+		header,
+		footer,
+		.form_switch:not(.icon),
+		.owners:not(.icons) {
+			background-color: #F72;
+			border: none;
+			border-radius: 6px;
+			color: #fff;
+			text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+			box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
+		}
+
+		header, footer {
+			border-radius: 0;
+		}
+
 	/* placeholder */
 		input:-moz-placeholder,
 		textarea:-moz-placeholder {
@@ -202,44 +219,48 @@
 		}
 
 	/* statuses colors */
-		.status_1 { /* vérifié - green */
-			border: 1px solid rgb(0, 255, 82);
+		/* vérifié - green */
+		.button.status_1,
+		.status_1 {
+			background: hsl(90, 100%, 50%);
 		}
 		.button.status_1,
-		.status_1 { /* vérifié - green */
-			background: -o-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -webkit-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -moz-linear-gradient(top, rgb(0, 255, 82), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.item.status_1 {
+			color: hsl(90, 100%, 20%);
+			text-shadow: 0px 1px 1px hsl(90, 100%, 80%);
 		}
 
-		.status_2 { /* vérifié - green */
-			border: 1px solid rgb(255, 169, 0);
+		/* prévisible - orange */
+		.button.status_2,
+		.status_2 {
+			background: hsl(49, 100%, 50%);
 		}
 		.button.status_2,
-		.status_2 { /* à prévisible - orange */
-			background: -o-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -webkit-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -moz-linear-gradient(top, rgb(255, 169, 0), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.item.status_2 {
+			color: hsl(49, 100%, 20%);
+			text-shadow: 0px 1px 1px hsl(49, 100%, 80%);
 		}
 
-		.status_3 { /* vérifié - green */
-			border: 1px solid rgb(0, 183, 255);
+		/* à vérifier - light blue */
+		.button.status_3,
+		.status_3 {
+			background: hsl(190, 100%, 50%);
 		}
 		.button.status_3,
-		.status_3 { /* à vérifier - light blue */
-			background: -o-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -webkit-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -moz-linear-gradient(top, rgb(0, 183, 255), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.item.status_3 {
+			color: hsl(190, 100%, 20%);
+			text-shadow: 0px 1px 1px hsl(190, 100%, 80%);
 		}
 
-		.status_4 { /* vérifié - green */
-			border: 1px solid rgb(242, 47, 34);
+		/* à payer - red */
+		.button.status_4,
+		.status_4 {
+			background: hsl(5, 100%, 50%);
 		}
 		.button.status_4,
-		.status_4 { /* à payer - red */
-			background: -o-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -webkit-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
-			background: -moz-linear-gradient(top, rgb(242, 47, 34), rgb(255, 255, 255) 50%, rgb(255, 255, 255));
+		.item.status_4 {
+			color: hsl(5, 100%, 20%);
+			text-shadow: 0px 1px 1px hsl(5, 100%, 80%);
 		}
 
 	/* header */
@@ -251,12 +272,8 @@
 			z-index: 100;
 			text-align: center;
 			overflow: show;
-			padding: 5px 0 2px;
+			padding: 3px 2px 4px;
 			margin: 0;
-			background-color: #ccc;
-			border-width: 0 0 1px 0;
-			border-color: #000;
-			border-style: solid;
 			height: 25px;
 		}
 
@@ -270,10 +287,6 @@
 			text-align: center;
 			padding: 5px 0 2px;
 			margin: 0;
-			background-color: #ccc;
-			border-width: 1px 0 0 0;
-			border-color: #000;
-			border-style: solid;
 			height: 28px;
 			overflow: hidden;
 			display: none;
@@ -284,6 +297,9 @@
 			padding: 3px 4px;
 			margin: 3px;
 			position: relative;
+			text-shadow: 1px 1px 1px rgba(255, 255, 255, .3);
+			box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
+			border-radius: 6px;
 		}
 
 		.item dd span {
@@ -305,9 +321,8 @@
 		#calculs {
 			z-index: 99;
 			background-color: #ccc;
-			border-width: 1px 0;
-			border-color: #000 #000 #666;
-			border-style: solid;
+			border-bottom: 1px solid #666;
+			box-shadow: 2px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
 			vertical-align: top;
 			margin-top: 31px;
 			padding: 3px 0;
@@ -332,6 +347,7 @@
 
 			#balances h2 {
 				display: block;
+				text-align: center;
 			}
 
 			#balances strong,
@@ -359,7 +375,7 @@
 
 			#forecasts h2 {
 				display: block;
-				float: left;
+				text-align: center;
 			}
 
 			#forecasts strong {
@@ -407,8 +423,9 @@
 
 			#sums th,
 			#sums td {
-				padding: 3px 10px;
+				padding: 3px 5px;
 				white-space: nowrap;
+				font-size: 9px;
 			}
 
 			#sums tr td:first-child {
@@ -444,15 +461,13 @@
 			#sums hr {
 				display: none;
 				width: 100%;
-				height: 2px;
+				height: 1px;
 				background-color: #fff;
-				border-top: 1px solid #666;
+				border-top: 1px solid rgba(102, 102, 102, 0.6);
 			}
 
 	/* Payments Container */
 		#container {
-			padding: 0;
-			margin: 0 0 35px 0;
 			visibility: hidden; /* hide the payments blocks on page load before isotope rendering */
 		}
 
@@ -491,17 +506,16 @@
 			}
 
 	/* owner list */
-		.owners {
+		.owners.icons {
 			float: left;
 		}
 
 		.owners:not(.icons) {
-			background-color: #ccc;
-			border-width: 0 1px 1px 0;
-			border-color: #000;
-			border-style: solid;
 			border-radius: 0 0 6px 0;
 			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
 		}
 
 		.owners:not(.icons).button-group {
@@ -520,10 +534,6 @@
 
 	/* form switch */
 		.form_switch:not(.icon) {
-			background-color: #ccc;
-			border-color: #000;
-			border-style: solid;
-			border-width: 0 1px 1px 1px;
 			border-radius: 0 0 6px 6px;
 			margin: 0 auto;
 			padding: 5px;
@@ -766,13 +776,17 @@
 		}
 
 	/* next month recurrent payments generation button */
-		.next_month {
+		.next_month.icon {
 			float: left;
 			margin-left: 5px;
 		}
 
 		.next_month:not(.icon) {
 			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 5px 5px 0 5px;
 		}
 
 	/* time frame */
@@ -786,11 +800,7 @@
 		}
 
 		#time_frame input[type="checkbox"] {
-			top: -7px;
-		}
-
-		#time_frame > ul {
-			display: inline-block;
+			display: none;
 		}
 
 		#time_frame ul {
@@ -799,53 +809,44 @@
 			padding: 0;
 		}
 
+		#time_frame > ul {
+			display: inline-block;
+		}
+
 		#time_frame > ul > li {
 			display: inline-block;
-			position: relative;
 			padding: 0 5px 5px;
 		}
 
-		#time_frame > ul > li:hover {
-			padding-bottom: 7px;
-		}
-
 		#time_frame li > ul {
-			display: block;
-			position: absolute;
-			top: 27px;
-			right: 0;
-			max-height: 0;
-			overflow: hidden;
+			max-width: 0;
+			display: inline;
+			margin-left: 5px;
 
-			-webkit-transition: all 0.3s ease-in-out 0s;
-			-moz-transition: all 0.3s ease-in-out 0s;
-			transition: all 0.3s ease-in-out 0s;
-
-			background-color: #ccc;
-			padding: 0;
-			border-width: 0 0 0 0;
-			border-color: #000;
-			border-style: solid;
-			z-index: 101;
+			-webkit-transition: max-width 0.3s linear 0s;
+			   -moz-transition: max-width 0.3s linear 0s;
+					transition: max-width 0.3s linear 0s;
 		}
 
-		#time_frame li.deploy > ul,
-		#time_frame li:hover > ul {
-			max-height: 200px;
-			padding: 5px;
-			border-width: 0 1px 1px 1px;
-			border-radius: 0 0 6px 6px;
-		}
-
-		#time_frame ul > li:last-child:hover > ul {
-			border-width: 0 0 1px 1px;
-			border-radius: 0 0 0 6px;
-		}
 		#time_frame li {
 			white-space: nowrap;
 		}
+
 		#time_frame li li {
-			display: block;
+			display: inline-block;
+			padding: 0 3px;
+		}
+
+		#time_frame input + label {
+			cursor: pointer;
+		}
+
+		#time_frame input:checked + label {
+			font-weight: bold;
+		}
+
+		#time_frame input:checked ~ ul {
+			max-width: 900px;
 		}
 
 	/* filters */
@@ -861,7 +862,6 @@
 			display: block;
 			padding: 5px;
 			position: relative;
-			white-space: nowrap;
 		}
 
 		#filter output {
@@ -873,6 +873,10 @@
 			margin: 0;
 		}
 
+		#filter .button {
+			padding: 0.5em;
+		}
+
 		#filter select {
 			max-width: 150px;
 		}
@@ -881,13 +885,26 @@
 		body > .sort {
 			padding: 5px;
 			background-color: #ccc;
-			border-width: 1px 0;
-			border-color: #fff #000 #000;
-			border-style: solid;
+			border-top: 1px solid #fff;
+			box-shadow: -2px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
+			margin-bottom: 3px;
+		}
+
+		body > .sort .button {
+			padding: 0.5em;
 		}
 
 		footer .sort {
+			position: absolute;
+			top: 0;
+			right: 0;
+			margin: 5px 5px 0 5px;
 			display: none;
+		}
+
+		.sort h2 {
+			bottom: 10px;
+			position: relative;
 		}
 
 	/* switch view */
@@ -904,8 +921,10 @@
 
 	/* charts */
 		#chart_type {
-			float: left;
-			margin-left: 5px;
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 5px 5px 0 5px;
 			display: none;
 		}
 
@@ -922,13 +941,13 @@
 		}
 
 	/* online - offline */
-	.offlineWarning {
-		display: none;
-	}
+		.offlineWarning {
+			display: none;
+		}
 
-	.offline .offlineWarning {
-		display: block;
-	}
+		.offline .offlineWarning {
+			display: block;
+		}
 
 	/* ------------------------------------------
 	CSS3 GITHUB BUTTONS (Nicolas Gallagher)
@@ -1429,21 +1448,21 @@
 			font:11px/normal sans-serif;
 		}
 
-		.sort h2 {
-			bottom: 10px;
-			position: relative;
-		}
-
 		header {
 			padding: 0;
 			margin: 0;
 			background-color: transparent;
 			border: none;
 			height: auto;
+			box-shadow: none;
 		}
 
 		footer {
 			display: block;
+		}
+
+		#container {
+			padding: 0 0 38px 0;
 		}
 
 		.switch_view.icon,
@@ -1461,11 +1480,15 @@
 		}
 
 		#time_frame {
-			background-color: #ccc;
-			border-width: 0 0 1px 1px;
-			border-color: #000;
-			border-style: solid;
+			position: fixed;
+			top: 0;
+			right: 0;
+			background-color: #F72;
+			border: none;
 			border-radius: 0 0 0 6px;
+			color: #fff;
+			text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+			box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
 		}
 
 		#time_frame > ul > li {
@@ -1476,8 +1499,32 @@
 			top: 35px;
 		}
 
+		#filter section {
+			white-space: nowrap;
+		}
+
+		body > .sort .button,
+		#filter .button {
+			padding: 0.5em 1em;
+		}
+
 		#calculs {
 			margin-top: 41px;
+		}
+
+		#balances h2 {
+			text-align: left;
+		}
+
+		#forecasts h2 {
+			float: left;
+			text-align: left;
+		}
+
+		#sums th,
+		#sums td {
+			font-size: 11px;
+			padding: 3px 10px;
 		}
 
 		#payment_form fieldset {
@@ -1526,6 +1573,7 @@
 
 		#filter {
 			border-bottom-color: #666;
+			box-shadow: -2px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
 		}
 
 		#payment_form fieldset {
@@ -1561,12 +1609,11 @@
 
 		footer .sort {
 			display: block;
-			float: right;
-			margin-right: 5px;
 		}
 
 		#filter {
-			border-bottom-color: #000;
+			border-bottom-width: 0;
+			margin-bottom: 3px;
 		}
 
 		.switch_view:not(.icon) {
@@ -1615,7 +1662,8 @@
 			border: none;
 			border-radius: 0;
 			margin-top: 0;
-			padding: 0;
+			padding: 0 0 38px 0;
+			box-shadow: none;
 		}
 
 		#calculs > section {
@@ -1628,10 +1676,9 @@
 		#forecasts,
 		#balances {
 			background-color: #ccc;
-			border-width: 1px 0 1px 1px;
-			border-color: #000;
-			border-style: solid;
+			border: none;
 			border-radius: 6px 0 0 6px;
+			box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
 			font-size: 11px;
 			float: right;
 			clear: right;
@@ -1652,15 +1699,18 @@
 			max-width: 83%;
 			background-color: transparent;
 			border: none;
+			margin-bottom: 0;
+			box-shadow: none;
 		}
 	}
 
-	/* iPhone 4, Opera Mobile 11 and other high pixel ratio devices ----------- */
-	@media
-	only screen and (-webkit-min-device-pixel-ratio: 1.5),
-	only screen and (-o-min-device-pixel-ratio: 3/2),
-	only screen and (min-device-pixel-ratio: 1.5) {
-	}
+	/* iPhone 4, Opera Mobile 11 and other high pixel ratio devices ----------- * /
+		@media
+		only screen and (-webkit-min-device-pixel-ratio: 1.5),
+		only screen and (-o-min-device-pixel-ratio: 3/2),
+		only screen and (min-device-pixel-ratio: 1.5) {
+		}
+	*/
 
 
 /**
@@ -1682,8 +1732,3 @@
 		p, h2, h3 { orphans: 3; widows: 3; }
 		h2, h3{ page-break-after: avoid; }
 	}
-
-
-
-
-

@@ -10,8 +10,8 @@ try {
 	$lang = 'fr';
 	$smarty->assign('lang', $lang);
 
-	$smarty->assign('css', filemtime( SF_PATH.'/css/style.css' ));
-	$smarty->assign('js', filemtime( SF_PATH.'/js/script.js' ));
+	if( file_exists(SF_PATH.'/css/style.css') ) $smarty->assign('css', filemtime( SF_PATH.'/css/style.css' ));
+	if( file_exists( SF_PATH.'/js/script.js' ) ) $smarty->assign('js', filemtime( SF_PATH.'/js/script.js' ));
 
 	if( !filter_has_var(INPUT_GET, 'owner') ){
 		$owner = 1; //default
@@ -28,35 +28,23 @@ try {
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
 	$day = date('d');
+	$selectedTimeFrame = array();
 	if( $day > 24 ){
-		$currentYear = date('Y', strtotime("+1 months"));
-		$currentMonth = date('m', strtotime("+1 months"));
+		$selectedTimeFrame[ date('Y') ][] = date('m');
+		$selectedTimeFrame[ date('Y', strtotime("+1 months")) ][] = date('m', strtotime("+1 months"));
+	} elseif( $day < 5 ){
+		$selectedTimeFrame[ date('Y', strtotime("-1 months")) ][] = date('m', strtotime("-1 months"));
+		$selectedTimeFrame[ date('Y') ][] = date('m');
 	} else {
-		$currentYear = date('Y');
-		$currentMonth = date('m');
+		$selectedTimeFrame[ date('Y') ][] = date('m');
 	}
-
-	$smarty->assign('currentYear', $currentYear);
-	$smarty->assign('currentMonth', $currentMonth);
+	$smarty->assign('selectedTimeFrame', $selectedTimeFrame);
 
 	//get payments for current month
-	$oPayment = new payment();
-//	$payments = $oPayment->loadForCurrentMonth();
-//	$smarty->assign('payments', $payments);
 	$smarty->assign('payments', array());
-
-//	$sums = $oPayment->getSums( $currentYear.'-'.$currentMonth );
-//	$smarty->assign('sums', $sums);
 	$smarty->assign('sums', array());
-
-//	$forecasts = $oPayment->getForecasts();
-//	$smarty->assign('forecasts', $forecasts);
 	$smarty->assign('forecasts', array());
-
-//	$oEvolution = new evolution();
-//	list($tsBalances, $balances) = $oEvolution->getTodayBalances();
 	$smarty->assign('balances', array());
-
 
 	//get all related lists
 	$oOrigin = new origin();
@@ -102,7 +90,9 @@ try {
 	$limits = $tmp;
 	$smarty->assign('limits', $limits);
 
+	$oPayment = new payment();
 	$yearsAndMonths = $oPayment->getYearsAndMonths();
+
 	$smarty->assign('yearsAndMonths', $yearsAndMonths);
 
 	$smarty->display('index.tpl');

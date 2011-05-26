@@ -1,11 +1,5 @@
 <!DOCTYPE html>
-<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie6 ielt9 ielt8 ielt7"><![endif]-->
-<!--[if IE 7 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie7 ielt9 ielt8"><![endif]-->
-<!--[if IE 8 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie8 ielt9"><![endif]-->
-<!--[if IE 9 ]><html lang="<?php echo $lang; ?>" class="no-js ie ie9" manifest="site.manifest"><![endif]-->
-<!--[if IEMobile 7 ]><html lang="<?php echo $lang; ?>" class="no-js ie iem7" manifest="site.manifest"><![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--><html lang="{$lang}" class="no-js" manifest="site.manifest"><!--<![endif]-->
+<html lang="{$lang}" class="no-js" manifest="site.manifest">
 <head>
 	<title>Suivi Financier</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />

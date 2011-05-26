@@ -113,6 +113,7 @@ try {
 						$response = 'ok';
 					} else {
 						$response = getFreshData( $smarty, $frame );
+						if( is_null($response) ) $response = 'ok';
 					}
 				} else {
 					$response = $formData['errors'];
@@ -150,6 +151,7 @@ try {
 					$response = 'ok';
 				} else {
 					$response = getFreshData( $smarty, $frame );
+					if( is_null($response) ) $response = 'ok';
 				}
 			break;
 		case 'get':
@@ -175,12 +177,18 @@ try {
 				$oPayment = new payment();
 				$oPayment->initNextMonthPayment();
 
-				$response = getFreshData( $smarty );
+				if( !is_null($frame) ){
+					$response = getFreshData( $smarty, $frame );
+				} else {
+					$response = 'ok';
+				}
 			break;
 		case 'refresh':
-				//in offline mode the owner is added to the requests sended when returning online
+				//always get the owner, the cache manifest does not request index.php all the time
 				$owner = filter_has_var(INPUT_POST, 'owner');
-				if( !is_null($owner) && $owner !== false ){
+				if( is_null($owner) || $owner === false ){
+					throw new Exception('Gestion des paiements : identifiant de la personne manquant.');
+				} else {
 					$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
 					if( $owner === false ){
 						throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');

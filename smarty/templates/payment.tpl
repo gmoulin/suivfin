@@ -1,6 +1,6 @@
-<div id="container" class="clearfix">
-	{if !empty($payments)}
-		{strip}
+{strip}
+	<div id="container" class="clearfix">
+		{if !empty($payments)}
 			{foreach $payments as $payment}
 				{* classes are used for filtering *}
 				<div class="item {if $payment['recurrent'] == 1}recurrent{else}punctual{/if} recipient_{$payment['recipientFK']} type_{$payment['typeFK']} currency_{$payment['currencyFK']} method_{$payment['methodFK']} origin_{$payment['originFK']} status_{$payment['statusFK']} location_{$payment['locationFK']}"
@@ -37,6 +37,6 @@
 					</dl>
 				</div>
 			{/foreach}
-		{/strip}
-	{/if}
-</div>
+		{/if}
+	</div>
+{/strip}
