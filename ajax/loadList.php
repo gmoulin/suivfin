@@ -34,7 +34,7 @@ try {
 		switch ( $field ){
 			/* form fields */
 			case 'labelList':
-					$oPayment = new Payment();
+					$oPayment = new payment();
 
 					if( $browserHasCache && $modifiedSince != 0 ){
 						$ts = $oPayment->loadLabelList( null, true );

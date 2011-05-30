@@ -10,8 +10,8 @@ try {
 	$lang = 'fr';
 	$smarty->assign('lang', $lang);
 
-	if( file_exists(SF_PATH.'/css/style.css') ) $smarty->assign('css', filemtime( SF_PATH.'/css/style.css' ));
-	if( file_exists( SF_PATH.'/js/script.js' ) ) $smarty->assign('js', filemtime( SF_PATH.'/js/script.js' ));
+	if( file_exists(SF_PATH.'/css/style.css') ) $smarty->assign('css', filemtime(SF_PATH.'/css/style.css'));
+	if( file_exists(SF_PATH.'/js/script.js') ) $smarty->assign('js', filemtime(SF_PATH.'/js/script.js'));
 
 	if( !filter_has_var(INPUT_GET, 'owner') ){
 		$owner = 1; //default
