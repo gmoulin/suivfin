@@ -50,6 +50,14 @@
 				{/foreach}
 			</ul>
 		</aside>
+		<aside class="chart_type">
+			<h2>Type : </h2>
+			<div class="button-group">
+				<a href="#" rel="expense" class="primary button pill">Dépenses</a>
+				<a href="#" rel="evolution" class="button pill">Total</a>
+				<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>
+			</div>
+		</aside>
 	</header>
 	<footer>
 		<aside class="next_month">
@@ -72,7 +80,7 @@
 			</div>
 		</aside>
 
-		<aside id="chart_type">
+		<aside class="chart_type">
 			<h2>Type : </h2>
 			<div class="button-group">
 				<a href="#" rel="expense" class="primary button pill">Dépenses</a>

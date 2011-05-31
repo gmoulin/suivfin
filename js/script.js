@@ -564,7 +564,7 @@ $(document).ready(function(){
 		$('.switch_view a').data('view', 'isotope').click(function(e){
 			var $this = $(this),
 				paymentSections = ['#container', '#filter', '#time_frame', '.sort', '.next_month', '.form_switch', '#calculs'],
-				chartSections = ['#chart', '#chart_type'],
+				chartSections = ['#chart', '.chart_type'],
 				currentView;
 
 			$this.data('view', $(this).data('view') == 'isotope' ? 'chart' : 'isotope' )
@@ -590,7 +590,7 @@ $(document).ready(function(){
 		});
 
 	//chart type
-		$('#chart_type a').click(function(e){
+		$('.chart_type a').click(function(e){
 			e.preventDefault();
 			reloadChart( this.rel );
 		});
@@ -1008,7 +1008,7 @@ $(document).ready(function(){
 
 	function reloadChart( type ){
 		//chart type
-		if( type == null ) type = $('#chart_type a.primary').attr('rel');
+		if( type == null ) type = $('.chart_type a.primary').attr('rel');
 
 		var cachedData,
 			lastModified = 0,

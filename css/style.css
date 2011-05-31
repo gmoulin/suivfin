@@ -920,7 +920,15 @@
 		}
 
 	/* charts */
-		#chart_type {
+		header .chart_type {
+			position: absolute;
+			top: 0;
+			right: 3px;
+			margin: 3px;
+			display: none;
+		}
+
+		footer .chart_type {
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -928,7 +936,7 @@
 			display: none;
 		}
 
-		#chart_type h2 {
+		.chart_type h2 {
 			bottom: 10px;
 			position: relative;
 		}
@@ -1307,6 +1315,7 @@
 			float: left;
 			margin-left: -1px;
 		}
+
 		#filter .button-group .button {
 			float: none;
 		}
@@ -1337,40 +1346,6 @@
 			-moz-border-radius-bottomleft: 0;
 			border-top-left-radius: 0;
 			border-bottom-left-radius: 0;
-		}
-
-		/*............................................................................................................ vertical */
-		.button-group.vertical {
-			top: 2px;
-			right: 2px;
-		}
-		.button-group.vertical .button {
-			float: left;
-			clear: left;
-			display: block;
-			margin-top: -1px;
-			margin-left: 0;
-			padding: 0.4em 0 0.2em;
-			width: 16px;
-		}
-		.button-group.vertical > .button:first-child {
-			margin-top: 0;
-			-webkit-border-radius: 50em 50em 0 0;
-			   -moz-border-radius: 50em 50em 0 0;
-			        border-radius: 50em 50em 0 0;
-		}
-		.button-group.vertical > .button:last-child {
-			-webkit-border-radius: 0 0 50em 50em;
-			   -moz-border-radius: 0 0 50em 50em;
-			        border-radius: 0 0 50em 50em;
-		}
-		.button-group.vertical .button.icon-only:before {
-			top: 50%;
-			left: 2px;
-			float: left;
-			width: 12px;
-			height: 12px;
-			margin: 0;
 		}
 
 		/* ............................................................................................................. Minor */
@@ -1455,6 +1430,10 @@
 			border: none;
 			height: auto;
 			box-shadow: none;
+		}
+
+		header .chart_type {
+			display: none !important;
 		}
 
 		footer {
@@ -1552,6 +1531,43 @@
 		#payment_form label[for=status_4] {
 			min-width: auto;
 			display: inline-block;
+		}
+
+		.button-group.vertical {
+			top: 2px;
+			right: 2px;
+		}
+
+		.button-group.vertical .button {
+			float: left;
+			clear: left;
+			display: block;
+			margin-top: -1px;
+			margin-left: 0;
+			padding: 0.4em 0 0.2em;
+			width: 16px;
+		}
+
+		.button-group.vertical > .button:first-child {
+			margin-top: 0;
+			-webkit-border-radius: 50em 50em 0 0;
+			   -moz-border-radius: 50em 50em 0 0;
+			        border-radius: 50em 50em 0 0;
+		}
+
+		.button-group.vertical > .button:last-child {
+			-webkit-border-radius: 0 0 50em 50em;
+			   -moz-border-radius: 0 0 50em 50em;
+			        border-radius: 0 0 50em 50em;
+		}
+
+		.button-group.vertical .button.icon-only:before {
+			top: 50%;
+			left: 2px;
+			float: left;
+			width: 12px;
+			height: 12px;
+			margin: 0;
 		}
 	}
 

@@ -14,7 +14,7 @@ try {
 	if( file_exists(SF_PATH.'/js/script.js') ) $smarty->assign('js', filemtime(SF_PATH.'/js/script.js'));
 
 	if( !filter_has_var(INPUT_GET, 'owner') ){
-		$owner = 1; //default
+		$owner = 3; //default
 	} else {
 		$owner = filter_input(INPUT_GET, 'owner', FILTER_SANITIZE_NUMBER_INT);
 		if( is_null($owner) || $owner === false ){
@@ -29,11 +29,11 @@ try {
 
 	$day = date('d');
 	$selectedTimeFrame = array();
-	if( $day > 24 ){
+	if( $day > 20 ){
 		$selectedTimeFrame[ date('Y') ][] = date('m');
-		$selectedTimeFrame[ date('Y', strtotime("+1 months")) ][] = date('m', strtotime("+1 months"));
+		$selectedTimeFrame[ date('Y', strtotime("+10 days")) ][] = date('m', strtotime("+10 days"));
 	} elseif( $day < 5 ){
-		$selectedTimeFrame[ date('Y', strtotime("-1 months")) ][] = date('m', strtotime("-1 months"));
+		$selectedTimeFrame[ date('Y', strtotime("-10 days")) ][] = date('m', strtotime("-10 days"));
 		$selectedTimeFrame[ date('Y') ][] = date('m');
 	} else {
 		$selectedTimeFrame[ date('Y') ][] = date('m');
