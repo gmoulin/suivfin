@@ -248,7 +248,7 @@ try {
 							list($lastModified, $response) = $oPayment->getExpenseData(true);
 						break;
 					case 'evolution':
-							$oEvolution = new Evolution();
+							$oEvolution = new evolution();
 
 							if( $browserHasCache && $modifiedSince != 0 ){
 								$ts = $oEvolution->getEvolutionData(null, true);
