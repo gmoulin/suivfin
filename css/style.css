@@ -269,7 +269,7 @@
 			position: fixed;
 			top: 0;
 			left: 0;
-			z-index: 100;
+			z-index: 4;
 			text-align: center;
 			overflow: show;
 			padding: 3px 2px 4px;
@@ -283,7 +283,7 @@
 			position: fixed;
 			bottom: 0;
 			left: 0;
-			z-index: 100;
+			z-index: 4;
 			text-align: center;
 			padding: 5px 0 2px;
 			margin: 0;
@@ -319,7 +319,7 @@
 
 	/* calculs result column */
 		#calculs {
-			z-index: 99;
+			z-index: 3;
 			background-color: #ccc;
 			border-bottom: 1px solid #666;
 			box-shadow: 2px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
@@ -565,7 +565,7 @@
 		#payment_form fieldset {
 			background-color: #ccc;
 			padding: 5px;
-			z-index: 102;
+			z-index: 6;
 			text-align: center;
 			position: relative;
 			border-color: #000;
@@ -793,7 +793,7 @@
 		#time_frame {
 			float: right;
 			position: relative;
-			z-index: 101;
+			z-index: 5;
 			line-height: 25px;
 			padding-left: 5px;
 			text-align: left;
@@ -1673,7 +1673,7 @@
 			position: absolute;
 			top: 39px;
 			right: 0;
-			z-index: 99;
+			z-index: 9;
 			background: none;
 			border: none;
 			border-radius: 0;
