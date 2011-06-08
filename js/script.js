@@ -1,7 +1,7 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
 
-var debugCacheManifest = 0;
+var debugCacheManifest = 1;
 if( debugCacheManifest ){
 	var cacheStatusValues = [];
 	cacheStatusValues[0] = 'uncached';
