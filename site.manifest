@@ -1,6 +1,6 @@
 CACHE MANIFEST
 
-# v1
+# v1.1
 
 CACHE:
 # html files
@@ -19,7 +19,7 @@ CACHE:
 /js/script.js
 
 # images
-#img/apple-touch-icon.png
+#/img/apple-touch-icon.png
 #/img/apple-touch-icon-114x114-precomposed.png
 #/img/apple-touch-icon-57x57-precomposed.png
 #/img/apple-touch-icon-72x72-precomposed.png

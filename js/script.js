@@ -3,6 +3,7 @@
 
 var debugCacheManifest = 1;
 if( debugCacheManifest ){
+	//force reload of the page if an update is available and log all the process
 	var cacheStatusValues = [];
 	cacheStatusValues[0] = 'uncached';
 	cacheStatusValues[1] = 'idle';
@@ -40,12 +41,23 @@ if( debugCacheManifest ){
 		function(){
 			window.applicationCache.swapCache();
 			window.location.reload();
-			console.log('swap cache has been called');
 		},
 		false
 	);
 
 	setInterval(function(){cache.update()}, 10000);
+} else {
+	//just force reload of the page if an update is available
+	window.applicationCache.addEventListener(
+		'updateready',
+		function(){
+			window.applicationCache.swapCache();
+			window.location.reload();
+		},
+		false
+	);
+
+	window.applicationCache.update();
 }
 
 $(document).ready(function(){
@@ -64,7 +76,7 @@ $(document).ready(function(){
 	/* online - offline modes */
 		window.addEventListener("online", function(){
 			$body.removeClass("offline")
-					.data('internet', 'online');
+				 .data('internet', 'online');
 
 			var deletions = localStorage.getObject('deletions') || [] ,
 				modifications = localStorage.getObject('modifications') || [];
@@ -115,15 +127,15 @@ $(document).ready(function(){
 
 		window.addEventListener("offline", function(){
 			$body.addClass("offline")
-					.data('internet', 'offline');
+				 .data('internet', 'offline');
 		}, true);
 
 		if( navigator.onLine ){
 			$body.removeClass("offline")
-					.data('internet', 'online');
+				 .data('internet', 'online');
 		} else {
 			$body.addClass("offline")
-					.data('internet', 'offline');
+				 .data('internet', 'offline');
 		}
 
 	//ajax global management
@@ -156,6 +168,16 @@ $(document).ready(function(){
 
 		$form.submit(function(e){
 			e.preventDefault();
+console.log('validity check');
+console.log($(this)[0].checkValidity());
+			if( !$(this)[0].checkValidity() ){
+				console.log($form[0].validity);
+				$form.find(':input').each(function(e){
+					console.log(this);
+					console.log(this.validity.valid);
+					if( !this.validity.valid ) console.log(this.validity);
+				});
+			}
 
 			if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
 				$form.addClass('submitting'); //multiple call protection and visual loading display
@@ -338,7 +360,7 @@ $(document).ready(function(){
 				$('#label').val( $item.find('dd:eq(1)').text() );
 
 				var d = new Date( $item.data('date') );
-				$('#paymentDate').val( d.getDate() + '/' + d.getMonth + '/' + d.getFullYear() );
+				$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() );
 
 				//comment
 				$('#comment').val( $item.data('comment') );
@@ -381,7 +403,7 @@ $(document).ready(function(){
 							} else if( $field.is('textarea') ){
 								$field.val( decoder.html( value ).text() );
 
-							} else if( $field.is('input[type=date]') ){
+							} else if( $field.is('#paymentDate') ){
 								var d = value.split('-');
 								$field.val( d[2] + '/' + d[1] + '/' + d[0] );
 
@@ -1201,7 +1223,7 @@ $.fn.resetForm = function(){
 				else field.value = '';
 			});
 		$f.find('.ownerChoice').hide();
-		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear());
+		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() );
 		$('#recurrent_0').prop({ checked: true });
 		$('#type_2').prop({ checked: true });
 		$('#action').val('add');

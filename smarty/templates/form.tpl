@@ -36,7 +36,7 @@
 				<label for="paymentDate">Date</label>
 			</li>
 			<li>
-				<input type="{if stripos($smarty.server.HTTP_USER_AGENT, "safari")}text{else}date{/if}" id="paymentDate" name="paymentDate" value="" autocomplete="off" required pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$" placeholder="{$smarty.now|date_format:'%d/%m/%Y'}">
+				<input type="{if stripos($smarty.server.HTTP_USER_AGENT, "safari")}text{else}date{/if}" id="paymentDate" name="paymentDate" value="" autocomplete="off" required {if !stripos($smarty.server.HTTP_USER_AGENT, "safari")}pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$"{/if} placeholder="{$smarty.now|date_format:'%d/%m/%Y'}">
 			</li>
 
 			<li>
@@ -75,7 +75,7 @@
 				<label for="amount">Montant</label>
 			</li>
 			<li>
-				<input type="number" id="amount" name="amount" value="" autocomplete="off" required min="0.0" placeholder="0.0" pattern="^[0-9]+[\.]?[0-9]*$">
+				<input type="{if stripos($smarty.server.HTTP_USER_AGENT, "safari")}text{else}number{/if}" id="amount" name="amount" value="" autocomplete="off" required min="0.0" placeholder="0.0" pattern="^[0-9]+[\.]?[0-9]*$">
 			</li>
 
 			<li>
