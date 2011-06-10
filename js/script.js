@@ -1,7 +1,7 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
 
-var debugCacheManifest = 1;
+var debugCacheManifest = 0;
 if( debugCacheManifest ){
 	//force reload of the page if an update is available and log all the process
 	var cacheStatusValues = [];
@@ -51,8 +51,10 @@ if( debugCacheManifest ){
 	window.applicationCache.addEventListener(
 		'updateready',
 		function(){
-			window.applicationCache.swapCache();
-			window.location.reload();
+			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
+				window.applicationCache.swapCache();
+				window.location.reload();
+			}
 		},
 		false
 	);
@@ -168,17 +170,6 @@ $(document).ready(function(){
 
 		$form.submit(function(e){
 			e.preventDefault();
-console.log('validity check');
-console.log($(this)[0].checkValidity());
-			if( !$(this)[0].checkValidity() ){
-				console.log($form[0].validity);
-				$form.find(':input').each(function(e){
-					console.log(this);
-					console.log(this.validity.valid);
-					if( !this.validity.valid ) console.log(this.validity);
-				});
-			}
-
 			if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
 				$form.addClass('submitting'); //multiple call protection and visual loading display
 
