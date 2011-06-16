@@ -1,66 +1,177 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
+if( typeof window.applicationCache != 'undefined' ){
+	var debugCacheManifest = 0;
+	if( debugCacheManifest ){
+		//force reload of the page if an update is available and log all the process
+		var cacheStatusValues = [];
+		cacheStatusValues[0] = 'uncached';
+		cacheStatusValues[1] = 'idle';
+		cacheStatusValues[2] = 'checking';
+		cacheStatusValues[3] = 'downloading';
+		cacheStatusValues[4] = 'updateready';
+		cacheStatusValues[5] = 'obsolete';
 
-var debugCacheManifest = 0;
-if( debugCacheManifest ){
-	//force reload of the page if an update is available and log all the process
-	var cacheStatusValues = [];
-	cacheStatusValues[0] = 'uncached';
-	cacheStatusValues[1] = 'idle';
-	cacheStatusValues[2] = 'checking';
-	cacheStatusValues[3] = 'downloading';
-	cacheStatusValues[4] = 'updateready';
-	cacheStatusValues[5] = 'obsolete';
-
-	function logEvent(e) {
-		var online, status, type, message;
-		online = (navigator.onLine) ? 'yes' : 'no';
-		status = cacheStatusValues[cache.status];
-		type = e.type;
-		message = 'online: ' + online;
-		message+= ', event: ' + type;
-		message+= ', status: ' + status;
-		if (type == 'error' && navigator.onLine) {
-			message+= ' (prolly a syntax error in manifest)';
+		function logEvent(e) {
+			var online, status, type, message;
+			online = (navigator.onLine) ? 'yes' : 'no';
+			status = cacheStatusValues[cache.status];
+			type = e.type;
+			message = 'online: ' + online;
+			message+= ', event: ' + type;
+			message+= ', status: ' + status;
+			if (type == 'error' && navigator.onLine) {
+				message+= ' (prolly a syntax error in manifest)';
+			}
+			console.log(message);
 		}
-		console.log(message);
-	}
 
-	var cache = window.applicationCache;
-	cache.addEventListener('cached', logEvent, false);
-	cache.addEventListener('checking', logEvent, false);
-	cache.addEventListener('downloading', logEvent, false);
-	cache.addEventListener('error', logEvent, false);
-	cache.addEventListener('noupdate', logEvent, false);
-	cache.addEventListener('obsolete', logEvent, false);
-	cache.addEventListener('progress', logEvent, false);
-	cache.addEventListener('updateready', logEvent, false);
+		var cache = window.applicationCache;
+		cache.addEventListener('cached', logEvent, false);
+		cache.addEventListener('checking', logEvent, false);
+		cache.addEventListener('downloading', logEvent, false);
+		cache.addEventListener('error', logEvent, false);
+		cache.addEventListener('noupdate', logEvent, false);
+		cache.addEventListener('obsolete', logEvent, false);
+		cache.addEventListener('progress', logEvent, false);
+		cache.addEventListener('updateready', logEvent, false);
 
-	window.applicationCache.addEventListener(
-		'updateready',
-		function(){
-			window.applicationCache.swapCache();
-			window.location.reload();
-		},
-		false
-	);
-
-	setInterval(function(){cache.update()}, 10000);
-} else {
-	//just force reload of the page if an update is available
-	window.applicationCache.addEventListener(
-		'updateready',
-		function(){
-			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
+		window.applicationCache.addEventListener(
+			'updateready',
+			function(){
 				window.applicationCache.swapCache();
 				window.location.reload();
-			}
-		},
-		false
-	);
+			},
+			false
+		);
 
-	window.applicationCache.update();
+		setInterval(function(){cache.update()}, 10000);
+	} else {
+		//just force reload of the page if an update is available
+		window.applicationCache.addEventListener(
+			'updateready',
+			function(){
+				if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
+					window.applicationCache.swapCache();
+					window.location.reload();
+				}
+			},
+			false
+		);
+
+		window.applicationCache.update();
+	}
 }
+
+//opera mobile does not support localStorage...
+if(typeof window.localStorage == 'undefined' || typeof window.sessionStorage == 'undefined'){
+	(function(){
+		var Storage = function(type){
+			function createCookie(name, value, days){
+				var date, expires;
+
+				if( days ){
+					date = new Date();
+					date.setTime(date.getTime()+(days*24*60*60*1000));
+					expires = "; expires="+date.toGMTString();
+				} else {
+					expires = "";
+				}
+				document.cookie = name+"="+value+expires+"; path=/";
+			}
+
+			function readCookie(name){
+				var nameEQ = name + "=",
+					ca = document.cookie.split(';'),
+					i, c;
+
+				for( i=0; i < ca.length; i++ ){
+					c = ca[i];
+					while( c.charAt(0)==' ' ){
+						c = c.substring(1,c.length);
+					}
+
+					if( c.indexOf(nameEQ) == 0 ){
+						return c.substring(nameEQ.length,c.length);
+					}
+				}
+				return null;
+			}
+
+			function setData(data){
+				data = JSON.stringify(data);
+				if( type == 'session' ){
+					window.name = data;
+				} else {
+					createCookie('localStorage', data, 365);
+				}
+			}
+
+			function clearData(){
+				if( type == 'session' ){
+					window.name = '';
+				} else {
+					createCookie('localStorage', '', 365);
+				}
+			}
+
+			function getData(){
+				var data = type == 'session' ? window.name : readCookie('localStorage');
+				return data ? JSON.parse(data) : {};
+			}
+
+			// initialise if there's already data
+			var data = getData();
+
+			return {
+				length: 0,
+				clear: function(){
+					data = {};
+					this.length = 0;
+					clearData();
+				},
+				getItem: function(key){
+					return data[key] === undefined ? null : data[key];
+				},
+				getObject: function(key){
+					return data[key] === undefined ? null : JSON.parse( data[key] );
+				},
+				key: function(i){
+					// not perfect, but works
+					var ctr = 0;
+					for (var k in data) {
+						if (ctr == i) return k;
+						else ctr++;
+					}
+					return null;
+				},
+				removeItem: function(key){
+					delete data[key];
+					this.length--;
+					setData(data);
+				},
+				setItem: function(key, value){
+					data[key] = value+''; // forces the value to a string
+					this.length++;
+					setData(data);
+				},
+				setObject: function(key, value){
+					data[key] = JSON.stringify(value)+''; // forces the value to a string
+					this.length++;
+					setData(data);
+				}
+			};
+		};
+
+		if( typeof window.localStorage == 'undefined' ) window.localStorage = new Storage('local');
+		if( typeof window.sessionStorage == 'undefined' ) window.sessionStorage = new Storage('session');
+
+	})();
+}
+
+$.support.datalistProp = ('list' in document.createElement('input') && 'options' in document.createElement('datalist'));
+//supports full datalist
+$.support.datalist = ($.support.datalistProp && window.HTMLDataListElement);
 
 $(document).ready(function(){
 	var $body = $('body'),
@@ -192,6 +303,22 @@ $(document).ready(function(){
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
 
+				if( !$.support.datalist ){
+					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
+
+					$('input[list]', '#payment_form').each(function(){
+						var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
+							param = '&' + this.name + '=';
+						console.log($(this));
+						console.log($(this).val());
+						console.log(fallback);
+						console.log(fallback.val());
+						params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
+					});
+
+					params += ( !needReload ? '&timeframe=' + tf : '' );
+				}
+
 				if( $body.data('internet') == 'offline' ){
 					var modifications = localStorage.getObject('modifications') || [];
 					modifications.push(params + '&owner=' + $currentOwner.val() );
@@ -235,7 +362,7 @@ $(document).ready(function(){
 
 								refreshParts( data );
 
-								$form.find('datalist, select').loadList();
+								$form.find('datalist, select[id]').loadList();
 								$filter.find('select').loadList();
 
 								//focus the payment add button
@@ -284,7 +411,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$form.find('datalist, select').loadList();
+		$form.find('datalist, select[id]').loadList();
 
 		$('#originFK').change(function(e){
 			if( this.value != '' && limits[ this.value ] ){
@@ -357,16 +484,16 @@ $(document).ready(function(){
 				$('#comment').val( $item.data('comment') );
 
 				//originFK
-				$('#originFK').val( $('#originList').children('[data-id=' + $item.data('origin') + ']').text() );
+				$('#originFK').val( $('#originList').find('[data-id=' + $item.data('origin') + ']').text() );
 
 				//amount
 				$('#amount').val( $item.data('amount') );
 
 				//methodFK
-				$('#methodFK').val( $('#methodList').children('[data-id=' + $item.data('method') + ']').text() );
+				$('#methodFK').val( $('#methodList').find('[data-id=' + $item.data('method') + ']').text() );
 
 				//recipientFK
-				$('#recipientFK').val( $('#recipientList').children('[data-id=' + $item.data('recipient') + ']').text() );
+				$('#recipientFK').val( $('#recipientList').find('[data-id=' + $item.data('recipient') + ']').text() );
 
 				//statusFK
 				$('#' + $item.data('status') ).prop({checked: true});
@@ -389,7 +516,7 @@ $(document).ready(function(){
 							//all datalist are for inputs corresponding to foreign key columns (value is an integer)
 							//label column is an exception (value is a string)
 							if( key != 'label' && $field.is('[list]') ){ //datalist
-								$field.val( $('#' + $field.attr('list') ).children('[data-id=' + value + ']').text() );
+								$field.val( $('#' + $field.attr('list') ).find('[data-id=' + value + ']').text() );
 
 							} else if( $field.is('textarea') ){
 								$field.val( decoder.html( value ).text() );
@@ -428,7 +555,7 @@ $(document).ready(function(){
 				} else {
 					$.post('ajax/payment.php', params, function(data){
 						if( data.payments ){
-							$form.find('datalist, select').loadList();
+							$form.find('datalist, select[id]').loadList();
 							$filter.find('select').loadList();
 
 							refreshParts( data );
@@ -1170,8 +1297,18 @@ $.fn.loadList = function(){
 
 				var isDatalist = $list.is('datalist');
 
-				if( isDatalist ) $list.empty();
-				else {
+				if( isDatalist ){
+					$list.empty();
+
+					if( !$.support.datalist ){
+						var fallback = $('<select>'),
+							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
+						if( field.length ) fallback.attr('name', field.attr('name'));
+						fallback.append('<option value="">');
+						$list.append( fallback );
+					}
+
+				} else {
 					var isFilter = false;
 					if( $list.attr('id').search(/Filter/) != -1 && list.val() != '' ){
 						$list.data('sav', list.val());
@@ -1183,7 +1320,11 @@ $.fn.loadList = function(){
 				$.each(data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
-						$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list )
+						if( !$.support.datalist ){
+							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
+						} else {
+							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
+						}
 					} else {
 						$('<option>', { "value": id, text: name }).appendTo( $list );
 					}
@@ -1283,12 +1424,14 @@ String.prototype.format = function(sepa, thousandSepa){
 /**
  * localStorage method for caching javascript objects
  */
-Storage.prototype.setObject = function(key, value){
-	this.setItem(key, JSON.stringify(value));
-}
+if( typeof Storage != "undefined" ){
+	Storage.prototype.setObject = function(key, value){
+		this.setItem(key, JSON.stringify(value));
+	}
 
-Storage.prototype.getObject = function(key){
-	return this.getItem(key) && JSON.parse( this.getItem(key) );
+	Storage.prototype.getObject = function(key){
+		return this.getItem(key) && JSON.parse( this.getItem(key) );
+	}
 }
 
 /* jquery template getter functions */

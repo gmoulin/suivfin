@@ -38,6 +38,14 @@
 	  display: block;
 	}
 
+	/**
+	 * webkit css define datalist to display: none
+	 * @todo remove when webkit will support datalist
+	 */
+	@media screen and (-webkit-min-device-pixel-ratio:0) {
+		datalist { display: inline-block; }
+	}
+
 	blockquote, q { quotes: none; }
 
 	blockquote:before, blockquote:after,
@@ -552,6 +560,7 @@
 			left: 0;
 			width: 100%;
 			text-align: center;
+			z-index: 5; /* opera bug */
 
 			-webkit-transition: top 0.3s ease-in-out 0s;
 			-moz-transition: top 0.3s ease-in-out 0s;
@@ -615,6 +624,9 @@
 		#payment_form input:not([type=radio]),
 		#payment_form textarea {
 			width: 200px;
+		}
+		#payment_form datalist select {
+			width: 204px;
 		}
 
 		#payment_form .formButtons {
@@ -1613,6 +1625,10 @@
 		#payment_form textarea {
 			width: 350px;
 		}
+
+		#payment_form datalist select {
+			width: 354px;
+		}
 	}
 
 	/*992px __________________________________________________________________________________________________________ */
@@ -1748,3 +1764,4 @@
 		p, h2, h3 { orphans: 3; widows: 3; }
 		h2, h3{ page-break-after: avoid; }
 	}
+
