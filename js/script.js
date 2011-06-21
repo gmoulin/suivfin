@@ -1,6 +1,6 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
-if( typeof window.applicationCache != 'undefined' ){
+if( Modernizr.applicationcache ){
 	var debugCacheManifest = 0;
 	if( debugCacheManifest ){
 		//force reload of the page if an update is available and log all the process
@@ -59,12 +59,12 @@ if( typeof window.applicationCache != 'undefined' ){
 			false
 		);
 
-		window.applicationCache.update();
+		if( !$.browser.opera ) window.applicationCache.update();
 	}
 }
 
 //opera mobile does not support localStorage...
-if(typeof window.localStorage == 'undefined' || typeof window.sessionStorage == 'undefined'){
+if( !Modernizr.localstorage ){
 	(function(){
 		var Storage = function(type){
 			function createCookie(name, value, days){
@@ -168,10 +168,6 @@ if(typeof window.localStorage == 'undefined' || typeof window.sessionStorage == 
 
 	})();
 }
-
-$.support.datalistProp = ('list' in document.createElement('input') && 'options' in document.createElement('datalist'));
-//supports full datalist
-$.support.datalist = ($.support.datalistProp && window.HTMLDataListElement);
 
 $(document).ready(function(){
 	var $body = $('body'),
@@ -303,7 +299,7 @@ $(document).ready(function(){
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
 
-				if( !$.support.datalist ){
+				if( !Modernizr.input.list ){
 					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
 
 					$('input[list]', '#payment_form').each(function(){
@@ -1300,7 +1296,7 @@ $.fn.loadList = function(){
 				if( isDatalist ){
 					$list.empty();
 
-					if( !$.support.datalist ){
+					if( !Modernizr.input.list ){
 						var fallback = $('<select>'),
 							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
 						if( field.length ) fallback.attr('name', field.attr('name'));
@@ -1320,7 +1316,7 @@ $.fn.loadList = function(){
 				$.each(data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
-						if( !$.support.datalist ){
+						if( !Modernizr.input.list ){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
 						} else {
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
@@ -1442,3 +1438,4 @@ function getValue( data, index ){
 function getSymbol( data, index ){
 	return data[index].symbol;
 }
+
