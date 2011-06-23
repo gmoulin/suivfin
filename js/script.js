@@ -1,5 +1,7 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
+
+//cache the site via manifest if possible
 if( Modernizr.applicationcache ){
 	var debugCacheManifest = 0;
 	if( debugCacheManifest ){
@@ -63,7 +65,7 @@ if( Modernizr.applicationcache ){
 	}
 }
 
-//opera mobile does not support localStorage...
+//opera mini does not support localStorage...
 if( !Modernizr.localstorage ){
 	(function(){
 		var Storage = function(type){
@@ -169,7 +171,11 @@ if( !Modernizr.localstorage ){
 	})();
 }
 
+//datalist false positive support (no UI)
+var isFennec = ($.browser.mozilla && $.browser.version == '2.1.1');
+
 $(document).ready(function(){
+
 	var $body = $('body'),
 		$container = $('#container'),
 		$sums = $('#sums'),
@@ -299,16 +305,12 @@ $(document).ready(function(){
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
 
-				if( !Modernizr.input.list ){
+				if( !Modernizr.input.list || isFennec ){
 					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
 
 					$('input[list]', '#payment_form').each(function(){
 						var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
 							param = '&' + this.name + '=';
-						console.log($(this));
-						console.log($(this).val());
-						console.log(fallback);
-						console.log(fallback.val());
 						params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
 					});
 
@@ -1255,6 +1257,10 @@ $.fn.loadList = function(){
 			cachedData,
 			lastModified = 0;
 
+		if( isFennec ){
+			$list.siblings('select').remove();
+		}
+
 		try {
 			cachedData = localStorage.getObject(key);
 			if( cachedData ){
@@ -1296,12 +1302,14 @@ $.fn.loadList = function(){
 				if( isDatalist ){
 					$list.empty();
 
-					if( !Modernizr.input.list ){
+					if( !Modernizr.input.list || isFennec ){
 						var fallback = $('<select>'),
 							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
 						if( field.length ) fallback.attr('name', field.attr('name'));
 						fallback.append('<option value="">');
-						$list.append( fallback );
+
+						if( isFennec ) fallback.addClass('tmp').insertBefore( $list );
+						else $list.append( fallback );
 					}
 
 				} else {
@@ -1318,6 +1326,8 @@ $.fn.loadList = function(){
 					if( isDatalist ){
 						if( !Modernizr.input.list ){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
+						} else if( isFennec ){
+							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.siblings('select') );
 						} else {
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}

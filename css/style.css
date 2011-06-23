@@ -625,6 +625,7 @@
 		#payment_form textarea {
 			width: 200px;
 		}
+		#payment_form select.tmp,
 		#payment_form datalist select {
 			width: 204px;
 		}
@@ -1626,6 +1627,7 @@
 			width: 350px;
 		}
 
+		#payment_form select.tmp,
 		#payment_form datalist select {
 			width: 354px;
 		}
