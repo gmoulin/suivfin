@@ -157,6 +157,12 @@ function secureXSS($data, $charset = 'UTF-8', $quote_style = ENT_QUOTES, $all_en
 	return removeInvalidChars($data, $charset = 'UTF-8', TRUE);
 }
 
+$_SERVER = secureXSS($_SERVER);
+$_COOKIE = secureXSS($_COOKIE);
+$_GET = secureXSS($_GET);
+$_POST = secureXSS($_POST);
+$_REQUEST = secureXSS($_REQUEST);
+
 /**
  * error handler function
  * used for transaction rollback on any error during add, update or delete

@@ -1,9 +1,12 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
+var delayAjax = false,
+	delayTimeout;
 
 //cache the site via manifest if possible
 if( Modernizr.applicationcache ){
-	var debugCacheManifest = 0;
+	var debugCacheManifest = false;
+
 	if( debugCacheManifest ){
 		//force reload of the page if an update is available and log all the process
 		var cacheStatusValues = [];
@@ -38,31 +41,61 @@ if( Modernizr.applicationcache ){
 		cache.addEventListener('progress', logEvent, false);
 		cache.addEventListener('updateready', logEvent, false);
 
-		window.applicationCache.addEventListener(
-			'updateready',
-			function(){
+		setInterval(function(){cache.update()}, 10000);
+	}
+
+
+	//just force reload of the page if an update is available
+	window.applicationCache.addEventListener(
+		'updateready',
+		function(){
+			//busy visual information
+			$('header').removeClass('loading');
+			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
 				window.applicationCache.swapCache();
 				window.location.reload();
-			},
-			false
-		);
+			} else {
+				delayAjax = false;
+			}
+		},
+		false
+	);
 
-		setInterval(function(){cache.update()}, 10000);
-	} else {
-		//just force reload of the page if an update is available
-		window.applicationCache.addEventListener(
-			'updateready',
-			function(){
-				if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
-					window.applicationCache.swapCache();
-					window.location.reload();
-				}
-			},
-			false
-		);
+	window.applicationCache.addEventListener(
+		'checking',
+		function(){
+			//delay ajax calls if there is a new manifest version
+			delayAjax = true;
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'downloading',
+		function(){
+			$('header').addClass('loading');
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'noupdate',
+		function(){
+			delayAjax = false;
+			$('header').removeClass('loading');
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'error',
+		function(){
+			//delay ajax calls if there is a new manifest version
+			delayAjax = false;
+			$('header').removeClass('loading');
+			alert('Error while downloading the new version');
+		},
+		false
+	);
 
-		if( !$.browser.opera ) window.applicationCache.update();
-	}
+	if( !$.browser.opera ) window.applicationCache.update();
 }
 
 //opera mini does not support localStorage...
@@ -254,18 +287,14 @@ $(document).ready(function(){
 		}
 
 	//ajax global management
-	/*
-		$('#ajax_loader').ajaxStart(function(){
-			$('#ajax_loader').addClass('loading');
-			$(this).empty(); //global error message deletion
-		})
-		.ajaxStop(function(){
-			$('#ajax_loader').removeClass('loading');
-		})
-		.ajaxError(function(event, xhr, settings, exception){
+		$('header').ajaxStart(function(){
+			$(this).addClass('loading');
+		}).ajaxStop(function(){
+			$(this).removeClass('loading');
+		}).ajaxError(function(event, xhr, settings, exception){
+			$(this).removeClass('loading');
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
-	*/
 
 	//forms actions
 		$('.form_switch a').click(function(e){
@@ -408,8 +437,6 @@ $(document).ready(function(){
 				$('#amount').val(function(){ return this.value + '.'; });
 			}
 		});
-
-		$form.find('datalist, select[id]').loadList();
 
 		$('#originFK').change(function(e){
 			if( this.value != '' && limits[ this.value ] ){
@@ -1241,8 +1268,22 @@ $(document).ready(function(){
 		});
 	}
 
-	reloadParts();
+
+	//timeout function for loadList() and reloadParts();
+	function ajaxCalls(){
+		if( !delayAjax ){
+			if( delayTimeout ) clearTimeout(delayTimeout);
+			$form.find('datalist, select[id]').loadList();
+			reloadParts();
+		}
+		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);
+	}
+
+	//"onload" ajax call for data
+	ajaxCalls();
 });
+
+
 
 /**
  * ajax load for <datalist> and <select> options

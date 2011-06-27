@@ -285,6 +285,61 @@
 			height: 25px;
 		}
 
+		header.loading {
+			background-color: #FF7722;
+			background-image: -webkit-repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.5) 35px, rgba(255, 255, 255, 0.5) 70px);
+			background-image:    -moz-repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.5) 35px, rgba(255, 255, 255, 0.5) 70px);
+			background-image:      -o-repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.5) 35px, rgba(255, 255, 255, 0.5) 70px);
+			background-image:         repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.5) 35px, rgba(255, 255, 255, 0.5) 70px);
+			background-position: 0 0;
+
+			-webkit-animation-name: loading;
+			-webkit-animation-duration: 5s;
+			-webkit-animation-iteration-count: infinite;
+			-webkit-animation-direction: linear;
+
+			-moz-animation-name: loading;
+			-moz-animation-duration: 5s;
+			-moz-animation-iteration-count: infinite;
+			-moz-animation-direction: linear;
+
+			animation-name: loading;
+			animation-duration: 5s;
+			animation-iteration-count: infinite;
+			animation-direction: linear;
+		}
+
+		@-webkit-keyframes loading{
+			  0% {
+				background-color: #FF7722;
+				background-position: 0 0;
+			}
+			 50% {
+				background-color: #bada55;
+				background-position: 100px 0;
+			}
+			100% {
+				background-color: #FF7722;
+				background-position: 200px 0;
+			}
+		}
+
+		@-moz-keyframes loading{
+			  0% {
+				background-color: #FF7722;
+				background-position:   0   0;
+			}
+			 50% {
+				background-color: #bada55;
+				background-position: 100px 0;
+			}
+			100% {
+				background-color: #FF7722;
+				background-position: 200px 0;
+			}
+		}
+
+
 	/* footer */
 		footer {
 			width: 100%;
@@ -852,10 +907,12 @@
 
 		#time_frame input + label {
 			cursor: pointer;
+			color: #ccc;
 		}
 
 		#time_frame input:checked + label {
 			font-weight: bold;
+			color: #fff;
 		}
 
 		#time_frame input:checked ~ ul {

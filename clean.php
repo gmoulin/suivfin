@@ -33,14 +33,21 @@ try {
 		}
 		closedir($handle);
 
+
+		if( !is_dir(STASH_PATH) ){
+			echo 'stash cache not cleaned, folder missing. ('.STASH_PATH.')';
+			die;
+		}
+
 		//clean stash
 		$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 		StashBox::setHandler($stashFileSystem);
 
 		$stash = new Stash($stashFileSystem);
-		$stash->clear();
+		$result = $stash->clear();
 
-		echo '1';
+		if( $result ) echo 'Stash cache cleaned !';
+		else echo 'Failed cleaning stash cache ! Try to remove the stash folder completely.';
 		die;
 	}
 
