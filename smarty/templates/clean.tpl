@@ -26,34 +26,36 @@
 	<script>!window.jQuery && document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js">\x3C/script>')</script>
 
 	<script>
-		function cleanCache(){
-			if( Modernizr.applicationcache ){
-				/*
-					@toto buggy javascript method (mozItems)
-				*/
-				console.log(window.applicationCache);
-				console.log(window.applicationCache.mozItems);
+		{literal}
+			function cleanCache(){
+				if( Modernizr.applicationcache ){
+					/*
+						@toto buggy javascript method (mozItems)
+					*/
+					console.log(window.applicationCache);
+					console.log(window.applicationCache.mozItems);
 
-				if( window.applicationCache.mozItems && window.applicationCache.mozItems.length ){
-					for( c in window.applicationCache.mozItems ){
-						window.applicationCache.mozRemove(c);
+					if( window.applicationCache.mozItems && window.applicationCache.mozItems.length ){
+						for( c in window.applicationCache.mozItems ){
+							window.applicationCache.mozRemove(c);
+						}
 					}
 				}
-			}
 
-			if( Modernizr.localstorage ){
-				localStorage.clear();
-			} else {
-				document.cookie = "localStorage=; path=/";
-			}
+				if( Modernizr.localstorage ){
+					localStorage.clear();
+				} else {
+					document.cookie = "localStorage=; path=/";
+				}
 
-			/*
-				ask the server for smarty and stash caches cleaning
-			*/
-			$.get('clean.php', 'servercache=1', function(data){
-				$('body').append('<p>'+ data +'</p>');
-			});
-		}
+				/*
+					ask the server for smarty and stash caches cleaning
+				*/
+				$.get('clean.php', 'servercache=1', function(data){
+					$('body').append('<p>'+ data +'</p>');
+				});
+			}
+		{/literal}
 	</script>
 
 </body>

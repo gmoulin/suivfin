@@ -210,7 +210,7 @@ if( !Modernizr.localstorage ){
 }
 
 //datalist false positive support (no UI)
-var isFennec = ($.browser.mozilla && $.browser.version == '2.1.1');
+var isFennec = navigator.userAgent.indexOf('Fennec') != -1;
 
 $(document).ready(function(){
 
@@ -227,6 +227,7 @@ $(document).ready(function(){
 		legendCurrency = [];
 
 	/* online - offline modes */
+		/* @todo to finish and test */
 		window.addEventListener("online", function(){
 			$body.removeClass("offline")
 				 .data('internet', 'online');
@@ -363,6 +364,7 @@ $(document).ready(function(){
 					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
 
 				} else {
+					$('header').addClass('loading');
 					$.ajax({
 						url: 'ajax/payment.php',
 						data: params,
@@ -378,6 +380,7 @@ $(document).ready(function(){
 								else reloadParts();
 
 							} else if( data.payments ){
+								$('header').removeClass('loading');
 								//form hide
 								$('body').unbind('click');
 								$form.removeClass('deploy');
@@ -814,6 +817,7 @@ $(document).ready(function(){
 		}
 
 		//resfresh sums
+		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
 			data: 'action=refresh&timeframe=' + tf + '&owner=' + $currentOwner.val(),
 			dataType: 'json',
@@ -841,6 +845,7 @@ $(document).ready(function(){
 				} else {
 					alert( data );
 				}
+				$('header').removeClass('loading');
 			}
 		});
 	}
@@ -1194,6 +1199,7 @@ $(document).ready(function(){
 		}
 
 		//get graph data
+		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
 			data: 'action=chart&type=' + type,
 			dataType: 'json',
@@ -1269,6 +1275,7 @@ $(document).ready(function(){
 				} else {
 					alert( data );
 				}
+				$('header').removeClass('loading');
 			}
 		});
 	}
@@ -1317,6 +1324,7 @@ $.fn.loadList = function(){
 		}
 
 		//ask the list values to the server and create the <option>s with it
+		$('header').addClass('loading');
 		$.ajax('ajax/loadList.php', {
 			data: 'field=' + key,
 			dataType: 'json',
@@ -1388,6 +1396,8 @@ $.fn.loadList = function(){
 					$list.val( list.data('selectedId') );
 					$list.removeData('selectedId');
 				}
+
+				$('header').removeClass('loading');
 			}
 		});
 	});

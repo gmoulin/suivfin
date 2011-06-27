@@ -610,7 +610,7 @@
 
 	/* payment form */
 		#payment_form {
-			position: fixed;
+			position: absolute;
 			top: -750px;
 			left: 0;
 			width: 100%;
@@ -695,7 +695,6 @@
 		}
 
 		#payment_form li:nth-child(even) label {
-			margin-right: 5px;
 			padding: 2px 5px;
 		}
 
