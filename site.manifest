@@ -5,6 +5,7 @@ CACHE MANIFEST
 CACHE:
 # html files
 /index.php
+/clean.php
 
 # css files
 /css/style.css

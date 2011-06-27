@@ -95,7 +95,12 @@ if( Modernizr.applicationcache ){
 		false
 	);
 
-	if( !$.browser.opera ) window.applicationCache.update();
+	//sometimes a DOM exception is raised by update()...
+	try {
+		if( !$.browser.opera ) window.applicationCache.update();
+	} catch(err){
+		window.location.reload();
+	}
 }
 
 //opera mini does not support localStorage...

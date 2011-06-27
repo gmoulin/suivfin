@@ -1,6 +1,6 @@
 {strip}
 <!DOCTYPE html>
-<html lang="{$lang}">
+<html lang="{$lang}" manifest="site.manifest">
 <head>
 	<title>Suivi Financier</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -55,8 +55,16 @@
 		function cleanCache(){
 			if( Modernizr.applicationcache ){
 				/*
-					window.applicationCache.removeAll();
+					@toto buggy javascript method (mozItems)
 				*/
+				console.log(window.applicationCache);
+				console.log(window.applicationCache.mozItems);
+
+				if( window.applicationCache.mozItems.length ){
+					for( c in window.applicationCache.mozItems ){
+						window.applicationCache.mozRemove(c);
+					}
+				}
 			}
 
 			if( Modernizr.localstorage ){
@@ -68,7 +76,9 @@
 			/*
 				ask the server for smarty and stash caches cleaning
 			*/
-			$.get('clean.php', 'servercache=1');
+			$.get('clean.php', 'servercache=1', function(data){
+				$('body').append('<p>'+ data +'</p>');
+			});
 		}
 	</script>
 
