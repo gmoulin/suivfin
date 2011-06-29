@@ -1,7 +1,12 @@
 /* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
 */
+var delayAjax = false,
+	delayTimeout;
+
+//cache the site via manifest if possible
 if( Modernizr.applicationcache ){
-	var debugCacheManifest = 0;
+	var debugCacheManifest = false;
+
 	if( debugCacheManifest ){
 		//force reload of the page if an update is available and log all the process
 		var cacheStatusValues = [];
@@ -36,34 +41,68 @@ if( Modernizr.applicationcache ){
 		cache.addEventListener('progress', logEvent, false);
 		cache.addEventListener('updateready', logEvent, false);
 
-		window.applicationCache.addEventListener(
-			'updateready',
-			function(){
+		setInterval(function(){cache.update()}, 10000);
+	}
+
+	//just force reload of the page if an update is available
+	window.applicationCache.addEventListener(
+		'updateready',
+		function(){
+			//busy visual information
+			$('header').removeClass('loading');
+			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
 				window.applicationCache.swapCache();
 				window.location.reload();
-			},
-			false
-		);
+			} else {
+				delayAjax = false;
+			}
+		},
+		false
+	);
 
-		setInterval(function(){cache.update()}, 10000);
-	} else {
-		//just force reload of the page if an update is available
-		window.applicationCache.addEventListener(
-			'updateready',
-			function(){
-				if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
-					window.applicationCache.swapCache();
-					window.location.reload();
-				}
-			},
-			false
-		);
+	window.applicationCache.addEventListener(
+		'checking',
+		function(){
+			//delay ajax calls if there is a new manifest version
+			delayAjax = true;
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'downloading',
+		function(){
+			$('header').addClass('loading');
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'noupdate',
+		function(){
+			delayAjax = false;
+			$('header').removeClass('loading');
+		},
+		false
+	);
+	window.applicationCache.addEventListener(
+		'error',
+		function(){
+			//delay ajax calls if there is a new manifest version
+			delayAjax = false;
+			$('header').removeClass('loading');
+			alert('Error while downloading the new version');
+		},
+		false
+	);
 
+	//sometimes a DOM exception is raised by update()...
+	try {
 		if( !$.browser.opera ) window.applicationCache.update();
+	} catch(err){
+		window.location.reload();
 	}
 }
 
-//opera mobile does not support localStorage...
+//opera mini does not support localStorage...
 if( !Modernizr.localstorage ){
 	(function(){
 		var Storage = function(type){
@@ -169,7 +208,11 @@ if( !Modernizr.localstorage ){
 	})();
 }
 
+//datalist false positive support (no UI)
+var isFennec = navigator.userAgent.indexOf('Fennec') != -1;
+
 $(document).ready(function(){
+
 	var $body = $('body'),
 		$container = $('#container'),
 		$sums = $('#sums'),
@@ -183,6 +226,7 @@ $(document).ready(function(){
 		legendCurrency = [];
 
 	/* online - offline modes */
+		/* @todo to finish and test */
 		window.addEventListener("online", function(){
 			$body.removeClass("offline")
 				 .data('internet', 'online');
@@ -248,18 +292,14 @@ $(document).ready(function(){
 		}
 
 	//ajax global management
-	/*
-		$('#ajax_loader').ajaxStart(function(){
-			$('#ajax_loader').addClass('loading');
-			$(this).empty(); //global error message deletion
-		})
-		.ajaxStop(function(){
-			$('#ajax_loader').removeClass('loading');
-		})
-		.ajaxError(function(event, xhr, settings, exception){
+		$('header').ajaxStart(function(){
+			$(this).addClass('loading');
+		}).ajaxStop(function(){
+			$(this).removeClass('loading');
+		}).ajaxError(function(event, xhr, settings, exception){
+			$(this).removeClass('loading');
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
-	*/
 
 	//forms actions
 		$('.form_switch a').click(function(e){
@@ -299,16 +339,12 @@ $(document).ready(function(){
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
 
-				if( !Modernizr.input.list ){
+				if( !Modernizr.input.list || isFennec ){
 					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
 
 					$('input[list]', '#payment_form').each(function(){
 						var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
 							param = '&' + this.name + '=';
-						console.log($(this));
-						console.log($(this).val());
-						console.log(fallback);
-						console.log(fallback.val());
 						params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
 					});
 
@@ -327,6 +363,7 @@ $(document).ready(function(){
 					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
 
 				} else {
+					$('header').addClass('loading');
 					$.ajax({
 						url: 'ajax/payment.php',
 						data: params,
@@ -342,6 +379,7 @@ $(document).ready(function(){
 								else reloadParts();
 
 							} else if( data.payments ){
+								$('header').removeClass('loading');
 								//form hide
 								$('body').unbind('click');
 								$form.removeClass('deploy');
@@ -406,8 +444,6 @@ $(document).ready(function(){
 				$('#amount').val(function(){ return this.value + '.'; });
 			}
 		});
-
-		$form.find('datalist, select[id]').loadList();
 
 		$('#originFK').change(function(e){
 			if( this.value != '' && limits[ this.value ] ){
@@ -780,6 +816,7 @@ $(document).ready(function(){
 		}
 
 		//resfresh sums
+		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
 			data: 'action=refresh&timeframe=' + tf + '&owner=' + $currentOwner.val(),
 			dataType: 'json',
@@ -807,6 +844,7 @@ $(document).ready(function(){
 				} else {
 					alert( data );
 				}
+				$('header').removeClass('loading');
 			}
 		});
 	}
@@ -1160,6 +1198,7 @@ $(document).ready(function(){
 		}
 
 		//get graph data
+		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
 			data: 'action=chart&type=' + type,
 			dataType: 'json',
@@ -1235,12 +1274,27 @@ $(document).ready(function(){
 				} else {
 					alert( data );
 				}
+				$('header').removeClass('loading');
 			}
 		});
 	}
 
-	reloadParts();
+
+	//timeout function for loadList() and reloadParts();
+	function ajaxCalls(){
+		if( !delayAjax ){
+			if( delayTimeout ) clearTimeout(delayTimeout);
+			$form.find('datalist, select[id]').loadList();
+			reloadParts();
+		}
+		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);
+	}
+
+	//"onload" ajax call for data
+	ajaxCalls();
 });
+
+
 
 /**
  * ajax load for <datalist> and <select> options
@@ -1255,6 +1309,10 @@ $.fn.loadList = function(){
 			cachedData,
 			lastModified = 0;
 
+		if( isFennec ){
+			$list.siblings('select').remove();
+		}
+
 		try {
 			cachedData = localStorage.getObject(key);
 			if( cachedData ){
@@ -1265,6 +1323,7 @@ $.fn.loadList = function(){
 		}
 
 		//ask the list values to the server and create the <option>s with it
+		$('header').addClass('loading');
 		$.ajax('ajax/loadList.php', {
 			data: 'field=' + key,
 			dataType: 'json',
@@ -1296,12 +1355,14 @@ $.fn.loadList = function(){
 				if( isDatalist ){
 					$list.empty();
 
-					if( !Modernizr.input.list ){
+					if( !Modernizr.input.list || isFennec ){
 						var fallback = $('<select>'),
 							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
 						if( field.length ) fallback.attr('name', field.attr('name'));
 						fallback.append('<option value="">');
-						$list.append( fallback );
+
+						if( isFennec ) fallback.addClass('tmp').insertBefore( $list );
+						else $list.append( fallback );
 					}
 
 				} else {
@@ -1318,6 +1379,8 @@ $.fn.loadList = function(){
 					if( isDatalist ){
 						if( !Modernizr.input.list ){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
+						} else if( isFennec ){
+							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.siblings('select') );
 						} else {
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}
@@ -1332,6 +1395,8 @@ $.fn.loadList = function(){
 					$list.val( list.data('selectedId') );
 					$list.removeData('selectedId');
 				}
+
+				$('header').removeClass('loading');
 			}
 		});
 	});
