@@ -424,8 +424,9 @@ class common {
 	/**
 	 * save data in the database
 	 * insert for id = 0, else update
+	 * @param boolean $cleanCache : will the _cleanCaches method be called
 	 */
-	public function save(){
+	public function save( $cleanCache = true ){
 		try {
 			$params = array();
 
@@ -493,7 +494,7 @@ class common {
 				$this->_data['id'] = $this->_db->lastInsertId();
 			}
 
-			$this->_cleanCaches();
+			if( $cleanCache ) $this->_cleanCaches();
 
 			return true;
 
@@ -510,12 +511,6 @@ class common {
 			if( empty($this->_data['id']) ){
 				throw new Exception('Impossible to delete record, id is null');
 			}
-
-			/*
-			if( $this->_isUsed() ){
-				return 'used';
-			}
-			*/
 
 			$q = $this->_db->prepare("DELETE FROM ".$this->_table." where id = :id");
 			$q->execute( array(':id' => $this->_data['id']) );
@@ -645,6 +640,7 @@ class common {
 		$stash = new Stash($stashFileSystem);
 
 		$stash->setupKey( get_class($this) );
+
 		$stash->clear();
 	}
 }

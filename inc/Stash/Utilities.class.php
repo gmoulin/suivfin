@@ -207,13 +207,14 @@ class StashUtilities
 				}
 
 
-				if(file_exists($filename))
+				if(file_exists($filename)){
 					unlink($filename);
-
+				}
 			}
 
-			if(is_dir($filePath))
+			if(is_dir($filePath)){
 				rmdir($filePath);
+			}
 
 			return true;
 		}elseif(is_file($filePath)){

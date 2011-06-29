@@ -404,9 +404,10 @@ class payment extends common {
 
 	/**
 	 * overload of common function to manage evolution table
+	 * @param boolean $cleanCache : will the _cleanCaches method be called
 	 */
-	public function save(){
-		parent::save();
+	public function save( $cleanCache = true ){
+		parent::save($cleanCache);
 
 		//delete evolutions for the payment origin
 		$oEvolution = new evolution();

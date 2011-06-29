@@ -123,7 +123,7 @@ class evolution extends common {
 						}
 					}
 
-					$this->save();
+					$this->save(false);
 
 					//set the date to next day
 					$this->evolutionDate = date("Y-m-d", strtotime("+1 day", strtotime( $this->evolutionDate )) );
@@ -134,6 +134,7 @@ class evolution extends common {
 				$q->closeCursor();
 			}
 
+			$this->_cleanCaches();
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
@@ -250,7 +251,7 @@ class evolution extends common {
 
 			$result = $stash->get();
 			$ts = null;
-			if( 1 || $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
+			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$oCurrency = new currency();
 				$currenciesWSymbol = $oCurrency->loadList();
 

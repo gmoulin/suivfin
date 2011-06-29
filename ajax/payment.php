@@ -205,6 +205,7 @@ try {
 					$tsSums = $oPayment->getSums($frame, null, true);
 					$tsForecasts = $oPayment->getForecasts(null, true);
 					$tsBalances = $oEvolution->getTodayBalances(null, true);
+
 					if( is_null($tsForecasts) ) $tsForecasts = 0; //null when there is no forecast
 					if( is_null($tsBalances) ) $tsBalances = 0; //null after evolution table reset
 

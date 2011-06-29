@@ -1,5 +1,6 @@
-/* Author: Guillaume Moulin <gmoulin.dev@gmail.com>
-*/
+/**
+ * Author: Guillaume Moulin <gmoulin.dev@gmail.com>
+ */
 var delayAjax = false,
 	delayTimeout;
 
@@ -98,7 +99,7 @@ if( Modernizr.applicationcache ){
 	try {
 		if( !$.browser.opera ) window.applicationCache.update();
 	} catch(err){
-		window.location.reload();
+		if( $.browser.opera ) window.location.reload();
 	}
 }
 
@@ -301,6 +302,8 @@ $(document).ready(function(){
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
+		$.ajaxSetup({cache: false});
+
 	//forms actions
 		$('.form_switch a').click(function(e){
 			e.preventDefault();
@@ -367,6 +370,7 @@ $(document).ready(function(){
 					$.ajax({
 						url: 'ajax/payment.php',
 						data: params,
+						cache: false,
 						type: 'POST',
 						dataType: 'json',
 						complete: function(){
@@ -420,7 +424,6 @@ $(document).ready(function(){
 		});
 
 		$('#formCancel').click(function(){
-
 			$('body').unbind('click');
 			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
@@ -451,6 +454,13 @@ $(document).ready(function(){
 				$('#amount').focus();
 			}
 		});
+
+		//@todo temporary, to avoid error on form submit for non datalist supporting browser and Fennec false support
+		if( !Modernizr.input.list || isFennec ){
+			$form.find('input[list]').each(function(){
+				$(this).removeProp('required');
+			});
+		}
 
 	//isotope
 		$('#container').isotope({
@@ -1327,6 +1337,7 @@ $.fn.loadList = function(){
 		$.ajax('ajax/loadList.php', {
 			data: 'field=' + key,
 			dataType: 'json',
+			cache: false,
 			headers: {
 				'If-Modified-Since': lastModified
 			},
@@ -1503,4 +1514,3 @@ function getValue( data, index ){
 function getSymbol( data, index ){
 	return data[index].symbol;
 }
-

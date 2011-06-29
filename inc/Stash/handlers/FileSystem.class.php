@@ -335,11 +335,6 @@ class StashFileSystem implements StashHandler
 	public function clear($key = null)
 	{
 		$path = $this->makePath($key);
-		if(is_file($path))
-		{
-			$return = true;
-			unlink($path);
-		}
 
 		if(strpos($path, '.php') !== false)
 			$path = substr($path, 0, strlen($path) - 4);
