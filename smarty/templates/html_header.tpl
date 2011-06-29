@@ -45,7 +45,7 @@
 	<link rel="stylesheet" href="css/style.css?v={$css}">
 
 	<!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
-	<script src="js/libs/modernizr-1.7.min.js"></script>
+	<script src="js/libs/modernizr-2.0.4.custom.min.js"></script>
 </head>
 <body>
 
