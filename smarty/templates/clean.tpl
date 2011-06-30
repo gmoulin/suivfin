@@ -33,7 +33,7 @@
 						@toto buggy javascript method (mozItems)
 					*/
 					console.log(window.applicationCache);
-					console.log(window.applicationCache.mozItems);
+					if( window.applicationCache.mozItems ) console.log(window.applicationCache.mozItems);
 
 					if( window.applicationCache.mozItems && window.applicationCache.mozItems.length ){
 						for( c in window.applicationCache.mozItems ){

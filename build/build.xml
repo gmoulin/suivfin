@@ -404,14 +404,14 @@
         <echo message="Creating directory structure..."/>
 
         <mkdir dir="${dir.intermediate}"/>
-        <copy todir="${dir.intermediate}" includeEmptyDirs="true">
+        <copy todir="${dir.intermediate}" includeEmptyDirs="true" preservelastmodified="true">
             <fileset dir="${dir.source}/" excludes="${file.default.exclude}, ${file.exclude}">
                 <type type="dir"/>
             </fileset>
         </copy>
 
         <mkdir dir="${dir.publish}"/>
-        <copy todir="${dir.publish}" includeEmptyDirs="true">
+        <copy todir="${dir.publish}" includeEmptyDirs="true" preservelastmodified="true">
             <fileset dir="${dir.source}/" excludes="${file.default.exclude}, ${file.exclude}">
                 <type type="dir"/>
             </fileset>
@@ -423,7 +423,7 @@
 
         <echo message="Copying over new files..."/>
 
-        <copy todir="./${dir.publish}">
+        <copy todir="./${dir.publish}" preservelastmodified="true">
             <fileset dir="${dir.source}/" excludes="${file.default.exclude}, ${file.exclude}">
                 <!-- exclude files that are superseded by optimized versions with different names -->
                 <!-- this is not strictly necessary, but it avoids putting unreferenced files into your server -->
@@ -498,7 +498,7 @@
             <mapper type="glob" from="*.js" to="${basedir}/${dir.intermediate}/${dir.js}/*.min.js"/>
             <targetfile/>
         </apply>
-        <copy todir="${dir.publish}/${dir.js.libs}">
+        <copy todir="${dir.publish}/${dir.js.libs}" preservelastmodified="true">
             <fileset dir="${dir.intermediate}/${dir.js.libs}" includes="**/*.js"/>
         </copy>
     </target>
@@ -788,7 +788,7 @@
     <target name="-imgcopy" depends="-mkdirs">
         <echo message="Copying over the unmodified images."/>
 
-        <copy todir="./${dir.publish}/${dir.images}">
+        <copy todir="./${dir.publish}/${dir.images}" preservelastmodified="true">
             <fileset dir="${dir.source}/${dir.images}"  includes="*.jpg, *.png"/>
         </copy>
     </target>

@@ -358,7 +358,7 @@
 	/* list */
 		.item {
 			padding: 3px 4px;
-			margin: 3px;
+			margin: 3px 28px 3px 3px;
 			position: relative;
 			text-shadow: 1px 1px 1px rgba(255, 255, 255, .3);
 			box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
@@ -370,14 +370,10 @@
 		}
 
 		.item .buttons {
-			display: none;
-			position: absolute;
-			top: 0;
-			right: 0;
-		}
-
-		.item:hover .buttons {
 			display: block;
+			position: absolute;
+			top: 1px;
+			right: -19px;
 		}
 
 	/* calculs result column */
@@ -1450,6 +1446,42 @@
 			vertical-align: top;
 		}
 
+
+		/* ------------------------------------------------------------------------------------------------------------- BUTTON VERTICAL */
+		/* For vertical button bars */
+		.button-group.vertical .button {
+			float: left;
+			clear: left;
+			display: block;
+			margin-top: -1px;
+			margin-left: 0;
+			padding: 0.4em 0 0.2em;
+			width: 16px;
+		}
+
+		.button-group.vertical > .button:first-child {
+			margin-top: 0;
+			-webkit-border-radius: 50em 50em 0 0;
+			   -moz-border-radius: 50em 50em 0 0;
+			        border-radius: 50em 50em 0 0;
+		}
+
+		.button-group.vertical > .button:last-child {
+			-webkit-border-radius: 0 0 50em 50em;
+			   -moz-border-radius: 0 0 50em 50em;
+			        border-radius: 0 0 50em 50em;
+		}
+
+		.button-group.vertical .button.icon-only:before {
+			top: 50%;
+			left: 2px;
+			float: left;
+			width: 12px;
+			height: 12px;
+			margin: 0;
+		}
+
+
 /**
  * Non-semantic helper classes: please define your styles before this section.
  */
@@ -1488,6 +1520,10 @@
 	@media only screen and (min-width: 520px) {
 		/* body { background-color: red; } */
 		body { font:13px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
+
+		.item .buttons {
+			top: 5px;
+		}
 
 		.button {
 			font:11px/normal sans-serif;
@@ -1602,43 +1638,6 @@
 			min-width: auto;
 			display: inline-block;
 		}
-
-		.button-group.vertical {
-			top: 2px;
-			right: 2px;
-		}
-
-		.button-group.vertical .button {
-			float: left;
-			clear: left;
-			display: block;
-			margin-top: -1px;
-			margin-left: 0;
-			padding: 0.4em 0 0.2em;
-			width: 16px;
-		}
-
-		.button-group.vertical > .button:first-child {
-			margin-top: 0;
-			-webkit-border-radius: 50em 50em 0 0;
-			   -moz-border-radius: 50em 50em 0 0;
-			        border-radius: 50em 50em 0 0;
-		}
-
-		.button-group.vertical > .button:last-child {
-			-webkit-border-radius: 0 0 50em 50em;
-			   -moz-border-radius: 0 0 50em 50em;
-			        border-radius: 0 0 50em 50em;
-		}
-
-		.button-group.vertical .button.icon-only:before {
-			top: 50%;
-			left: 2px;
-			float: left;
-			width: 12px;
-			height: 12px;
-			margin: 0;
-		}
 	}
 
 	/*768px __________________________________________________________________________________________________________ */
@@ -1697,6 +1696,20 @@
 	/*992px __________________________________________________________________________________________________________ */
 	@media only screen and (min-width: 992px) {
 		/* body { background-color: green; } */
+
+		.item {
+			margin: 3px;
+		}
+
+		.item .buttons {
+			display: none;
+			top: 2px;
+			right: 2px;
+		}
+
+		.item:hover .buttons {
+			display: block;
+		}
 
 		.sort {
 			display: none;
