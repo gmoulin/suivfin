@@ -305,6 +305,7 @@ $(document).ready(function(){
 		$.ajaxSetup({cache: false});
 
 	//forms actions
+		//add button
 		$('.form_switch a').click(function(e){
 			e.preventDefault();
 			e.stopPropagation(); //else it will fire $(document).click() listener
@@ -452,6 +453,32 @@ $(document).ready(function(){
 			if( this.value != '' && limits[ this.value ] ){
 				$('#currency_' + limits[ this.value ]).prop({checked: true});
 				$('#amount').focus();
+			}
+			//selecting "Liquide XXX" set method to "liquide"
+			if( this.value.search(/Liquide/) != -1 ){
+				$('#methodFK').val('liquide');
+			}
+		});
+
+		//@todo temporary until datetime is fully supported
+		//@todo remove mousewheel polyfill (at the end)
+		$('#paymentDate').mousewheel(function(e, delta){
+			e.preventDefault();
+			e.stopPropagation();
+
+			if( this.value != '' ){
+				var paymentDate = this.value.split('/'),
+					tmp = new Date(paymentDate[2], parseInt(paymentDate[1]) - 1, paymentDate[0]);
+
+				if( delta == -1 ){ //scroll down for next date
+					tmp.setDate(tmp.getDate() + 1);
+				} else { //scroll up for previous date
+					tmp.setDate(tmp.getDate() - 1);
+				}
+
+				var m = tmp.getMonth() + 1,
+					d = tmp.getDate();
+				this.value = ( (''+d).length == 1 ? '0' + d : d ) + '/' + ( (''+m).length == 1 ? '0' + m : m ) + '/' + tmp.getFullYear();
 			}
 		});
 
@@ -1430,6 +1457,7 @@ $.fn.resetForm = function(){
 		$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() );
 		$('#recurrent_0').prop({ checked: true });
 		$('#type_2').prop({ checked: true });
+		$('#status_3').prop({ checked: true });
 		$('#action').val('add');
 	});
 }
@@ -1514,3 +1542,81 @@ function getValue( data, index ){
 function getSymbol( data, index ){
 	return data[index].symbol;
 }
+
+/*! Copyright (c) 2010 Brandon Aaron (http://brandonaaron.net)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
+ * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
+ * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
+ *
+ * https://github.com/brandonaaron/jquery-mousewheel
+ *
+ * Version: 3.0.4
+ *
+ * Requires: 1.2.2+
+ */
+(function($) {
+	var types = ['DOMMouseScroll', 'mousewheel'];
+
+	$.event.special.mousewheel = {
+		setup: function() {
+			if ( this.addEventListener ) {
+				for ( var i=types.length; i; ) {
+					this.addEventListener( types[--i], handler, false );
+				}
+			} else {
+				this.onmousewheel = handler;
+			}
+		},
+
+		teardown: function() {
+			if ( this.removeEventListener ) {
+				for ( var i=types.length; i; ) {
+					this.removeEventListener( types[--i], handler, false );
+				}
+			} else {
+				this.onmousewheel = null;
+			}
+		}
+	};
+
+	$.fn.extend({
+		mousewheel: function(fn) {
+			return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+		},
+
+		unmousewheel: function(fn) {
+			return this.unbind("mousewheel", fn);
+		}
+	});
+
+
+	function handler(event) {
+		var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
+		event = $.event.fix(orgEvent);
+		event.type = "mousewheel";
+
+		// Old school scrollwheel delta
+		if ( event.wheelDelta ) { delta = event.wheelDelta/120; }
+		if ( event.detail     ) { delta = -event.detail/3; }
+
+		// New school multidimensional scroll (touchpads) deltas
+		deltaY = delta;
+
+		// Gecko
+		if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+			deltaY = 0;
+			deltaX = -1*delta;
+		}
+
+		// Webkit
+		if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
+		if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
+
+		// Add event and delta to the front of the arguments
+		args.unshift(event, delta, deltaX, deltaY);
+
+		return $.event.handle.apply(this, args);
+	}
+})(jQuery);
