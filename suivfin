@@ -1,0 +1,20 @@
+
+[indentation]
+indent_width=4
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=false
+indent_mode=3
+
+[project]
+name=SuivFin
+base_path=/var/www/suivfin/
+description=
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=72
+
+[files]
+current_page=0
+FILE_NAME_0=1269;Sh;0;16;1;1;1;/home/gmoulin/backup-batch/backup.sh;0;4
