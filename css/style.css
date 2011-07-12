@@ -1509,6 +1509,21 @@
 	/* Fix clearfix: blueprintcss.lighthouseapp.com/projects/15318/tickets/5-extra-margin-padding-bottom-of-page */
 	.clearfix { zoom: 1; }
 
+	/* For modern browsers */
+		.cf:before,
+		.cf:after {
+			content:"";
+			display:table;
+		}
+
+		.cf:after {
+			clear:both;
+		}
+
+	/* For IE 6/7 (trigger hasLayout) */
+		.cf {
+			zoom:1;
+		}
 
 /**
  * Media queries for responsive design.
