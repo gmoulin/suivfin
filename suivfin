@@ -16,8 +16,4 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=3
-FILE_NAME_0=1045;PHP;0;16;1;1;1;/var/www/lms/index.php;0;4
-FILE_NAME_1=10560;CSS;0;16;1;1;1;/var/www/lms/css/style.css;0;4
-FILE_NAME_2=1623;HTML;0;16;1;1;1;/var/www/Demo: Pure CSS GUI icons (experimental) – Nicolas Gallagher.html;0;4
-FILE_NAME_3=11761;CSS;0;0;1;1;1;/var/www/bla/default.css;0;4
+current_page=-1

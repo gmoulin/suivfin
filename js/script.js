@@ -72,6 +72,7 @@ if( Modernizr.applicationcache ){
 	window.applicationCache.addEventListener(
 		'downloading',
 		function(){
+			//busy visual information
 			$('header').addClass('loading');
 		},
 		false
@@ -326,7 +327,7 @@ $(document).ready(function(){
 
 				//is payment month present in time frame
 				var paymentDate = $('#paymentDate').val().split('/'),
-					tmp = new Date(paymentDate[2], parseInt(paymentDate[1]) - 1, paymentDate[0]),
+					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
 					tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
 					m = tmp.getMonth() + 1, //javascript month index start at 0
 					newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
@@ -468,7 +469,7 @@ $(document).ready(function(){
 
 			if( this.value != '' ){
 				var paymentDate = this.value.split('/'),
-					tmp = new Date(paymentDate[2], parseInt(paymentDate[1]) - 1, paymentDate[0]);
+					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]);
 
 				if( delta == -1 ){ //scroll down for next date
 					tmp.setDate(tmp.getDate() + 1);
@@ -576,7 +577,7 @@ $(document).ready(function(){
 						$radio = null;
 					$.each(data, function(key, value){
 						$field = $('#' + key);
-						if( !isNaN(parseInt(value)) ){
+						if( !isNaN(parseInt(value, 10)) ){
 							$radio = $('#' + key.replace(/FK/, '') + '_' + value);
 						} else {
 							$radio = null;

@@ -12,7 +12,7 @@ CACHE:
 
 # js files
 /js/libs/modernizr-2.0.4.custom.min.js
-/js/libs/jquery-1.6.1.min.js
+/js/libs/jquery-1.6.2.min.js
 /js/mylibs/jquery.isotope.min.js
 /js/mylibs/jquery.tmpl.min.js
 /js/mylibs/highcharts.min.js
