@@ -96,7 +96,7 @@ if( Modernizr.applicationcache ){
 		false
 	);
 
-	//sometimes a DOM exception is raised by update()...
+	//sometimes a DOM exception is raised by update() on opera...
 	try {
 		if( !$.browser.opera ) window.applicationCache.update();
 	} catch(err){

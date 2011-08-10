@@ -1,7 +1,4 @@
 <?php
-//@todo bug filtre recipient (psycho)
-//@todo bug solde comptes pas à jour (et erroné)
-
 try {
 	require_once('conf.ini.php');
 

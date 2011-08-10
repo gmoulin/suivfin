@@ -8,12 +8,14 @@
 *.swp
 *.vi
 *~
+*.sass-cache
 
 # OS or Editor folders
 .DS_Store
 .cache
 .project
 .settings
+.tmproj
 nbproject
 Thumbs.db
 img/Thumbs.db
@@ -29,8 +31,9 @@ dwsync.xml
 # Folders to ignore
 .hg
 .svn
-publish
+.CVS
 intermediate
+publish
 .idea
 stash
 smarty/cache/*

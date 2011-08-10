@@ -1,5 +1,10 @@
-<!DOCTYPE html>
-<html lang="{$lang}" class="no-js" manifest="site.manifest">
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!-- add manifest="site.manifest" if needed -->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" manifest="site.manifest"> <!--<![endif]-->
 <head>
 	<title>Suivi Financier</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -14,38 +19,23 @@
 	<meta name="distribution" content="global" />
 	<meta name="revisit-after" content="1 days" />
 
-	<!-- Mobile viewport optimization http://goo.gl/b9SaQ -->
+	<!-- Mobile viewport optimization j.mp/bplateviewport -->
 	<meta name="HandheldFriendly" content="True">
 	<meta name="MobileOptimized" content="320"/>
 	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
 
-	<!-- Home screen icon  Mathias Bynens http://goo.gl/6nVq0 -->
-	<!-- For iPhone 4 with high-resolution Retina display: -->
-	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/apple-touch-icon-114x114-precomposed.png">
-	<!-- For first-generation iPad: -->
-	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/apple-touch-icon-72x72-precomposed.png">
-	<!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
-	<link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-precomposed.png">
-	<!-- For nokia devices: -->
-	<link rel="shortcut icon" href="img/apple-touch-icon.png">
+	<!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
 
-	<link rel="shortcut icon" href="favicon.ico" type="images/x-icon" />
-
-	<!--iOS web app, deletable if not needed -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black">
-	<link rel="apple-touch-startup-image" href="img/splash.png">
-	<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-
-	<!-- Mobile IE allows us to activate ClearType technology for smoothing fonts for easy reading -->
-	<meta http-equiv="cleartype" content="on">
-
-
-	<!-- CSS: implied media="all" -->
+	<!-- CSS: implied media=all -->
+	<!-- CSS concatenated and minified via ant build script-->
 	<link rel="stylesheet" href="css/style.css?v={$css}">
+	<!-- end CSS-->
 
-	<!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
-	<script src="js/libs/modernizr-2.0.4.custom.min.js"></script>
+	<!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
+
+	<!-- All JavaScript at the bottom, except for Modernizr / Respond.
+	   Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
+	   For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
+	<script src="js/libs/modernizr-2.0.6.custom.min.js"></script>
 </head>
 <body>
-
