@@ -23,10 +23,14 @@
 		<!-- mathiasbynens.be/notes/async-analytics-snippet Change UA-XXXXX-X to be your site's ID -->
 		<!--
 		<script>
-			var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview'],['_trackPageLoadTime']];
-			(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
-			g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-			s.parentNode.insertBefore(g,s)}(document,'script'));
+			{literal}
+				var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview'],['_trackPageLoadTime']];
+				(function(d,t){
+					var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
+					g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+					s.parentNode.insertBefore(g,s)
+				}(document,'script'));
+			{/literal}
 		</script>
 		-->
 
@@ -34,7 +38,11 @@
 		   chromium.org/developers/how-tos/chrome-frame-getting-started -->
 		<!--[if lt IE 7 ]>
 		<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
-		<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+		<script>
+			{literal}
+				window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})
+			{/literal}
+		</script>
 		<![endif]-->
 	</body>
 </html>

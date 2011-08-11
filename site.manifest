@@ -4,20 +4,20 @@ CACHE MANIFEST
 
 CACHE:
 # html files
-/index.php
-/clean.php
+index.php
+clean.php
 
 # css files
-/css/style.css
+css/style.css
 
 # js files
-/js/libs/modernizr-2.0.6.custom.min.js
-/js/libs/jquery-1.6.2.min.js
-/js/mylibs/jquery.isotope.min.js
-/js/mylibs/jquery.tmpl.min.js
-/js/mylibs/highcharts.min.js
-/js/mylibs/helper.min.js
-/js/script.js
+js/libs/modernizr-2.0.6.custom.min.js
+js/libs/jquery-1.6.2.min.js
+js/mylibs/jquery.isotope.min.js
+js/mylibs/jquery.tmpl.min.js
+js/mylibs/highcharts.min.js
+js/mylibs/helper.min.js
+js/script.js
 
 # images
 #/img/apple-touch-icon.png
@@ -25,10 +25,11 @@ CACHE:
 #/img/apple-touch-icon-57x57-precomposed.png
 #/img/apple-touch-icon-72x72-precomposed.png
 #/img/apple-touch-icon-precomposed.png
-/img/splash.png
-/img/gh-icons.png
+#/img/splash.png
+img/gh-icons.png
 
 FALLBACK:
 
 NETWORK:
 *
+
