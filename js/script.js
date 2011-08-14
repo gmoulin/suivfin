@@ -522,7 +522,7 @@ $(document).ready(function(){
 			$form.resetForm()
 				 .addClass('deploy');
 
-			var $this = $(this);
+			var $this = $(e.target);
 
 			//edit is for update
 			//fork is for dupplication, so action is "add" an id has no value
