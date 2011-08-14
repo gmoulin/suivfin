@@ -721,6 +721,7 @@
 		#payment_form label[for=status_2],
 		#payment_form label[for=status_3],
 		#payment_form label[for=status_4] {
+			border-radius: 3px;
 			min-width: 70px;
 			display: inline-block;
 			position: relative;

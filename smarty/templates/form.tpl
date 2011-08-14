@@ -99,7 +99,7 @@
 			</li>
 			<li>
 				{foreach $statuses as $id => $name}
-					<label for="status_{$id}"><input type="radio" name="statusFK" id="status_{$id}" value="{$id}" required> {$name}</label>
+					<label for="status_{$id}" class="status_{$id}"><input type="radio" name="statusFK" id="status_{$id}" value="{$id}" required> {$name}</label>
 				{/foreach}
 			</li>
 
