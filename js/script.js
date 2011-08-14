@@ -366,7 +366,6 @@ $(document).ready(function(){
 					$form.removeClass('submitting').removeClass('deploy');
 
 					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
-
 				} else {
 					$('header').addClass('loading');
 					$.ajax({
@@ -658,7 +657,10 @@ $(document).ready(function(){
 			// store filter value in object
 			filters[ group ] = filter;
 
-			applyFilters($container, filters);
+			//for filters persistence
+			localStorage.setObject('filters', filters);
+
+			applyFilters();
 		}).find('.primary').each(function(){
 			//output the current value
 			$(this).closest('section').children('output').text( $(this).text() );
@@ -673,7 +675,10 @@ $(document).ready(function(){
 			// store filter value in object
 			filters[ group ] = filter;
 
-			applyFilters($container, filters);
+			//for filters persistence
+			localStorage.setObject('filters', filters);
+
+			applyFilters();
 		});
 
 	//next month recurrent payments generation
@@ -805,6 +810,7 @@ $(document).ready(function(){
 			reloadChart( this.rel );
 		});
 
+
 	/**
 	 * refresh the payments, forecast and sum parts with ajax return
 	 * @params json data: array containing payments, forecasts and sums html code
@@ -828,6 +834,27 @@ $(document).ready(function(){
 		//empty list then add new elements
 		var $items = $.tmpl('paymentList', data);
 		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+
+		//test if there is any cached filters, which are updated on each filters changes
+		try {
+			cachedFilters = localStorage.getObject('filters');
+			if( cachedFilters != null ){
+				$.each(cachedFilters, function(group, filter){
+					var $f = $filter.find('select[name='+ group +']');
+					if( $f.length ){
+						$f.val( filter ).trigger('change');
+					} else {
+						$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
+							.filter('[data-filter="'+ filter +'"]').trigger('click'); //add primary class for persistent filter via click triggering
+					}
+				});
+
+				filters = cachedFilters;
+			}
+		} catch( e ){
+			alert(e);
+		}
+
 		applyFilters();
 	}
 
