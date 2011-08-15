@@ -24,19 +24,21 @@ class evolution extends common {
 	 * delete evolution for an origin and a type since given date
 	 * @params date $date : payment date
 	 * @params integer $origin: a key for payment origin, must be present in table limits (for currency link)
+	 * @params integer $recipient: a key for payment recipient, in case of transfert between accounts and owners, must be present in table limits (for currency link)
 	 */
-	public function deleteSince( $date, $origin ){
+	public function deleteSince( $date, $origin, $recipient ){
 		try{
 			$deleteSinceDate = $this->_db->prepare("
 				DELETE
 				FROM ".$this->_table."
 				WHERE evolutionDate >= :date
-				AND originFK = :origin
+				AND ( originFK = :origin OR originFK = :recipient )
 			");
 
 			$deleteSinceDate->execute( array(
-				':date' => substr($date, 0, -2).'01', // modified to the first of the given date month for bulletproofing
+				':date' => $date,
 				':origin' => $origin,
+				':recipient' => $recipient,
 			) );
 
 			$this->_cleanCaches();

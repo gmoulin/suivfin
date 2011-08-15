@@ -339,7 +339,6 @@
 			}
 		}
 
-
 	/* footer */
 		footer {
 			width: 100%;
@@ -367,6 +366,23 @@
 
 		.item dd span {
 			float: right;
+		}
+
+		.item.recurrent dd:first-of-type {
+			padding-left: 12px;
+		}
+
+		.item.recurrent dd:first-of-type::before {
+			background-image: url(../img/gh-icons.png);
+			background-position: 0 -301px;
+			background-repeat: no-repeat;
+			position: absolute;
+			top: 5px;
+			left: 3px;
+			height: 11px;
+			width: 12px;
+			content: "";
+			display: block;
 		}
 
 		.item .buttons {
@@ -705,6 +721,7 @@
 		#payment_form label[for=status_2],
 		#payment_form label[for=status_3],
 		#payment_form label[for=status_4] {
+			border-radius: 3px;
 			min-width: 70px;
 			display: inline-block;
 			position: relative;
