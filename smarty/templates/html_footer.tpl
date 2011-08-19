@@ -17,7 +17,9 @@
 		<script defer src="js/script.js?v={$js}"></script>
 		<!-- end scripts-->
 
-		{include file="inline-scripts.html"}
+		<script>
+			var limits = {$limits|json_encode};
+		</script>
 		{include file="payment.template.html"}
 
 		<!-- mathiasbynens.be/notes/async-analytics-snippet Change UA-XXXXX-X to be your site's ID -->

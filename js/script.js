@@ -470,10 +470,10 @@ $(document).ready(function(){
 				var paymentDate = this.value.split('/'),
 					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]);
 
-				if( delta == -1 ){ //scroll down for next date
-					tmp.setDate(tmp.getDate() + 1);
-				} else { //scroll up for previous date
+				if( delta == -1 ){ //scroll down for previous date
 					tmp.setDate(tmp.getDate() - 1);
+				} else { //scroll up for next date
+					tmp.setDate(tmp.getDate() + 1);
 				}
 
 				var m = tmp.getMonth() + 1,
