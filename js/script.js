@@ -237,40 +237,40 @@ $(document).ready(function(){
 				modifications = localStorage.getObject('modifications') || [];
 
 			if( deletions.length ){
-				var todo = deletions;
+				var chore = deletions;
 				$.each( deletions, function(i, deletion){
 					$.post('ajax/payment.php', deletion + '&offline=1', function(data){
 						if( data != 'ok' ){
 							alert(data);
 						} else {
-							todo.shift();
+							chore.shift();
 						}
 					});
 				});
 
-				if( todo.length ){
+				if( chore.length ){
 					alert('not all deletions actions have been sent');
-					localStorage.setObject('deletions', todo);
+					localStorage.setObject('deletions', chore);
 				} else {
 					localStorage.removeItem('deletions');
 				}
 			}
 
 			if( modifications.length ){
-				var todo = modifications;
+				var chore = modifications;
 				$.each( modifications, function(i, modification){
 					$.post('ajax/payment.php', modification + '&offline=1', function(data){
 						if( data != 'ok' ){
 							alert(data);
 						} else {
-							todo.shift();
+							chore.shift();
 						}
 					});
 				});
 
-				if( todo.length ){
+				if( chore.length ){
 					alert('not all deletions actions have been sent');
-					localStorage.setObject('modifications', todo);
+					localStorage.setObject('modifications', chore);
 				} else {
 					localStorage.removeItem('modifications');
 				}
@@ -729,7 +729,8 @@ $(document).ready(function(){
 
 			//check the year checkbox if needed
 			} else {
-				$(this).closest('ul').parent().find('.year').prop({ checked: true });
+				var $months = $(this).closest('ul').find(':checkbox:checked');
+				$(this).closest('ul').parent().find('.year').prop({ checked: ( $months.length ? true : false ) });
 			}
 
 			if( !$form.hasClass('submitting') ){
