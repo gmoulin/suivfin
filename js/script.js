@@ -215,16 +215,16 @@ var isFennec = navigator.userAgent.indexOf('Fennec') != -1;
 
 $(document).ready(function(){
 
-	var $body = $('body'),
-		$container = $('#container'),
-		$sums = $('#sums'),
-		$form = $('#payment_form'),
-		$filter = $('#filter'),
-		$timeframe = $('#time_frame'),
-		$currentOwner = $('#current_owner'),
-		filters = {},
-		buffer = null,
-		chart = null,
+	var $body		   = $('body'),
+		$container	   = $('#container'),
+		$sums		   = $('#sums'),
+		$form		   = $('#payment_form'),
+		$filter		   = $('#filter'),
+		$timeframe	   = $('#time_frame'),
+		$currentOwner  = $('#current_owner'),
+		filters		   = {},
+		buffer		   = null,
+		chart		   = null,
 		legendCurrency = [];
 
 	/* online - offline modes */
@@ -320,109 +320,123 @@ $(document).ready(function(){
 			});
 		});
 
-		$form.submit(function(e){
-			e.preventDefault();
-			if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
-				$form.addClass('submitting'); //multiple call protection and visual loading display
+		$form
+			.submit(function(e){
+				e.preventDefault();
+				if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
+					$form.addClass('submitting'); //multiple call protection and visual loading display
 
-				//is payment month present in time frame
-				var paymentDate = $('#paymentDate').val().split('/'),
-					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
-					tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
-					m = tmp.getMonth() + 1, //javascript month index start at 0
-					newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
+					//is payment month present in time frame
+					var paymentDate = $('#paymentDate').val().split('/'),
+						tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
+						tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
+						m = tmp.getMonth() + 1, //javascript month index start at 0
+						newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
 
-				var needReload = false,
-					$cb = $('#time_frame').find('input[value=' + newMonth + ']');
-				if( $cb.length ){
-					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					if( !$cb.is(':checked') ) $('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
-				} else {
-					needReload = true;
-				}
-
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
-					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
-
-				if( !Modernizr.input.list || isFennec ){
-					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
-
-					$('input[list]', '#payment_form').each(function(){
-						var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
-							param = '&' + this.name + '=';
-						params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
-					});
-
-					params += ( !needReload ? '&timeframe=' + tf : '' );
-				}
-
-				if( $body.data('internet') == 'offline' ){
-					var modifications = localStorage.getObject('modifications') || [];
-					modifications.push(params + '&owner=' + $currentOwner.val() );
-					localStorage.setObject('modifications', modifications);
-
-					//form hide
-					$('body').unbind('click');
-					$form.removeClass('submitting').removeClass('deploy');
-
-					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
-				} else {
-					$('header').addClass('loading');
-					$.ajax({
-						url: 'ajax/payment.php',
-						data: params,
-						cache: false,
-						type: 'POST',
-						dataType: 'json',
-						complete: function(){
-							$form.removeClass('submitting');
-						},
-						success: function(data, textStatus, jqXHR){
-							$form.removeClass('submitting'); //security, sometimes complete() is not called...
-							if( data == 'ok' ){
-								if( needReload ) window.location.reload();
-								else reloadParts();
-
-							} else if( data.payments ){
-								$('header').removeClass('loading');
-								//form hide
-								$('body').unbind('click');
-								$form.removeClass('deploy');
-
-								try {
-									lastModified = jqXHR.getResponseHeader('Last-Modified');
-
-									var key = $currentOwner.val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-
-									localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-								} catch( e ){
-									alert(e);
-								}
-
-								refreshParts( data );
-
-								$form.find('datalist, select[id]').loadList();
-								$filter.find('select').loadList();
-
-								//focus the payment add button
-								$('.form_switch:visible a').focus();
-							} else {
-								//form errors display
-								formErrors(data);
-							}
+					var needReload = false,
+						needUpdate = false,
+						$cb = $('#time_frame').find('input[value=' + newMonth + ']');
+					if( $cb.length ){
+						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
+						if( !$cb.is(':checked') ){
+							$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+							needUpdate = true;
 						}
-					});
+					} else {
+						needReload = true;
+					}
+
+					var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
+						params = $(':input', '#payment_form').serialize() + ( needReload ? '' : ( needUpdate ? '&timeframe=' + tf : '&d=1' ) );
+
+					if( !Modernizr.input.list || isFennec ){
+						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
+
+						$('input[list]', '#payment_form').each(function(){
+							var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
+								param = '&' + this.name + '=';
+							params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
+						});
+
+						params += ( needReload ? '' : ( needUpdate ? '&timeframe=' + tf : '&d=1' ) );
+					}
+
+					if( $body.data('internet') == 'offline' ){
+						var modifications = localStorage.getObject('modifications') || [];
+						modifications.push(params + '&owner=' + $currentOwner.val() );
+						localStorage.setObject('modifications', modifications);
+
+						//form hide
+						$('body').unbind('click');
+						$form.removeClass('submitting').removeClass('deploy');
+
+						alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
+					} else {
+						$('header').addClass('loading');
+						$.ajax({
+							url: 'ajax/payment.php',
+							data: params,
+							cache: false,
+							type: 'POST',
+							dataType: 'json',
+							complete: function(){
+								$form.removeClass('submitting');
+							},
+							success: function(data, textStatus, jqXHR){
+								$form.removeClass('submitting'); //security, sometimes complete() is not called...
+								if( data == 'ok' ){ //needReload
+									window.location.reload(); //the time frame is missing a month, need to reload the page
+
+								} else if( data.payments ){ //needUpdate, replace the payments with new data
+									$('header').removeClass('loading');
+									//form hide
+									$('body').unbind('click');
+									$form.removeClass('deploy');
+
+									try {
+										lastModified = jqXHR.getResponseHeader('Last-Modified');
+
+										var key = $currentOwner.val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+
+										localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+									} catch( e ){
+										alert(e);
+									}
+
+									refreshParts( data );
+
+									$form.find('datalist, select[id]').loadList();
+									$filter.find('select').loadList();
+
+									//focus the payment add button
+									$('.form_switch:visible a').focus();
+								} else if( data.delta ){
+									$('header').removeClass('loading');
+									//form hide
+									$('body').unbind('click');
+									$form.removeClass('deploy');
+
+									refreshParts( data );
+									refreshWithDelta( data );
+								} else {
+									//form errors display
+									formErrors(data);
+								}
+							}
+						});
+					}
 				}
-			}
-		}).delegate('input[name=typeFK]', 'change', function(e){
-			if( this.id == 'type_3' ){
-				$form.find('.ownerChoice').fadeIn();
-			} else {
-				$form.find('.ownerChoice:visible').fadeOut();
-			}
-		}).find('fieldset').click(function(e){
-			e.stopPropagation();
-		});
+			})
+			.delegate('input[name=typeFK]', 'change', function(e){
+				if( this.id == 'type_3' ){
+					$form.find('.ownerChoice').fadeIn();
+				} else {
+					$form.find('.ownerChoice:visible').fadeOut();
+				}
+			})
+			.find('fieldset').click(function(e){
+				e.stopPropagation();
+			});
 
 		$('#formCancel').click(function(){
 			$('body').unbind('click');
@@ -827,38 +841,59 @@ $(document).ready(function(){
 			title = $balance.children('h2').detach();
 		$balance.empty().html( data.balances ).prepend( title );
 
+		if( data.payments ){
+			//prepare jQuery Template
+			if( !$('#paymentListTemplate').data('tmpl') ){
+				$('#paymentListTemplate').template('paymentList');
+			}
+
+			//empty list then add new elements
+			var $items = $.tmpl('paymentList', data);
+			$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+
+			//test if there is any cached filters, which are updated on each filters changes
+			try {
+				cachedFilters = localStorage.getObject('filters');
+				if( cachedFilters != null ){
+					$.each(cachedFilters, function(group, filter){
+						var $f = $filter.find('select[name='+ group +']');
+						if( $f.length ){
+							$f.val( filter ).trigger('change');
+						} else {
+							$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
+								.filter('[data-filter="'+ filter +'"]').trigger('click'); //add primary class for persistent filter via click triggering
+						}
+					});
+
+					filters = cachedFilters;
+				}
+			} catch( e ){
+				alert(e);
+			}
+
+			applyFilters();
+		}
+	}
+
+	/**
+	 * refresh the payments with only the delta from ajax return
+	 * @param json data : array containing the payments delta
+	 */
+	function refreshWithDelta( data ){
+		var toRemove = $.map(data.delta, function(payment){ return '#payment_' + payment.id; }).join(',');
+
 		//prepare jQuery Template
 		if( !$('#paymentListTemplate').data('tmpl') ){
 			$('#paymentListTemplate').template('paymentList');
 		}
 
+		//for the template
+		data.payments = data.delta;
+
 		//empty list then add new elements
 		var $items = $.tmpl('paymentList', data);
-		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
-
-		//test if there is any cached filters, which are updated on each filters changes
-		try {
-			cachedFilters = localStorage.getObject('filters');
-			if( cachedFilters != null ){
-				$.each(cachedFilters, function(group, filter){
-					var $f = $filter.find('select[name='+ group +']');
-					if( $f.length ){
-						$f.val( filter ).trigger('change');
-					} else {
-						$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
-							.filter('[data-filter="'+ filter +'"]').trigger('click'); //add primary class for persistent filter via click triggering
-					}
-				});
-
-				filters = cachedFilters;
-			}
-		} catch( e ){
-			alert(e);
-		}
-
-		applyFilters();
+		$container.isotope('remove', $container.children( toRemove )).isotope('reLayout').append( $items ).isotope('appended', $items);
 	}
-
 
 	/**
 	 * reload the payments, sums and forecasts according to the selected months
@@ -1628,7 +1663,7 @@ function getSymbol( data, index ){
 
 		// Old school scrollwheel delta
 		if ( event.wheelDelta ) { delta = event.wheelDelta/120; }
-		if ( event.detail     ) { delta = -event.detail/3; }
+		if ( event.detail	  ) { delta = -event.detail/3; }
 
 		// New school multidimensional scroll (touchpads) deltas
 		deltaY = delta;

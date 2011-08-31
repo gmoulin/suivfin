@@ -3,7 +3,7 @@
 		{if !empty($payments)}
 			{foreach $payments as $payment}
 				{* classes are used for filtering *}
-				<div class="item {if $payment['recurrent'] == 1}recurrent{else}punctual{/if} recipient_{$payment['recipientFK']} type_{$payment['typeFK']} currency_{$payment['currencyFK']} method_{$payment['methodFK']} origin_{$payment['originFK']} status_{$payment['statusFK']} location_{$payment['locationFK']}"
+				<div id="payment_${payment.id}" class="item {if $payment['recurrent'] == 1}recurrent{else}punctual{/if} recipient_{$payment['recipientFK']} type_{$payment['typeFK']} currency_{$payment['currencyFK']} method_{$payment['methodFK']} origin_{$payment['originFK']} status_{$payment['statusFK']} location_{$payment['locationFK']}"
 					title="dernière modification le {$payment['modificationDate']|strtotime|date_format:'%d-%m-%y'}"
 
 					{* data-* attributes are used for sorting *}
