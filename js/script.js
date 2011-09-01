@@ -335,11 +335,12 @@ $(document).ready(function(){
 
 					var needReload = false,
 						needUpdate = false,
-						$cb = $('#time_frame').find('input[value=' + newMonth + ']');
-					if( $cb.length ){
+						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']');
+					if( $gotMonth.length ){
 						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-						if( !$cb.is(':checked') ){
+						if( !$gotMonth.is(':checked') ){
 							$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+						} else {
 							needUpdate = true;
 						}
 					} else {
@@ -347,7 +348,7 @@ $(document).ready(function(){
 					}
 
 					var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
-						params = $(':input', '#payment_form').serialize() + ( needReload ? '' : ( needUpdate ? '&timeframe=' + tf : '&d=1' ) );
+						params = $(':input', '#payment_form').serialize() + ( needReload ? '' : '&timeframe=' + tf ) + ( needUpdate ? '&d=1' : '' );
 
 					if( !Modernizr.input.list || isFennec ){
 						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
@@ -358,7 +359,7 @@ $(document).ready(function(){
 							params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
 						});
 
-						params += ( needReload ? '' : ( needUpdate ? '&timeframe=' + tf : '&d=1' ) );
+						params += ( needReload ? '' : '&timeframe=' + tf ) + ( needUpdate ? '&d=1' : '' );
 					}
 
 					if( $body.data('internet') == 'offline' ){
@@ -638,9 +639,10 @@ $(document).ready(function(){
 				} else {
 					$.post('ajax/payment.php', params, function(data){
 						if( data.payments ){
-							$form.find('datalist, select[id]').loadList();
-							$filter.find('select').loadList();
+							//$form.find('datalist, select[id]').loadList();
+							//$filter.find('select').loadList();
 
+							$container.isotope('remove', $(this).closest('.item')).isotope('reLayout');
 							refreshParts( data );
 						} else {
 							alert( data );
@@ -880,19 +882,23 @@ $(document).ready(function(){
 	 * @param json data : array containing the payments delta
 	 */
 	function refreshWithDelta( data ){
-		var toRemove = $.map(data.delta, function(payment){ return '#payment_' + payment.id; }).join(',');
+		if( data.delta ){
+			//prepare jQuery Template
+			if( !$('#paymentListTemplate').data('tmpl') ){
+				$('#paymentListTemplate').template('paymentList');
+			}
 
-		//prepare jQuery Template
-		if( !$('#paymentListTemplate').data('tmpl') ){
-			$('#paymentListTemplate').template('paymentList');
+			data.payments = data.delta;
+			var $items = $.tmpl('paymentList', data);
+console.log( $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).get() );
+			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).get().join(', ');
+console.log( deltaIds );
+				$container
+					.isotope('remove', $container.children( deltaIds ))
+					.isotope('reLayout')
+					.append( $item )
+					.isotope( 'appended', $items);
 		}
-
-		//for the template
-		data.payments = data.delta;
-
-		//empty list then add new elements
-		var $items = $.tmpl('paymentList', data);
-		$container.isotope('remove', $container.children( toRemove )).isotope('reLayout').append( $items ).isotope('appended', $items);
 	}
 
 	/**
@@ -943,6 +949,7 @@ $(document).ready(function(){
 				if( data.payments ){
 					refreshParts( data );
 				} else {
+					console.log(data);
 					alert( data );
 				}
 				$('header').removeClass('loading');

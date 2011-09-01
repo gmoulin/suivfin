@@ -51,9 +51,16 @@ try {
 					}
 				}
 
+				$onlyDelta = filter_has_var(INPUT_POST, 'd');
+				if( !is_null($owner) && $owner !== false ){
+					$onlyDelta = filter_var($_POST['d'], FILTER_VALIDATE_INT, array('min_range' => 1, 'max_range' => 1));
+				}
+
 				$oPayment = new payment();
 
 				$formData = $oPayment->checkAndPrepareFormData();
+
+				$deltaIds = array();
 
 				if ( empty($formData['errors']) ) {
 					//if it's a new transfert, create the mirror deposit
@@ -103,16 +110,19 @@ try {
 							}
 
 							$mirror->save();
+
+							if( $onlyDelta ) $deltaIds[] = $mirror->id;
 						}
 					}
 
 					$oPayment->save();
+					if( $onlyDelta ) $deltaIds[] = $oPayment->id;
 
 					//when returning online the refresh will be done aside and only one time
 					if( $offline ){
 						$response = 'ok';
 					} else {
-						$response = getFreshData( $smarty, $frame );
+						$response = getFreshData( $smarty, $frame, ( $onlyDelta ? $deltaIds : null ) );
 						if( is_null($response) ) $response = 'ok';
 					}
 				} else {
@@ -150,7 +160,7 @@ try {
 				if( $offline ){
 					$response = 'ok';
 				} else {
-					$response = getFreshData( $smarty, $frame );
+					$response = getFreshData( $smarty, $frame, 'delete' );
 					if( is_null($response) ) $response = 'ok';
 				}
 			break;
@@ -219,7 +229,7 @@ try {
 					}
 				}
 
-				list($lastModified, $response) = getFreshData( $smarty, $frame, true );
+				list($lastModified, $response) = getFreshData( $smarty, $frame, null, true );
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -296,9 +306,10 @@ try {
 /*
  * @param object $smarty
  * @param mixed (string | null) $frame : months separated by commas (format yyyy-mm)
+ * @param mixed (array | 'delete') $deltaIds : array containing the modified payments ids or the action 'delete' (will return no payments)
  * @param boolean $getTs : flag for returning the biggest timestamp from each part
  */
-function getFreshData( &$smarty, $frame, $getTs = false ){
+function getFreshData( &$smarty, $frame, $deltaIds = null, $getTs = false ){
 	if( empty($frame) ){
 		if( $getTs ) return array(null, null);
 
@@ -308,9 +319,17 @@ function getFreshData( &$smarty, $frame, $getTs = false ){
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
 	$oPayment = new payment();
-	list($tsPayments, $payments) = $oPayment->loadForTimeFrame($frame, true);
+
+	$tsPayments = 0;
+	if( is_null($deltaIds) ){
+		list($tsPayments, $payments) = $oPayment->loadForTimeFrame($frame, true);
+	} elseif( is_array($deltaIds) ) {
+		$delta = $oPayment->loadByIds($deltaIds);
+	}
+
 	list($tsSums, $sums) = $oPayment->getSums($frame, true);
 	$smarty->assign('sums', $sums);
+
 	list($tsForecasts, $forecasts) = $oPayment->getForecasts(true);
 	$smarty->assign('forecasts', $forecasts);
 
@@ -355,7 +374,11 @@ function getFreshData( &$smarty, $frame, $getTs = false ){
 	$smarty->assign('partial', true);
 
 	$response = array();
-	$response['payments'] = $payments;
+	if( is_null($deltaIds) ){
+		$response['payments'] = $payments;
+	} elseif( is_array($deltaIds) ){
+		$response['delta'] = $delta;
+	}
 	$response['origins'] = $origins;
 	$response['statuses'] = $statuses;
 	$response['recipients'] = $recipients;

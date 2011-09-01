@@ -472,6 +472,37 @@ class payment extends common {
 
 	/**
 	 * get all payments for a given time frame
+	 * @param array $ids : array containing the delta payments ids
+	 * @return array[]
+	 */
+	public function loadByIds( $ids ){
+		try {
+			//construct the query and parameters
+			$sql = "
+				SELECT *
+				FROM ".$this->_table."
+				WHERE ownerFK = :owner
+				AND id IN (:ids)
+			";
+			$params = array(
+				':owner' => $this->getOwner(),
+				':ids' => implode(',', $ids),
+			);
+
+			$q = $this->_db->prepare($sql);
+			$q->execute( $params );
+
+			$list = $q->fetchAll();
+
+			return $list;
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
+	 * get all payments for a given time frame
 	 * @param string $frame : months separated by comma (format yyyy-mm)
 	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
 	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
