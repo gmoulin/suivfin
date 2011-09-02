@@ -46,55 +46,32 @@ if( Modernizr.applicationcache ){
 	}
 
 	//just force reload of the page if an update is available
-	window.applicationCache.addEventListener(
-		'updateready',
-		function(){
-			//busy visual information
-			$('header').removeClass('loading');
-			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
-				window.applicationCache.swapCache();
-				window.location.reload();
-			} else {
-				delayAjax = false;
-			}
-		},
-		false
-	);
+	window.applicationCache.addEventListener('updateready', function(){
+		if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
+			window.applicationCache.swapCache();
+			window.location.reload();
+		} else {
+			delayAjax = false;
+		}
+	}, false);
 
-	window.applicationCache.addEventListener(
-		'checking',
-		function(){
-			//delay ajax calls if there is a new manifest version
-			delayAjax = true;
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'downloading',
-		function(){
-			//busy visual information
-			$('header').addClass('loading');
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'noupdate',
-		function(){
-			delayAjax = false;
-			$('header').removeClass('loading');
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'error',
-		function(){
-			//delay ajax calls if there is a new manifest version
-			delayAjax = false;
-			$('header').removeClass('loading');
-			alert('Error while downloading the new version');
-		},
-		false
-	);
+	window.applicationCache.addEventListener('checking', function(){
+		//delay ajax calls if there is a new manifest version
+		delayAjax = true;
+	}, false);
+
+	/*window.applicationCache.addEventListener('downloading', function(){
+	}, false);*/
+
+	window.applicationCache.addEventListener('noupdate', function(){
+		delayAjax = false;
+	}, false);
+
+	window.applicationCache.addEventListener('error', function(){
+		//delay ajax calls if there is a new manifest version
+		delayAjax = false;
+		alert('Error while downloading the new version');
+	}, false);
 
 	//sometimes a DOM exception is raised by update() on opera...
 	try {
@@ -229,7 +206,7 @@ $(document).ready(function(){
 
 	/* online - offline modes */
 		/* @todo to finish and test */
-		window.addEventListener("online", function(){
+		/*window.addEventListener("online", function(){
 			$body.removeClass("offline")
 				 .data('internet', 'online');
 
@@ -291,7 +268,7 @@ $(document).ready(function(){
 		} else {
 			$body.addClass("offline")
 				 .data('internet', 'offline');
-		}
+		}*/
 
 	//ajax global management
 		$('header').ajaxStart(function(){
@@ -303,6 +280,7 @@ $(document).ready(function(){
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
+		//cache is managed via Last-Modified headers
 		$.ajaxSetup({cache: false});
 
 	//forms actions
@@ -457,7 +435,8 @@ $(document).ready(function(){
 					$form.removeClass('deploy').removeClass('submitting');
 				}
 			}
-		}).delegate('#amount', 'keydown', function(e){
+		})
+		.delegate('#amount', 'keydown', function(e){
 			if( e.which == 188 ){ //, pressed (comma)
 				e.preventDefault();
 				$('#amount').val(function(){ return this.value + '.'; });
@@ -749,6 +728,7 @@ $(document).ready(function(){
 				$(this).closest('ul').parent().find('.year').prop({ checked: ( $months.length ? true : false ) });
 			}
 
+			//when submitting an add or update the new data will be in the request response
 			if( !$form.hasClass('submitting') ){
 				//wait 500ms before reloading data, help when user check several checkboxes quickly
 				clearTimeout(buffer);
@@ -888,23 +868,30 @@ $(document).ready(function(){
 				$('#paymentListTemplate').template('paymentList');
 			}
 
-			data.payments = data.delta;
+			data.payments = data.delta; //for the template
 			var $items = $.tmpl('paymentList', data);
-console.log( $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).get() );
-			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).get().join(', ');
-console.log( deltaIds );
-				$container
-					.isotope('remove', $container.children( deltaIds ))
-					.isotope('reLayout')
-					.append( $item )
-					.isotope( 'appended', $items);
+			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).join(', ');
+
+			//updating the list
+			$container
+				.isotope('remove', $container.children( deltaIds ))
+				.isotope('reLayout')
+				.append( $items )
+				.isotope( 'appended', $items);
 		}
 	}
 
 	/**
 	 * reload the payments, sums and forecasts according to the selected months
 	 */
+	var timeframeSnapshot = [];
 	function reloadParts(){
+		if( !timeframeSnapshot.length ){
+			timeframeSnapshot = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
+		}
+
+		//get the changes between the snapshot and the current timeframe
+
 		var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
 		if( tf == '' ) return;
 
@@ -949,7 +936,6 @@ console.log( deltaIds );
 				if( data.payments ){
 					refreshParts( data );
 				} else {
-					console.log(data);
 					alert( data );
 				}
 				$('header').removeClass('loading');
