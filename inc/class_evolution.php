@@ -230,29 +230,25 @@ class evolution extends common {
 
 	/**
 	 * get the balance for the current owner accounts
-	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
-	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
+	 * @param string $timestamp : unix timestamp for cache
 	 */
-	public function getTodayBalances($returnTs = false, $tsOnly = false){
+	public function getTodayBalances( $timestamp ){
 		try {
 			//stash cache init
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 			StashBox::setHandler($stashFileSystem);
 
 			StashManager::setHandler(get_class( $this ), $stashFileSystem);
-			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
+			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner(), date('Y-m-d'));
 
-			if( $tsOnly ){
+			if( $timestamp >= 0 ){
 				$ts = $stash->getTimestamp();
-				if( $stash->isMiss() ){
+				if( !$stash->isMiss() && $ts == $timestamp ){
 					return null;
-				} else {
-					return $ts;
 				}
 			}
 
 			$result = $stash->get();
-			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 				$oCurrency = new currency();
 				$currenciesWSymbol = $oCurrency->loadList();
@@ -290,18 +286,13 @@ class evolution extends common {
 				}
 
 				if( !empty($result) ){
-					$stash->store($result, STASH_EXPIRE);
-					$ts = $stash->getTimestamp();
+					$expire = (24 - date("H")) * (60 - date("i")) * (60 - date("s")); //valid until midnight
+					$stash->store($result, $expire);
 				}
-			} elseif( $returnTs ){
-				$ts = $stash->getTimestamp();
 			}
+			$ts = $stash->getTimestamp();
 
-			if( $returnTs ){
-				return array($ts, $result);
-			} else {
-				return $result;
-			}
+			return array('lastModified' => $ts, 'data' => $result);
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

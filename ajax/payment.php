@@ -15,15 +15,6 @@ try {
 		throw new Exception('Gestion des paiements : action incorrecte.');
 	}
 
-	//check the request headers for "If-Modified-Since"
-	$request_headers = apache_request_headers();
-	$browserHasCache = ( array_key_exists('If-Modified-Since', $request_headers) ? true : false );
-	if( $browserHasCache ){
-		$modifiedSince = strtotime($request_headers['If-Modified-Since']);
-	}
-
-	$lastModified = null;
-
 	$frame = filter_has_var(INPUT_POST, 'timeframe');
 	if( !is_null($frame) && $frame !== false ){
 		$frame = filter_var($_POST['timeframe'], FILTER_SANITIZE_STRING);
@@ -31,6 +22,12 @@ try {
 			$tmp = explode(',', $frame);
 			if( empty($tmp) ){
 				$frame = null;
+			} else {
+				$frame = array();
+				foreach( $tmp as $couple ){
+					$c = explode('|', $couple);
+					$frame[ $c[0] ] = $c[1];
+				}
 			}
 		}
 	}
@@ -206,30 +203,57 @@ try {
 					init::getInstance()->setOwner( $owner );
 				}
 
-				if( $browserHasCache && $modifiedSince != 0 ){
-					$oPayment = new payment();
-					$oEvolution = new evolution();
-
-					//get timestamp for each part
-					$tsPayment = $oPayment->loadForTimeFrame($frame, null, true);
-					$tsSums = $oPayment->getSums($frame, null, true);
-					$tsForecasts = $oPayment->getForecasts(null, true);
-					$tsBalances = $oEvolution->getTodayBalances(null, true);
-
-					if( is_null($tsForecasts) ) $tsForecasts = 0; //null when there is no forecast
-					if( is_null($tsBalances) ) $tsBalances = 0; //null after evolution table reset
-
-					if( !is_null($tsPayment) && !is_null($tsSums) ){
-						$maxTs = max( $tsPayment, $tsSums, $tsForecasts, $tsBalances );
-						//browser has list in cache and list was not modified
-						if( $modifiedSince == $maxTs ){
-							header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
-							die;
-						}
+				$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
+				if( is_null($tsForecast) || $tsForecast === false ){
+					$tsForecast = -1;
+				} else {
+					$tsForecast = filter_var($_POST['tsForecast'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if( $tsForecast === false ){
+						throw new Exception('Gestion des paiements : horodatage pour les prévisions incorrect.');
 					}
 				}
 
-				list($lastModified, $response) = getFreshData( $smarty, $frame, null, true );
+				$tsBalance = filter_has_var(INPUT_POST, 'tsBalance');
+				if( is_null($tsBalance) || $tsBalance === false ){
+					$tsBalance = -1;
+				} else {
+					$tsBalance = filter_var($_POST['tsBalance'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if( $tsBalance === false ){
+						throw new Exception('Gestion des paiements : horodatage pour le solde incorrect.');
+					}
+				}
+
+				$tsOrigin = filter_has_var(INPUT_POST, 'tsOrigin');
+				if( is_null($tsOrigin) || $tsOrigin === false ){
+					throw new Exception('Gestion des paiements : horodatage pour les origines manquant.');
+				} else {
+					$tsOrigin = filter_var($_POST['tsOrigin'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if( $tsOrigin === false ){
+						throw new Exception('Gestion des paiements : horodatage pour les origines incorrect.');
+					}
+				}
+
+				$tsRecipient = filter_has_var(INPUT_POST, 'tsRecipient');
+				if( is_null($tsRecipient) || $tsRecipient === false ){
+					throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires manquant.');
+				} else {
+					$tsRecipient = filter_var($_POST['tsRecipient'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if( $tsRecipient === false ){
+						throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires incorrect.');
+					}
+				}
+
+				$tsMethod = filter_has_var(INPUT_POST, 'tsMethod');
+				if( is_null($tsMethod) || $tsMethod === false ){
+					throw new Exception('Gestion des paiements : horodatage pour les méthodes manquant.');
+				} else {
+					$tsMethod = filter_var($_POST['tsMethod'], FILTER_VALIDATE_INT, array('min_range' => 0));
+					if( $tsMethod === false ){
+						throw new Exception('Gestion des paiements : horodatage pour les méthodes incorrect.');
+					}
+				}
+
+				$response = getFreshData( $smarty, $frame, null, $tsForecast, $tsBalance, $tsRecipient, $tsOrigin, $tsMethod );
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -292,8 +316,6 @@ try {
 			throw new Exception('Gestion des paiements : action non reconnue.');
 	}
 
-	if( !is_null($lastModified) ) header("Last-Modified: " . gmdate("D, d M Y H:i:s", $lastModified) . " GMT");
-
 	echo json_encode($response);
 	die;
 
@@ -305,14 +327,16 @@ try {
 
 /*
  * @param object $smarty
- * @param mixed (string | null) $frame : months separated by commas (format yyyy-mm)
+ * @param mixed (string | null) $frame : key month (YYYY-MM), value timestamp
  * @param mixed (array | 'delete') $deltaIds : array containing the modified payments ids or the action 'delete' (will return no payments)
- * @param boolean $getTs : flag for returning the biggest timestamp from each part
+ * @param int $tsForecast : unix timestamp for the forecast part
+ * @param int $tsBalance : unix timestamp for the balance part
+ * @param int $tsRecipient : unix timestamp for the recipients list
+ * @param int $tsOrigin : unix timestamp for the origins list
+ * @param int $tsMethod : unix timestamp for the methods list
  */
-function getFreshData( &$smarty, $frame, $deltaIds = null, $getTs = false ){
+function getFreshData( &$smarty, $frame, $deltaIds = null, $tsForecast, $tsBalance, $tsRecipient, $tsOrigin, $tsMethod ){
 	if( empty($frame) ){
-		if( $getTs ) return array(null, null);
-
 		return null;
 	}
 
@@ -322,37 +346,34 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $getTs = false ){
 
 	$tsPayments = 0;
 	if( is_null($deltaIds) ){
-		list($tsPayments, $payments) = $oPayment->loadForTimeFrame($frame, true);
+		$payments = $oPayment->loadForTimeFrame( $frame );
 	} elseif( is_array($deltaIds) ) {
-		$delta = $oPayment->loadByIds($deltaIds);
+		$delta = $oPayment->loadByIds( $deltaIds );
 	}
 
-	list($tsSums, $sums) = $oPayment->getSums($frame, true);
-	$smarty->assign('sums', $sums);
+	$sums = $oPayment->getSums( $frame );
 
-	list($tsForecasts, $forecasts) = $oPayment->getForecasts(true);
-	$smarty->assign('forecasts', $forecasts);
+	if( $tsForecast >= 0 ){
+		$forecasts = $oPayment->getForecasts( $tsForecast );
+		if( !empty($forecasts) ) $smarty->assign('forecasts', $forecasts['data']);
+	}
 
-	$oEvolution = new evolution();
-	list($tsBalances, $balances) = $oEvolution->getTodayBalances(true);
-	$smarty->assign('balances', $balances);
+	if( $tsBalance >= 0 ){
+		$oEvolution = new evolution();
+		$balances = $oEvolution->getTodayBalances( $tsBalance );
+		if( !empty($balances) ) $smarty->assign('balances', $balances['data']);
+	}
 
 	$oOwner = new owner();
 	$smarty->assign('owners', $oOwner->loadListForFilter());
 	$smarty->assign('owner', $oOwner->getOwner());
 
 	//get all related lists, normaly they are stashed
-	$oOrigin = new origin();
-	$origins = $oOrigin->loadListForFilter();
-	$smarty->assign('origins', $origins);
 
+	//the next 3 lists do not change
 	$oStatus = new status();
 	$statuses = $oStatus->loadListForFilter();
 	$smarty->assign('statuses', $statuses);
-
-	$oRecipient = new recipient();
-	$recipients = $oRecipient->loadListForFilter();
-	$smarty->assign('recipients', $recipients);
 
 	$oType = new type();
 	$types = $oType->loadListForFilter();
@@ -362,13 +383,18 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $getTs = false ){
 	$currenciesWSymbol = $oCurrency->loadList();
 	$smarty->assign('currenciesWSymbol', $currenciesWSymbol);
 
-	$oMethod = new method();
-	$methods = $oMethod->loadListForFilter();
-	$smarty->assign('methods', $methods);
+	//the next 3 lists can change with new payments, so timestamp is used
+	$oOrigin = new origin();
+	$origins = $oOrigin->loadListForFilter(true, false);
+	$smarty->assign('origins', $origins[1]);
 
-	$oLocation = new location();
-	$location = $oLocation->loadListForFilter();
-	$smarty->assign('locations', $location);
+	$oRecipient = new recipient();
+	$recipients = $oRecipient->loadListForFilter(true, false, $tsRecipient);
+	$smarty->assign('recipients', $recipients);
+
+	$oMethod = new method();
+	$methods = $oMethod->loadListForFilter(true, false, $tsMethod);
+	$smarty->assign('methods', $methods);
 
 	//generate the payments details
 	$smarty->assign('partial', true);
@@ -379,19 +405,39 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $getTs = false ){
 	} elseif( is_array($deltaIds) ){
 		$response['delta'] = $delta;
 	}
-	$response['origins'] = $origins;
-	$response['statuses'] = $statuses;
-	$response['recipients'] = $recipients;
-	$response['types'] = $types;
-	$response['currenciesWSymbol'] = $currenciesWSymbol;
-	$response['methods'] = $methods;
-	$response['sums'] = $smarty->fetch('sum.tpl');
-	$response['forecasts'] = $smarty->fetch('forecast.tpl');
-	$response['balances'] = $smarty->fetch('balance.tpl');
 
-	if( $getTs ){
-		$max = max($tsPayments, $tsSums, $tsForecasts, $tsBalances);
-		return array($max, $response);
+	if( !is_null($origins) && $tsOrigin != $origins[0] ){
+		$origins[0] = gmdate("D, d M Y H:i:s", $origins[0]) . " GMT";
+		$response['origins'] = $origins;
+	}
+
+	if( !is_null($recipients) && $tsRecipient != $recipients[0] ){
+		$recipients[0] = gmdate("D, d M Y H:i:s", $recipients[0]) . " GMT";
+		$response['recipients'] = $recipients;
+	}
+
+	if( !is_null($methods) && $tsMethod != $methods[0] ){
+		$methods[0] = gmdate("D, d M Y H:i:s", $methods[0])." GMT";
+		$response['methods'] = $methods;
+	}
+
+	if( !empty($sums) ){
+		foreach( $sums as $month => $info ){
+			$smarty->assign('sums', $info['sums']);
+			$smarty->assign('sumMonth', $month);
+			$response['sums'][$month]['lastModified'] = gmdate("D, d M Y H:i:s", $info['lastModified'])." GMT";
+			$response['sums'][$month]['html'] = $smarty->fetch('sum.tpl');
+		}
+	}
+
+	if( $tsForecast >= 0 && !empty($forecasts) ){
+		$response['forecasts']['lastModified'] = gmdate("D, d M Y H:i:s", $forecasts['lastModified'])." GMT";
+		$response['forecasts']['html'] = $smarty->fetch('forecast.tpl');
+	}
+
+	if( $tsBalance >= 0 && !empty($balances) ){
+		$response['balances']['lastModified'] = gmdate("D, d M Y H:i:s", $balances['lastModified'])." GMT";
+		$response['balances']['html'] = $smarty->fetch('balance.tpl');
 	}
 
 	return $response;

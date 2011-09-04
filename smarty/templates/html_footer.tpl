@@ -19,6 +19,9 @@
 
 		<script>
 			var limits = {$limits|json_encode};
+			var statuses = {$statuses|json_encode};
+			var types = {$types|json_encode};
+			var currenciesWSymbol = {$currenciesWSymbol|json_encode};
 		</script>
 		{include file="payment.template.html"}
 

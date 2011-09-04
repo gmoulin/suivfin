@@ -1,0 +1,1 @@
+UPDATE payment SET paymentMonth = DATE_FORMAT( IF(DAYOFMONTH(paymentDate) > 24, DATE_ADD(paymentDate, INTERVAL 1 MONTH), paymentDate ), '%Y-%m');

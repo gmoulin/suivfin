@@ -306,7 +306,7 @@ class common {
 	/**
 	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
 	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
-	 * @return array[key][entry]
+	 * @return array
 	 */
 	public function loadListForFilter( $returnTs = false, $tsOnly = false ){
 		try {
@@ -327,7 +327,6 @@ class common {
 			}
 
 			$list = $stash->get();
-			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
@@ -343,11 +342,9 @@ class common {
 
 				if( !empty($list) ){
 					$stash->store($list, STASH_EXPIRE);
-					$ts = $stash->getTimestamp();
 				}
-			} elseif( $returnTs ){
-				$ts = $stash->getTimestamp();
 			}
+			$ts = $stash->getTimestamp();
 
 			if( $returnTs ){
 				return array($ts, $list);

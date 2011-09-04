@@ -195,6 +195,9 @@ $(document).ready(function(){
 	var $body		   = $('body'),
 		$container	   = $('#container'),
 		$sums		   = $('#sums'),
+		$forecast	   = $('#forecasts'),
+		$balance	   = $('#balances'),
+		$sums		   = $('#sums'),
 		$form		   = $('#payment_form'),
 		$filter		   = $('#filter'),
 		$timeframe	   = $('#time_frame'),
@@ -732,7 +735,7 @@ $(document).ready(function(){
 			if( !$form.hasClass('submitting') ){
 				//wait 500ms before reloading data, help when user check several checkboxes quickly
 				clearTimeout(buffer);
-				buffer = setTimeout(function(){ reloadParts(); }, 500);
+				buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
 			}
 		});
 
@@ -813,15 +816,17 @@ $(document).ready(function(){
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
 	function refreshParts( data ){
-		$sums.empty().html( data.sums );
+		$.each(data.sums, function(month, info){
+			$sums.children('[data-month='+ month +']').remove();
+			$sums.append(info.html);
+			//@todo sort by month after all appends
+		});
 
-		var $forecast = $('#forecasts'),
-			title = $forecast.children('h2').detach();
-		$forecast.empty().html( data.forecasts ).prepend( title );
+		var title = $forecast.children('h2').detach();
+		$forecast.empty().html( data.forecasts.html ).prepend( title );
 
-		var $balance = $('#balances'),
-			title = $balance.children('h2').detach();
-		$balance.empty().html( data.balances ).prepend( title );
+		var title = $balance.children('h2').detach();
+		$balance.empty().html( data.balances.html ).prepend( title );
 
 		if( data.payments ){
 			//prepare jQuery Template
@@ -829,9 +834,35 @@ $(document).ready(function(){
 				$('#paymentListTemplate').template('paymentList');
 			}
 
-			//empty list then add new elements
-			var $items = $.tmpl('paymentList', data);
-			$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+			//add the new elements for each month
+			if( data.payments ){
+				//prepare payments for jQuery templating
+				var tmp = [];
+				$.each(data.payments, function(month, info){
+					if( month.length == 7 ){
+						$.each(info.list, function(i, payment){
+							tmp.push(payment);
+						});
+					}
+				});
+				data.payments = null;
+				data.payments = tmp;
+
+				try {
+					data.origins = localStorage.getObject('originList').data;
+					data.recipients = localStorage.getObject('recipientList').data;
+					data.methods = localStorage.getObject('methodList').data;
+				} catch( e ){
+					alert(e);
+				}
+
+				data.statuses = statuses;
+				data.types = types;
+				data.currenciesWSymbol = currenciesWSymbol;
+
+				var $items = $.tmpl('paymentList', data);
+				$container.append($items).isotope('appended', $items);
+			}
 
 			//test if there is any cached filters, which are updated on each filters changes
 			try {
@@ -882,67 +913,187 @@ $(document).ready(function(){
 	}
 
 	/**
+	 * get the changes between to arrays
+	 * @param o : old array
+	 * @param n : new array
+	 * @return object {added, removed}
+	 */
+	function diff( o, n ){
+		var a = []; var r = [];
+
+		for( var i in o ){
+			if( !(o[i] in n) ){
+				r.push(o[i]);
+			}
+		}
+		for( var i in n ){
+			if( !(n[i] in o) ){
+				a.push(n[i]);
+			}
+		}
+		return {'added': a, 'removed': r};
+	}
+
+	/**
 	 * reload the payments, sums and forecasts according to the selected months
 	 */
 	var timeframeSnapshot = [];
-	function reloadParts(){
-		if( !timeframeSnapshot.length ){
-			timeframeSnapshot = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
-		}
+	function reloadParts( needBalance, needForecast ){
 
 		//get the changes between the snapshot and the current timeframe
+		var timeframe = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
+		if( timeframe == '' ) return; //no month to manage, do nothing by default
+		var changes = diff( timeframeSnapshot, timeframe );
 
-		var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-		if( tf == '' ) return;
+		//remove payments and parts for removed month
+		if( changes.removed.length ){
+			$.each(changes.removed, function(m){
+				$container.isotope('remove', $container.children().filter('[data-month='+ m +']') );
+				$sums.children('[data-month='+ m +']').remove();
+				$forecast.children('[data-month='+ m +']').remove();
+			});
+			$container.isotope('reLayout')
+		}
 
-		var cachedData,
-			lastModified = 0,
-			key = $currentOwner.val() + '_' + tf;
+		//no added month so no need to request data from the server
+		if( !changes.added.length ) return;
 
+		var params = {};
 		try {
-			cachedData = localStorage.getObject(key);
+			$.each(changes.added, function(i, m){
+				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
+				if( monthCache ){
+					params[m] = new Date(monthCache.lastModified).getTime(); //transform to timestamp
+				} else params[m] = 0;
+			});
 
-			if( cachedData ){
-				lastModified = cachedData.lastModified;
+			if( needBalance ){
+				var balanceParam = 0;
+				var balanceCache = localStorage.getObject( $currentOwner.val() + '_balance' );
+				if( balanceCache ){
+					balanceParam = new Date(balanceCache.lastModified).getTime();
+				}
 			}
+
+			if( needForecast ){
+				var forecastParam = 0;
+				var forecastCache = localStorage.getObject( $currentOwner.val() + '_forecast' );
+				if( forecastCache ){
+					forecastParam = new Date(forecastCache.lastModified).getTime();
+				}
+			}
+
+			var originParam = 0;
+			var originCache = localStorage.getObject( 'originList' );
+			if( originCache ){
+				originParam = new Date(originCache.lastModified).getTime();
+			}
+
+			var methodParam = 0;
+			var methodCache = localStorage.getObject( 'methodList' );
+			if( methodCache ){
+				methodParam = new Date(methodCache.lastModified).getTime();
+			}
+
+			var recipientParam = 0;
+			var recipientCache = localStorage.getObject( 'recipientList' );
+			if( recipientCache ){
+				recipientParam = new Date(recipientCache.lastModified).getTime();
+			}
+
 		} catch( e ){
 			alert(e);
 		}
 
-		//resfresh sums
-		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
-			data: 'action=refresh&timeframe=' + tf + '&owner=' + $currentOwner.val(),
+			data: 'action=refresh&timeframe=' + $.map(params, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
+				+ '&owner=' + $currentOwner.val()
+				+ '&tsOrigin=' + originParam
+				+ '&tsMethod=' + methodParam
+				+ '&tsRecipient=' + recipientParam
+				+ ( needBalance ? '&tsBalance=' + balanceParam : '' )
+				+ ( needForecast ? '&tsForecast=' + forecastParam : '' ),
 			dataType: 'json',
 			type: 'post',
-			headers: {
-				'If-Modified-Since': lastModified
-			},
 			success: function(data, textStatus, jqXHR){
-				//server will send a 304 status if the list has not changed
+				//server will send a 304 status if the parts have not changed
 				if( jqXHR.status == 200 ){
 					try {
-						lastModified = jqXHR.getResponseHeader('Last-Modified');
+						if( data.balances ){
+							localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
+						}
 
-						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+						if( data.forecasts ){
+							localStorage.setObject($currentOwner.val() + '_forecast', {'lastModified': data.forecasts.lastModified, 'html': data.forecasts.html});
+						}
+
+						if( data.origins ){
+							localStorage.setObject('originList', {'lastModified': data.origins[0], 'data': data.origins[1]});
+						}
+
+						if( data.recipients ){
+							localStorage.setObject('recipientList', {'lastModified': data.recipients[0], 'data': data.recipients[1]});
+						}
+
+						if( data.methods ){
+							localStorage.setObject('methodList', {'lastModified': data.methods[0], 'data': data.methods[1]});
+						}
+
+						//store the data for changed months
+						$.each(changes.added, function(i, m){
+							if( data.payments[m] ){
+								localStorage.setObject($currentOwner.val() + '_payments_' + m, {'lastModified': data.payments[m].lastModified, 'list': data.payments[m].list});
+							}
+						});
 					} catch( e ){
 						alert(e);
 					}
-
-				} else {
-					data = cachedData.data;
 				}
 
-				if( data.payments ){
-					refreshParts( data );
-				} else {
-					alert( data );
+				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
+					try {
+						data.balance = localStorage.getObject( $currentOwner.val() + '_balance' );
+					} catch( e ){
+						alert(e);
+					}
 				}
-				$('header').removeClass('loading');
+
+				if( needForecast && !data.forecasts ){ //forecast is needed but none returned (no changes)
+					try {
+						data.forecasts = localStorage.getObject( $currentOwner.val() + '_forecast' );
+					} catch( e ){
+						alert(e);
+					}
+				}
+
+				if( !data.origins ){
+					data.origins = localStorage.getObject($currentOwner.val() + '_origin').data;
+				}
+
+				if( !data.recipients ){
+					data.recipients = localStorage.getObject($currentOwner.val() + '_recipient').data;
+				}
+
+				if( !data.methods ){
+					data.methods = localStorage.getObject($currentOwner.val() + '_method').data;
+				}
+
+				//check data availability for each added months and retrieve cached data if missing
+				$.each(changes.added, function(i, m){
+					try {
+						if( !data.payments[m] ){
+							data.payments[m] = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
+						}
+					} catch( e ){
+						alert(e);
+					}
+				});
+
+				timeframeSnapshot = timeframe; //update the snapshot
+				refreshParts( data );
 			}
 		});
 	}
-
 
 	/**
 	 * apply given filters to isotope
@@ -1378,8 +1529,8 @@ $(document).ready(function(){
 	function ajaxCalls(){
 		if( !delayAjax ){
 			if( delayTimeout ) clearTimeout(delayTimeout);
-			$form.find('datalist, select[id]').loadList();
-			reloadParts();
+			reloadParts(true, true);
+			setTimeout(function(){ $form.find('datalist, select[id]').loadList(); }, 500);
 		}
 		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);
 	}
@@ -1417,7 +1568,6 @@ $.fn.loadList = function(){
 		}
 
 		//ask the list values to the server and create the <option>s with it
-		$('header').addClass('loading');
 		$.ajax('ajax/loadList.php', {
 			data: 'field=' + key,
 			dataType: 'json',
@@ -1490,8 +1640,6 @@ $.fn.loadList = function(){
 					$list.val( list.data('selectedId') );
 					$list.removeData('selectedId');
 				}
-
-				$('header').removeClass('loading');
 			}
 		});
 	});
@@ -1544,6 +1692,13 @@ String.prototype.timestamp = function(){
 	var d = this.substr(0, 10).split('-'),
 		tmp = new Date(d[0], d[1], d[2]);
 	return tmp.getTime();
+}
+
+String.prototype.getMonth = function(){
+	var d = this.substr(0, 10).split('-');
+	if( d[2] >= 25 ) tmp = new Date(d[0], d[1], d[2])
+	else tmp = new Date(d[0], d[1]+1, d[2]);
+	return tmp.getFullYear() + '-' + (tmp.getMonth() + 1);
 }
 
 String.prototype.capitalize = function(){

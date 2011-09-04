@@ -16,13 +16,13 @@
 	<link rel="shortcut icon" href="favicon.ico" type="images/x-icon" />
 
 	<!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
-	<script src="js/libs/modernizr-2.0.4.custom.min.js"></script>
+	<script src="js/libs/modernizr-2.0.6.custom.min.js"></script>
 </head>
 <body>
 	<button onclick="cleanCache()">Nettoyer le cache pour ce site</button> (localStorage et applicationCache).
 
 	<!-- Grab local. fall back to Google CDN's jQuery if necessary -->
-	<script src="js/libs/jquery-1.6.1.min.js"></script>
+	<script src="js/libs/jquery-1.6.2.min.js"></script>
 	<script>!window.jQuery && document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js">\x3C/script>')</script>
 
 	<script>
