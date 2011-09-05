@@ -401,7 +401,7 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $tsForecast, $tsBalan
 
 	$response = array();
 	if( is_null($deltaIds) ){
-		$response['payments'] = $payments;
+		if( !empty($payments) ) $response['payments'] = $payments;
 	} elseif( is_array($deltaIds) ){
 		$response['delta'] = $delta;
 	}

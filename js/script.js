@@ -816,17 +816,23 @@ $(document).ready(function(){
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
 	function refreshParts( data ){
-		$.each(data.sums, function(month, info){
-			$sums.children('[data-month='+ month +']').remove();
-			$sums.append(info.html);
-			//@todo sort by month after all appends
-		});
+		if( data.sums ){
+			$.each(data.sums, function(month, info){
+				$sums.children('[data-month='+ month +']').remove();
+				$sums.append(info.html);
+				//@todo sort by month after all appends
+			});
+		}
 
-		var title = $forecast.children('h2').detach();
-		$forecast.empty().html( data.forecasts.html ).prepend( title );
+		if( data.forecasts ){
+			var title = $forecast.children('h2').detach();
+			$forecast.empty().html( data.forecasts.html ).prepend( title );
+		}
 
-		var title = $balance.children('h2').detach();
-		$balance.empty().html( data.balances.html ).prepend( title );
+		if( data.balances ){
+			var title = $balance.children('h2').detach();
+			$balance.empty().html( data.balances.html ).prepend( title );
+		}
 
 		if( data.payments ){
 			//prepare jQuery Template
@@ -834,35 +840,38 @@ $(document).ready(function(){
 				$('#paymentListTemplate').template('paymentList');
 			}
 
-			//add the new elements for each month
-			if( data.payments ){
-				//prepare payments for jQuery templating
-				var tmp = [];
-				$.each(data.payments, function(month, info){
-					if( month.length == 7 ){
-						$.each(info.list, function(i, payment){
-							tmp.push(payment);
-						});
-					}
-				});
-				data.payments = null;
-				data.payments = tmp;
-
-				try {
-					data.origins = localStorage.getObject('originList').data;
-					data.recipients = localStorage.getObject('recipientList').data;
-					data.methods = localStorage.getObject('methodList').data;
-				} catch( e ){
-					alert(e);
+			//prepare payments for jQuery templating
+			var tmp = [];
+			$.each(data.payments, function(month, info){
+				if( month.length == 7 ){
+					$.each(info.list, function(i, payment){
+						tmp.push(payment);
+					});
 				}
+			});
+			data.payments = null;
+			data.payments = tmp;
 
-				data.statuses = statuses;
-				data.types = types;
-				data.currenciesWSymbol = currenciesWSymbol;
-
-				var $items = $.tmpl('paymentList', data);
-				$container.append($items).isotope('appended', $items);
+			//get lists from cache if missing
+			try {
+				if( !data.origins ) data.origins = localStorage.getObject('originList').data;
+				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList').data;
+				if( !data.methods ) data.methods = localStorage.getObject('methodList').data;
+			} catch( e ){
+				alert(e);
 			}
+
+			//add fixed lists
+			data.statuses = statuses;
+			data.types = types;
+			data.currenciesWSymbol = currenciesWSymbol;
+
+			console.log( data );
+			//generate the new items via templating
+			var $items = $.tmpl('paymentList', data);
+	console.log( $items );
+			//append the new items to isotope
+			$container.append($items).isotope('appended', $items);
 
 			//test if there is any cached filters, which are updated on each filters changes
 			try {
@@ -963,7 +972,7 @@ $(document).ready(function(){
 			$.each(changes.added, function(i, m){
 				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
 				if( monthCache ){
-					params[m] = new Date(monthCache.lastModified).getTime(); //transform to timestamp
+					params[m] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
 				} else params[m] = 0;
 			});
 
@@ -971,7 +980,7 @@ $(document).ready(function(){
 				var balanceParam = 0;
 				var balanceCache = localStorage.getObject( $currentOwner.val() + '_balance' );
 				if( balanceCache ){
-					balanceParam = new Date(balanceCache.lastModified).getTime();
+					balanceParam = new Date(balanceCache.lastModified).getTime() / 1000;
 				}
 			}
 
@@ -979,26 +988,26 @@ $(document).ready(function(){
 				var forecastParam = 0;
 				var forecastCache = localStorage.getObject( $currentOwner.val() + '_forecast' );
 				if( forecastCache ){
-					forecastParam = new Date(forecastCache.lastModified).getTime();
+					forecastParam = new Date(forecastCache.lastModified).getTime() / 1000;
 				}
 			}
 
 			var originParam = 0;
 			var originCache = localStorage.getObject( 'originList' );
 			if( originCache ){
-				originParam = new Date(originCache.lastModified).getTime();
+				originParam = new Date(originCache.lastModified).getTime() / 1000;
 			}
 
 			var methodParam = 0;
 			var methodCache = localStorage.getObject( 'methodList' );
 			if( methodCache ){
-				methodParam = new Date(methodCache.lastModified).getTime();
+				methodParam = new Date(methodCache.lastModified).getTime() / 1000;
 			}
 
 			var recipientParam = 0;
 			var recipientCache = localStorage.getObject( 'recipientList' );
 			if( recipientCache ){
-				recipientParam = new Date(recipientCache.lastModified).getTime();
+				recipientParam = new Date(recipientCache.lastModified).getTime() / 1000;
 			}
 
 		} catch( e ){
@@ -1041,8 +1050,12 @@ $(document).ready(function(){
 
 						//store the data for changed months
 						$.each(changes.added, function(i, m){
-							if( data.payments[m] ){
+							if( data.payments && data.payments[m] ){
 								localStorage.setObject($currentOwner.val() + '_payments_' + m, {'lastModified': data.payments[m].lastModified, 'list': data.payments[m].list});
+							}
+
+							if( data.sums && data.sums[m] ){
+								localStorage.setObject($currentOwner.val() + '_sums_' + m, {'lastModified': data.sums[m].lastModified, 'html': data.sums[m].html})
 							}
 						});
 					} catch( e ){
@@ -1052,7 +1065,7 @@ $(document).ready(function(){
 
 				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
 					try {
-						data.balance = localStorage.getObject( $currentOwner.val() + '_balance' );
+						data.balances = localStorage.getObject( $currentOwner.val() + '_balance' );
 					} catch( e ){
 						alert(e);
 					}
@@ -1067,22 +1080,28 @@ $(document).ready(function(){
 				}
 
 				if( !data.origins ){
-					data.origins = localStorage.getObject($currentOwner.val() + '_origin').data;
+					data.origins = localStorage.getObject('originList').data;
 				}
 
 				if( !data.recipients ){
-					data.recipients = localStorage.getObject($currentOwner.val() + '_recipient').data;
+					data.recipients = localStorage.getObject('recipientList').data;
 				}
 
 				if( !data.methods ){
-					data.methods = localStorage.getObject($currentOwner.val() + '_method').data;
+					data.methods = localStorage.getObject('methodList').data;
 				}
 
 				//check data availability for each added months and retrieve cached data if missing
+				if( !data.payments ) data.payments = {};
+				if( !data.sums ) data.sums = {};
 				$.each(changes.added, function(i, m){
 					try {
 						if( !data.payments[m] ){
 							data.payments[m] = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
+						}
+
+						if( !data.sums[m] ){
+							data.sums[m] = localStorage.getObject( $currentOwner.val() + '_sums_' + m );
 						}
 					} catch( e ){
 						alert(e);
@@ -1691,7 +1710,7 @@ String.prototype.formatDate = function(){
 String.prototype.timestamp = function(){
 	var d = this.substr(0, 10).split('-'),
 		tmp = new Date(d[0], d[1], d[2]);
-	return tmp.getTime();
+	return tmp.getTime() / 1000; //only need the timestamp in seconds
 }
 
 String.prototype.getMonth = function(){

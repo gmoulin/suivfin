@@ -777,7 +777,7 @@ class payment extends common {
 					WHERE ownerFK = :owner
 					AND typeFK != 1
 					AND statusFK IN (2,4)
-					AND paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(CURDATE(), '%Y-%m'), DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
+					AND paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
 				");
