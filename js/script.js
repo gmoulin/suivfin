@@ -866,10 +866,8 @@ $(document).ready(function(){
 			data.types = types;
 			data.currenciesWSymbol = currenciesWSymbol;
 
-			console.log( data );
 			//generate the new items via templating
 			var $items = $.tmpl('paymentList', data);
-	console.log( $items );
 			//append the new items to isotope
 			$container.append($items).isotope('appended', $items);
 
@@ -1028,6 +1026,9 @@ $(document).ready(function(){
 				//server will send a 304 status if the parts have not changed
 				if( jqXHR.status == 200 ){
 					try {
+						if( !data.length ){
+							data = {}; //make sure it's an object
+						}
 						if( data.balances ){
 							localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
 						}
