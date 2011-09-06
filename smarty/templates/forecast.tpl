@@ -1,7 +1,7 @@
 {strip}
 	{if !$partial}
 		<section id="forecasts">
-			<h2>Prévisions</h2>
+			<h2 title="du mois en cours et du suivant">Prévisions</h2>
 	{/if}
 
 	{if !empty($forecasts)}

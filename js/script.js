@@ -205,7 +205,8 @@ $(document).ready(function(){
 		filters		   = {},
 		buffer		   = null,
 		chart		   = null,
-		legendCurrency = [];
+		legendCurrency = []; //,
+		//currentMonth   = ( day > 24 ? new Date('%Y-%m') : new Date('%Y-%m') );
 
 	/* online - offline modes */
 		/* @todo to finish and test */
@@ -513,7 +514,8 @@ $(document).ready(function(){
 					return parseFloat( $elem.data('amount') );
 				}
 			}
-		}).delegate('.edit, .fork', 'click', function(e){
+		})
+		.delegate('.edit, .fork', 'click', function(e){
 			e.preventDefault();
 			$form.resetForm()
 				 .addClass('deploy');
@@ -602,9 +604,24 @@ $(document).ready(function(){
 					if( $this.hasClass('fork') ) $('#id').val('');
 				});
 			}
-		}).delegate('.trash', 'click', function(e){
+		})
+		.delegate('.trash', 'click', function(e){
 			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
+				//remove the payment
+				$container.isotope('remove', $(this).closest('.item')).isotope('reLayout');
+				applyFilters();
+
+				//need balance ?
+				//yes if payment is for current month
+				if( $(this).closest('.item').attr('data-month') ==  ){
+
+				}
+
+				//need forecast ?
+
+				//need sum
+
 				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 					params = 'action=delete&id=' + $(this).attr('href') + '&timeframe=' + tf;
 
@@ -615,8 +632,6 @@ $(document).ready(function(){
 
 					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
 
-					$container.isotope('remove', $(this).closest('.item')).isotope('reLayout');
-					applyFilters();
 
 				} else {
 					$.post('ajax/payment.php', params, function(data){
@@ -659,9 +674,6 @@ $(document).ready(function(){
 			localStorage.setObject('filters', filters);
 
 			applyFilters();
-		}).find('.primary').each(function(){
-			//output the current value
-			$(this).closest('section').children('output').text( $(this).text() );
 		});
 
 	//filter list
@@ -677,7 +689,7 @@ $(document).ready(function(){
 			localStorage.setObject('filters', filters);
 
 			applyFilters();
-		});
+		}).updateFiltersOutputs();
 
 	//next month recurrent payments generation
 		$('.next_month a').click(function(e){
@@ -715,6 +727,9 @@ $(document).ready(function(){
 
 	//time frame chekboxes
 		$('#time_frame :checkbox').change(function(e){
+			console.log( 'timeframe change' );
+			clearTimeout(buffer);
+
 			//toggle the months checkboxes if the event target is a year checkbox
 			if( $(this).hasClass('year') ){
 				var isChecked = $(this).is(':checked');
@@ -734,8 +749,7 @@ $(document).ready(function(){
 			//when submitting an add or update the new data will be in the request response
 			if( !$form.hasClass('submitting') ){
 				//wait 500ms before reloading data, help when user check several checkboxes quickly
-				clearTimeout(buffer);
-				buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
+				buffer = setTimeout(function(){ console.log('buffered'); reloadParts(false, false); }, 500);
 			}
 		});
 
@@ -816,11 +830,18 @@ $(document).ready(function(){
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
 	function refreshParts( data ){
+		console.log( 'refreshParts' );
 		if( data.sums ){
-			$.each(data.sums, function(month, info){
-				$sums.children('[data-month='+ month +']').remove();
-				$sums.append(info.html);
-				//@todo sort by month after all appends
+			//need to reorder the months
+			var months = [];
+			for( var month in data.sums ){
+				months.push(month);
+			}
+			months.sort();
+
+			$sums.children('[data-month]').remove();
+			$.each(months, function(i, month){
+				$sums.append(data.sums[month].html);
 			});
 		}
 
@@ -840,36 +861,40 @@ $(document).ready(function(){
 				$('#paymentListTemplate').template('paymentList');
 			}
 
-			//prepare payments for jQuery templating
-			var tmp = [];
-			$.each(data.payments, function(month, info){
-				if( month.length == 7 ){
-					$.each(info.list, function(i, payment){
-						tmp.push(payment);
-					});
+			//add the new elements for each month
+			if( data.payments ){
+				//prepare payments for jQuery templating
+				var tmp = [];
+				$.each(data.payments, function(month, info){
+					if( month.length == 7 ){
+						$.each(info.list, function(i, payment){
+							tmp.push(payment);
+						});
+					}
+				});
+				console.log( tmp );
+				data.payments = null;
+				data.payments = tmp;
+
+				//get lists from cache if missing
+				try {
+					if( !data.origins ) data.origins = localStorage.getObject('originList').data;
+					if( !data.recipients ) data.recipients = localStorage.getObject('recipientList').data;
+					if( !data.methods ) data.methods = localStorage.getObject('methodList').data;
+				} catch( e ){
+					alert(e);
 				}
-			});
-			data.payments = null;
-			data.payments = tmp;
 
-			//get lists from cache if missing
-			try {
-				if( !data.origins ) data.origins = localStorage.getObject('originList').data;
-				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList').data;
-				if( !data.methods ) data.methods = localStorage.getObject('methodList').data;
-			} catch( e ){
-				alert(e);
+				//add fixed lists
+				data.statuses = statuses;
+				data.types = types;
+				data.currenciesWSymbol = currenciesWSymbol;
+
+				//generate the new items via templating
+				var $items = $.tmpl('paymentList', data);
+				//append the new items to isotope
+				$container.append($items).isotope('appended', $items);
 			}
-
-			//add fixed lists
-			data.statuses = statuses;
-			data.types = types;
-			data.currenciesWSymbol = currenciesWSymbol;
-
-			//generate the new items via templating
-			var $items = $.tmpl('paymentList', data);
-			//append the new items to isotope
-			$container.append($items).isotope('appended', $items);
 
 			//test if there is any cached filters, which are updated on each filters changes
 			try {
@@ -881,17 +906,17 @@ $(document).ready(function(){
 							$f.val( filter ).trigger('change');
 						} else {
 							$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
-								.filter('[data-filter="'+ filter +'"]').trigger('click'); //add primary class for persistent filter via click triggering
+								.filter('[data-filter="'+ filter +'"]').addClass('primary').updateFiltersOutputs(); //add primary class on the cached filter and update the output
 						}
 					});
 
-					filters = cachedFilters;
+					filters = cachedFilters; //update the filters list for applyFilters()
 				}
+
+				applyFilters();
 			} catch( e ){
 				alert(e);
 			}
-
-			applyFilters();
 		}
 	}
 
@@ -928,16 +953,13 @@ $(document).ready(function(){
 	function diff( o, n ){
 		var a = []; var r = [];
 
-		for( var i in o ){
-			if( !(o[i] in n) ){
-				r.push(o[i]);
-			}
-		}
-		for( var i in n ){
-			if( !(n[i] in o) ){
-				a.push(n[i]);
-			}
-		}
+		$.each(o, function(i, m){
+			if( $.inArray(m, n) == -1 ) r.push(m);
+		});
+		$.each(n, function(i, m){
+			if( $.inArray(m, o) == -1 ) a.push(m);
+		});
+
 		return {'added': a, 'removed': r};
 	}
 
@@ -952,26 +974,32 @@ $(document).ready(function(){
 		if( timeframe == '' ) return; //no month to manage, do nothing by default
 		var changes = diff( timeframeSnapshot, timeframe );
 
+		console.log( timeframeSnapshot );
+		console.log( timeframe );
+		console.log( changes.removed );
+		console.log( changes.added );
 		//remove payments and parts for removed month
 		if( changes.removed.length ){
-			$.each(changes.removed, function(m){
-				$container.isotope('remove', $container.children().filter('[data-month='+ m +']') );
-				$sums.children('[data-month='+ m +']').remove();
-				$forecast.children('[data-month='+ m +']').remove();
+			$.each(changes.removed, function(i, month){
+				$container.isotope('remove', $container.children().filter('[data-month='+ month +']') );
+				$sums.children('[data-month='+ month +']').remove();
 			});
-			$container.isotope('reLayout')
+			if( !changes.added.length ) $container.isotope('reLayout'); //to reLayout only once and only if changes.added is empty
 		}
 
 		//no added month so no need to request data from the server
-		if( !changes.added.length ) return;
+		if( !changes.added.length ){
+			timeframeSnapshot = timeframe; //update the snapshot
+			return;
+		}
 
 		var params = {};
 		try {
-			$.each(changes.added, function(i, m){
-				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
+			$.each(changes.added, function(i, month){
+				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 				if( monthCache ){
-					params[m] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
-				} else params[m] = 0;
+					params[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
+				} else params[month] = 0;
 			});
 
 			if( needBalance ){
@@ -1023,12 +1051,14 @@ $(document).ready(function(){
 			dataType: 'json',
 			type: 'post',
 			success: function(data, textStatus, jqXHR){
+console.log( 'success' );
+console.log( data.payments );
+				//when nothing has changed, data is empty and will transform into an array when filled, we need an object for jQuery template
+				if( $.isEmptyObject(data) ) data = {};
+
 				//server will send a 304 status if the parts have not changed
 				if( jqXHR.status == 200 ){
 					try {
-						if( !data.length ){
-							data = {}; //make sure it's an object
-						}
 						if( data.balances ){
 							localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
 						}
@@ -1050,15 +1080,18 @@ $(document).ready(function(){
 						}
 
 						//store the data for changed months
-						$.each(changes.added, function(i, m){
-							if( data.payments && data.payments[m] ){
-								localStorage.setObject($currentOwner.val() + '_payments_' + m, {'lastModified': data.payments[m].lastModified, 'list': data.payments[m].list});
-							}
+						if( data.payments || data.sums ){
+							$.each(changes.added, function(i, month){
+								if( data.payments && data.payments[month] ){
+									localStorage.setObject($currentOwner.val() + '_payments_' + month, {'lastModified': data.payments[month].lastModified, 'list': data.payments[month].list});
+								}
 
-							if( data.sums && data.sums[m] ){
-								localStorage.setObject($currentOwner.val() + '_sums_' + m, {'lastModified': data.sums[m].lastModified, 'html': data.sums[m].html})
-							}
-						});
+								if( data.sums && data.sums[month] ){
+									localStorage.setObject($currentOwner.val() + '_sums_' + month, {'lastModified': data.sums[month].lastModified, 'html': data.sums[month].html})
+								}
+							});
+console.log( data.payments );
+						}
 					} catch( e ){
 						alert(e);
 					}
@@ -1091,24 +1124,25 @@ $(document).ready(function(){
 				if( !data.methods ){
 					data.methods = localStorage.getObject('methodList').data;
 				}
-
-				//check data availability for each added months and retrieve cached data if missing
+console.log( data.payments );
+				//check data availability for each months and retrieve cached data if missing
 				if( !data.payments ) data.payments = {};
 				if( !data.sums ) data.sums = {};
-				$.each(changes.added, function(i, m){
+				$.each(timeframe, function(i, month){
 					try {
-						if( !data.payments[m] ){
-							data.payments[m] = localStorage.getObject( $currentOwner.val() + '_payments_' + m );
+						if( !data.payments[month] ){
+console.log( 'adding payments for '+month );
+							data.payments[month] = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 						}
 
-						if( !data.sums[m] ){
-							data.sums[m] = localStorage.getObject( $currentOwner.val() + '_sums_' + m );
+						if( !data.sums[month] ){
+							data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
 						}
 					} catch( e ){
 						alert(e);
 					}
 				});
-
+console.log( data.payments );
 				timeframeSnapshot = timeframe; //update the snapshot
 				refreshParts( data );
 			}
@@ -1560,6 +1594,16 @@ $(document).ready(function(){
 });
 
 
+
+/**
+ * update the output for filters
+ */
+$.fn.updateFiltersOutputs = function(){
+	return this.each(function(){
+		//output the current value
+		$(this).closest('section').children('output').text( $(this).text() );
+	});
+}
 
 /**
  * ajax load for <datalist> and <select> options
