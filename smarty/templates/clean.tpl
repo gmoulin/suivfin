@@ -22,8 +22,8 @@
 	<button onclick="cleanCache()">Nettoyer le cache pour ce site</button> (localStorage et applicationCache).
 
 	<!-- Grab local. fall back to Google CDN's jQuery if necessary -->
-	<script src="js/libs/jquery-1.6.2.min.js"></script>
-	<script>!window.jQuery && document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js">\x3C/script>')</script>
+	<script src="js/libs/jquery-1.6.3.min.js"></script>
+	<script>!window.jQuery && document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.js">\x3C/script>')</script>
 
 	<script>
 		{literal}

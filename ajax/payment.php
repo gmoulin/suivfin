@@ -119,7 +119,7 @@ try {
 					if( $offline ){
 						$response = 'ok';
 					} else {
-						$response = getFreshData( $smarty, $frame, ( $onlyDelta ? $deltaIds : null ) );
+						$response = getFreshData( $smarty, $frame, ( $onlyDelta ? $deltaIds : null ), $action );
 						if( is_null($response) ) $response = 'ok';
 					}
 				} else {
@@ -138,28 +138,30 @@ try {
 				}
 
 				//in offline mode the owner is added to the requests sended when returning online
-				$offline = filter_has_var(INPUT_POST, 'offline');
-				if( !is_null($offline) && $offline !== false ){
-					$owner = filter_has_var(INPUT_POST, 'owner');
-					if( !is_null($owner) && $owner !== false ){
-						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
-						if( $owner === false ){
-							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
-						}
-						init::getInstance()->setOwner( $owner );
-					}
-				}
+//				$offline = filter_has_var(INPUT_POST, 'offline');
+//				if( !is_null($offline) && $offline !== false ){
+//					$owner = filter_has_var(INPUT_POST, 'owner');
+//					if( !is_null($owner) && $owner !== false ){
+//						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
+//						if( $owner === false ){
+//							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
+//						}
+//						init::getInstance()->setOwner( $owner );
+//					}
+//				}
 
 				$oPayment = new payment($id);
+				$frame[ $oPayment->paymentMonth ] = 0;
 				$oPayment->delete();
 
+				$sums = $oPayment->getSums( $frame );
+
 				//when returning online the refresh will be done aside and only one time
-				if( $offline ){
-					$response = 'ok';
-				} else {
-					$response = getFreshData( $smarty, $frame, 'delete' );
-					if( is_null($response) ) $response = 'ok';
-				}
+//				if( $offline ){
+//					$response = 'ok';
+//				} else {
+					$response = getFreshData( $smarty, $frame, null, $action );
+//				}
 			break;
 		case 'get':
 				$id = filter_has_var(INPUT_POST, 'id');
@@ -185,7 +187,7 @@ try {
 				$oPayment->initNextMonthPayment();
 
 				if( !is_null($frame) ){
-					$response = getFreshData( $smarty, $frame );
+					$response = getFreshData( $smarty, $frame, null, $action );
 				} else {
 					$response = 'ok';
 				}
@@ -203,57 +205,7 @@ try {
 					init::getInstance()->setOwner( $owner );
 				}
 
-				$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
-				if( is_null($tsForecast) || $tsForecast === false ){
-					$tsForecast = -1;
-				} else {
-					$tsForecast = filter_var($_POST['tsForecast'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if( $tsForecast === false ){
-						throw new Exception('Gestion des paiements : horodatage pour les prévisions incorrect.');
-					}
-				}
-
-				$tsBalance = filter_has_var(INPUT_POST, 'tsBalance');
-				if( is_null($tsBalance) || $tsBalance === false ){
-					$tsBalance = -1;
-				} else {
-					$tsBalance = filter_var($_POST['tsBalance'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if( $tsBalance === false ){
-						throw new Exception('Gestion des paiements : horodatage pour le solde incorrect.');
-					}
-				}
-
-				$tsOrigin = filter_has_var(INPUT_POST, 'tsOrigin');
-				if( is_null($tsOrigin) || $tsOrigin === false ){
-					throw new Exception('Gestion des paiements : horodatage pour les origines manquant.');
-				} else {
-					$tsOrigin = filter_var($_POST['tsOrigin'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if( $tsOrigin === false ){
-						throw new Exception('Gestion des paiements : horodatage pour les origines incorrect.');
-					}
-				}
-
-				$tsRecipient = filter_has_var(INPUT_POST, 'tsRecipient');
-				if( is_null($tsRecipient) || $tsRecipient === false ){
-					throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires manquant.');
-				} else {
-					$tsRecipient = filter_var($_POST['tsRecipient'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if( $tsRecipient === false ){
-						throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires incorrect.');
-					}
-				}
-
-				$tsMethod = filter_has_var(INPUT_POST, 'tsMethod');
-				if( is_null($tsMethod) || $tsMethod === false ){
-					throw new Exception('Gestion des paiements : horodatage pour les méthodes manquant.');
-				} else {
-					$tsMethod = filter_var($_POST['tsMethod'], FILTER_VALIDATE_INT, array('min_range' => 0));
-					if( $tsMethod === false ){
-						throw new Exception('Gestion des paiements : horodatage pour les méthodes incorrect.');
-					}
-				}
-
-				$response = getFreshData( $smarty, $frame, null, $tsForecast, $tsBalance, $tsRecipient, $tsOrigin, $tsMethod );
+				$response = getFreshData( $smarty, $frame, null, $action );
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -328,27 +280,81 @@ try {
 /*
  * @param object $smarty
  * @param mixed (string | null) $frame : key month (YYYY-MM), value timestamp
- * @param mixed (array | 'delete') $deltaIds : array containing the modified payments ids or the action 'delete' (will return no payments)
- * @param int $tsForecast : unix timestamp for the forecast part
- * @param int $tsBalance : unix timestamp for the balance part
- * @param int $tsRecipient : unix timestamp for the recipients list
- * @param int $tsOrigin : unix timestamp for the origins list
- * @param int $tsMethod : unix timestamp for the methods list
+ * @param mixed (array ) $deltaIds : array containing the modified payments ids
+ * @param string $action : the action name
  */
-function getFreshData( &$smarty, $frame, $deltaIds = null, $tsForecast, $tsBalance, $tsRecipient, $tsOrigin, $tsMethod ){
+function getFreshData( &$smarty, $frame, $deltaIds, $action ){
 	if( empty($frame) ){
 		return null;
 	}
 
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
+	if( $action == 'delete' ){
+		$tsForecast = -1;
+		$tsBalance = -1;
+
+	} else {
+		$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
+		if( is_null($tsForecast) || $tsForecast === false ){
+			$tsForecast = -1;
+		} else {
+			$tsForecast = filter_var($_POST['tsForecast'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsForecast === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les prévisions incorrect.');
+			}
+		}
+
+		$tsBalance = filter_has_var(INPUT_POST, 'tsBalance');
+		if( is_null($tsBalance) || $tsBalance === false ){
+			$tsBalance = -1;
+		} else {
+			$tsBalance = filter_var($_POST['tsBalance'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsBalance === false ){
+				throw new Exception('Gestion des paiements : horodatage pour le solde incorrect.');
+			}
+		}
+
+		$tsOrigin = filter_has_var(INPUT_POST, 'tsOrigin');
+		if( is_null($tsOrigin) || $tsOrigin === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les origines manquant.');
+		} else {
+			$tsOrigin = filter_var($_POST['tsOrigin'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsOrigin === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les origines incorrect.');
+			}
+		}
+
+		$tsRecipient = filter_has_var(INPUT_POST, 'tsRecipient');
+		if( is_null($tsRecipient) || $tsRecipient === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires manquant.');
+		} else {
+			$tsRecipient = filter_var($_POST['tsRecipient'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsRecipient === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires incorrect.');
+			}
+		}
+
+		$tsMethod = filter_has_var(INPUT_POST, 'tsMethod');
+		if( is_null($tsMethod) || $tsMethod === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les méthodes manquant.');
+		} else {
+			$tsMethod = filter_var($_POST['tsMethod'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsMethod === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les méthodes incorrect.');
+			}
+		}
+	}
+
 	$oPayment = new payment();
 
 	$tsPayments = 0;
-	if( is_null($deltaIds) ){
-		$payments = $oPayment->loadForTimeFrame( $frame );
-	} elseif( is_array($deltaIds) ) {
-		$delta = $oPayment->loadByIds( $deltaIds );
+	if( $action != 'delete' ){ //payments list is not sent back on delete
+		if( is_null($deltaIds) ){
+			$payments = $oPayment->loadForTimeFrame( $frame );
+		} elseif( is_array($deltaIds) ) {
+			$delta = $oPayment->loadByIds( $deltaIds );
+		}
 	}
 
 	$sums = $oPayment->getSums( $frame );
@@ -389,12 +395,12 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $tsForecast, $tsBalan
 	$smarty->assign('origins', $origins[1]);
 
 	$oRecipient = new recipient();
-	$recipients = $oRecipient->loadListForFilter(true, false, $tsRecipient);
-	$smarty->assign('recipients', $recipients);
+	$recipients = $oRecipient->loadListForFilter(true, false);
+	$smarty->assign('recipients', $recipients[1]);
 
 	$oMethod = new method();
-	$methods = $oMethod->loadListForFilter(true, false, $tsMethod);
-	$smarty->assign('methods', $methods);
+	$methods = $oMethod->loadListForFilter(true, false);
+	$smarty->assign('methods', $methods[1]);
 
 	//generate the payments details
 	$smarty->assign('partial', true);
@@ -406,19 +412,22 @@ function getFreshData( &$smarty, $frame, $deltaIds = null, $tsForecast, $tsBalan
 		$response['delta'] = $delta;
 	}
 
-	if( !is_null($origins) && $tsOrigin != $origins[0] ){
-		$origins[0] = gmdate("D, d M Y H:i:s", $origins[0]) . " GMT";
-		$response['origins'] = $origins;
-	}
+	//those 3 lists are not sent back on delete
+	if( $action != 'delete' ){
+		if( !is_null($origins) && $tsOrigin != $origins[0] ){
+			$origins[0] = gmdate("D, d M Y H:i:s", $origins[0]) . " GMT";
+			$response['origins'] = $origins;
+		}
 
-	if( !is_null($recipients) && $tsRecipient != $recipients[0] ){
-		$recipients[0] = gmdate("D, d M Y H:i:s", $recipients[0]) . " GMT";
-		$response['recipients'] = $recipients;
-	}
+		if( !is_null($recipients) && $tsRecipient != $recipients[0] ){
+			$recipients[0] = gmdate("D, d M Y H:i:s", $recipients[0]) . " GMT";
+			$response['recipients'] = $recipients;
+		}
 
-	if( !is_null($methods) && $tsMethod != $methods[0] ){
-		$methods[0] = gmdate("D, d M Y H:i:s", $methods[0])." GMT";
-		$response['methods'] = $methods;
+		if( !is_null($methods) && $tsMethod != $methods[0] ){
+			$methods[0] = gmdate("D, d M Y H:i:s", $methods[0])." GMT";
+			$response['methods'] = $methods;
+		}
 	}
 
 	if( !empty($sums) ){
