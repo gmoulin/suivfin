@@ -35,6 +35,27 @@ try {
 	switch ( $action ){
 		case 'add':
 		case 'update':
+				/**
+				 * in which case are we ?
+				 * delta (&d=1)
+				 * 		payments list -> delta only
+				 * 		balance -> only if current month
+				 * 		sums -> payment month data
+				 * 		forecasts -> only if status 2 or 4
+				 * timeframe change (&timeframe=)
+				 * 		payments list -> payment month data, delete payment in list if update
+				 * 		balance -> only if payment date (new or old one) <= today
+				 * 		sums -> payment month data (new and old one)
+				 * 		forecasts -> only if status 2 or 4
+				 * reload
+				 * 		payments list -> not needed
+				 * 		balance -> not needed
+				 * 		sums -> not needed
+				 * 		forecasts ->  not needed
+				 * 		save new timeframe and use it after reload
+				 */
+				//@tofinish
+
 				//in offline mode the owner is added to the requests sended when returning online
 				$offline = filter_has_var(INPUT_POST, 'offline');
 				if( !is_null($offline) && $offline !== false ){

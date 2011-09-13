@@ -321,25 +321,53 @@ $(document).ready(function(){
 						tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
 						tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
 						m = tmp.getMonth() + 1, //javascript month index start at 0
-						newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
+						newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); //format YYYY-MM
 
-					var needReload = false,
-						needUpdate = false,
-						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']');
+					var isUpdate = ( $('#id').val() > 0 ? true : false );
+					if( isUpdate ){
+						var $item = $('#payment_' + $('#id').val());
+						var oldDate = $item.attr('data-date'), //unix timestamp in seconds
+							oldMonth = $item.attr('data-month'); //format YYYY-MM
+					}
+
+					/**
+					 * in which case are we ?
+					 * delta (&d=1)
+					 * 		payments list -> delta only
+					 * 		balance -> only if current month
+					 * 		sums -> payment month data
+					 * 		forecasts -> only if status 2 or 4
+					 * timeframe change (&timeframe=)
+					 * 		payments list -> payment month data, delete payment in list if update
+					 * 		balance -> only if payment date (new or old one) <= today
+					 * 		sums -> payment month data (new and old one)
+					 * 		forecasts -> only if status 2 or 4
+					 * reload
+					 * 		payments list -> not needed
+					 * 		balance -> not needed
+					 * 		sums -> not needed
+					 * 		forecasts ->  not needed
+					 * 		save new timeframe and use it after reload
+					 */
+					var actionCase = false,
+						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']'),
+						tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
+						params = $(':input', '#payment_form').serialize();
+
 					if( $gotMonth.length ){
 						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
 						if( !$gotMonth.is(':checked') ){
 							$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+							actionCase = 'timeframe-change';
 						} else {
-							needUpdate = true;
+							actionCase = 'delta';
 						}
 					} else {
-						needReload = true;
+						actionCase = 'reload';
 					}
 
-					var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
-						params = $(':input', '#payment_form').serialize() + ( needReload ? '' : '&timeframe=' + tf ) + ( needUpdate ? '&d=1' : '' );
-
+					//special case for Fennec and false positive support of datalist
+					//@todo remove when full support
 					if( !Modernizr.input.list || isFennec ){
 						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
 
@@ -348,11 +376,16 @@ $(document).ready(function(){
 								param = '&' + this.name + '=';
 							params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
 						});
-
-						params += ( needReload ? '' : '&timeframe=' + tf ) + ( needUpdate ? '&d=1' : '' );
 					}
 
-					if( $body.data('internet') == 'offline' ){
+					//add the case needed info
+					if( actionCase == 'timeframe-change' ){
+						params += '&timeframe=' + tf;
+					} else if( actionCase == 'delta' ){
+						params += '&d=1';
+					}
+
+					/*if( $body.data('internet') == 'offline' ){
 						var modifications = localStorage.getObject('modifications') || [];
 						modifications.push(params + '&owner=' + $currentOwner.val() );
 						localStorage.setObject('modifications', modifications);
@@ -362,7 +395,7 @@ $(document).ready(function(){
 						$form.removeClass('submitting').removeClass('deploy');
 
 						alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
-					} else {
+					} else {*/
 						$('header').addClass('loading');
 						$.ajax({
 							url: 'ajax/payment.php',
@@ -375,24 +408,22 @@ $(document).ready(function(){
 							},
 							success: function(data, textStatus, jqXHR){
 								$form.removeClass('submitting'); //security, sometimes complete() is not called...
-								if( data == 'ok' ){ //needReload
+
+								if( actionCase == 'reload' && data == 'ok' ){
 									window.location.reload(); //the time frame is missing a month, need to reload the page
 
-								} else if( data.payments ){ //needUpdate, replace the payments with new data
+								} else if( actionCase == 'timeframe-change' && data.payments ){
 									$('header').removeClass('loading');
 									//form hide
 									$('body').unbind('click');
 									$form.removeClass('deploy');
 
-									try {
-										lastModified = jqXHR.getResponseHeader('Last-Modified');
-
-										var key = $currentOwner.val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-
-										localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-									} catch( e ){
-										alert(e);
+									if( isUpdate ){
+										$container.isotope('remove', $item); //relayout will be done by refreshParts()
 									}
+
+									//store localy the new data
+									store( data );
 
 									refreshParts( data );
 
@@ -407,6 +438,9 @@ $(document).ready(function(){
 									$('body').unbind('click');
 									$form.removeClass('deploy');
 
+									//no need to remove the localStorage for payment month data as lastModified date is obsolete
+									store( data );
+
 									refreshParts( data );
 									refreshWithDelta( data );
 								} else {
@@ -415,7 +449,7 @@ $(document).ready(function(){
 								}
 							}
 						});
-					}
+					//}
 				}
 			})
 			.delegate('input[name=typeFK]', 'change', function(e){
@@ -1104,44 +1138,7 @@ $(document).ready(function(){
 
 				//server will send a 304 status if the parts have not changed
 				if( jqXHR.status == 200 ){
-					try {
-						if( data.balances ){
-							localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
-						}
-
-						if( data.forecasts ){
-							localStorage.setObject($currentOwner.val() + '_forecast', {'lastModified': data.forecasts.lastModified, 'html': data.forecasts.html});
-						}
-
-						if( data.origins ){
-							localStorage.setObject('originList', {'lastModified': data.origins[0], 'data': data.origins[1]});
-						}
-
-						if( data.recipients ){
-							localStorage.setObject('recipientList', {'lastModified': data.recipients[0], 'data': data.recipients[1]});
-						}
-
-						if( data.methods ){
-							localStorage.setObject('methodList', {'lastModified': data.methods[0], 'data': data.methods[1]});
-						}
-
-						//store the data for changed months
-						if( data.payments || data.sums ){
-							$.each(changes.added, function(i, month){
-								if( data.payments && data.payments[month] ){
-									localStorage.setObject($currentOwner.val() + '_payments_' + month, {'lastModified': data.payments[month].lastModified, 'list': data.payments[month].list});
-								}
-
-								if( data.sums && data.sums[month] ){
-									localStorage.setObject($currentOwner.val() + '_sums_' + month, {'lastModified': data.sums[month].lastModified, 'html': data.sums[month].html})
-								}
-							});
-							console.log( data.payments );
-							console.log( data.sums );
-						}
-					} catch( e ){
-						alert(e);
-					}
+					store( data );
 				}
 
 				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
@@ -1171,7 +1168,6 @@ $(document).ready(function(){
 				if( !data.methods ){
 					data.methods = localStorage.getObject('methodList').data;
 				}
-				console.log( data.payments );
 
 				//create the objects if missing
 				if( !data.payments ) data.payments = {};
@@ -1181,33 +1177,71 @@ $(document).ready(function(){
 				$.each(changes.added, function(i, month){
 					try {
 						if( !data.payments[month] ){
-							console.log( 'adding payments for '+month );
 							data.payments[month] = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 						}
 					} catch( e ){
 						alert(e);
 					}
 				});
-				console.log( data.payments );
 
 				//check sums list availability for each months and retrieve cached data if missing
 				//refreshParts() need all the sums because it has to reorder them
 				$.each(timeframe, function(i, month){
 					try {
 						if( !data.sums[month] ){
-							console.log( 'adding sums for '+month );
 							data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
 						}
 					} catch( e ){
 						alert(e);
 					}
 				});
-				console.log( data.sums );
 
 				timeframeSnapshot = timeframe; //update the snapshot
 				refreshParts( data );
 			}
 		});
+	}
+
+	/**
+	 * store the data localy using LocalStorage
+	 *
+	 */
+	function store( data ){
+		try {
+			if( data.balances ){
+				localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
+			}
+
+			if( data.forecasts ){
+				localStorage.setObject($currentOwner.val() + '_forecast', {'lastModified': data.forecasts.lastModified, 'html': data.forecasts.html});
+			}
+
+			if( data.origins ){
+				localStorage.setObject('originList', {'lastModified': data.origins[0], 'data': data.origins[1]});
+			}
+
+			if( data.recipients ){
+				localStorage.setObject('recipientList', {'lastModified': data.recipients[0], 'data': data.recipients[1]});
+			}
+
+			if( data.methods ){
+				localStorage.setObject('methodList', {'lastModified': data.methods[0], 'data': data.methods[1]});
+			}
+
+			if( data.sums ){
+				$.each(data.sums, function(month, info){
+					localStorage.setObject($currentOwner.val() + '_sums_' + month, {'lastModified': data.sums[month].lastModified, 'html': data.sums[month].html})
+				});
+			}
+
+			if( data.payments ){
+				$.each(data.payments, function(month, info){
+					localStorage.setObject($currentOwner.val() + '_payments_' + month, {'lastModified': info.lastModified, 'list': info.list});
+				});
+			}
+		} catch( e ){
+			alert(e);
+		}
 	}
 
 	/**
