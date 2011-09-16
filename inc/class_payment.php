@@ -442,17 +442,18 @@ class payment extends common {
 	 * @return array[]
 	 */
 	public function loadByIds( $ids ){
+
 		try {
 			//construct the query and parameters
+			//PDO does not bind correctly parameter with IN()
 			$sql = "
 				SELECT *
 				FROM ".$this->_table."
 				WHERE ownerFK = :owner
-				AND id IN (:ids)
+				AND id IN (".implode(',', $ids).")
 			";
 			$params = array(
 				':owner' => $this->getOwner(),
-				':ids' => implode(',', $ids),
 			);
 
 			$q = $this->_db->prepare($sql);

@@ -35,27 +35,7 @@ try {
 	switch ( $action ){
 		case 'add':
 		case 'update':
-				/**
-				 * in which case are we ?
-				 * delta (&d=1)
-				 * 		payments list -> delta only
-				 * 		balance -> only if current month
-				 * 		sums -> payment month data
-				 * 		forecasts -> only if status 2 or 4
-				 * timeframe change (&timeframe=)
-				 * 		payments list -> payment month data, delete payment in list if update
-				 * 		balance -> only if payment date (new or old one) <= today
-				 * 		sums -> payment month data (new and old one)
-				 * 		forecasts -> only if status 2 or 4
-				 * reload
-				 * 		payments list -> not needed
-				 * 		balance -> not needed
-				 * 		sums -> not needed
-				 * 		forecasts ->  not needed
-				 * 		save new timeframe and use it after reload
-				 */
 				//@tofinish
-
 				//in offline mode the owner is added to the requests sended when returning online
 				$offline = filter_has_var(INPUT_POST, 'offline');
 				if( !is_null($offline) && $offline !== false ){
@@ -70,7 +50,7 @@ try {
 				}
 
 				$onlyDelta = filter_has_var(INPUT_POST, 'd');
-				if( !is_null($owner) && $owner !== false ){
+				if( !is_null($onlyDelta) && $onlyDelta !== false ){
 					$onlyDelta = filter_var($_POST['d'], FILTER_VALIDATE_INT, array('min_range' => 1, 'max_range' => 1));
 				}
 
@@ -133,14 +113,19 @@ try {
 						}
 					}
 
+					$paymentBefore = clone $oPayment; //copy before save for update case
 					$oPayment->save();
 					if( $onlyDelta ) $deltaIds[] = $oPayment->id;
 
 					//when returning online the refresh will be done aside and only one time
 					if( $offline ){
 						$response = 'ok';
-					} else {
-						$response = getFreshData( $smarty, $frame, ( $onlyDelta ? $deltaIds : null ), $action );
+					} elseif( empty($frame) && empty($deltaIds) ){ //reload mode
+						$response = 'ok';
+					} else { //delta or timeframe change modes
+						if( $action == 'add' ) $response = getFreshData( $smarty, $frame, $action, ( $onlyDelta ? $deltaIds : null ), null, $oPayment );
+						else $response = getFreshData( $smarty, $frame, $action, ( $onlyDelta ? $deltaIds : null ), $paymentBefore, $oPayment );
+
 						if( is_null($response) ) $response = 'ok';
 					}
 				} else {
@@ -148,6 +133,13 @@ try {
 				}
 			break;
 		case 'delete':
+				/**
+				 * in which case are we ?
+				 * delete
+				 * 		balance -> only if current month
+				 * 		forecast -> only if current month or next and status 2 or 4
+				 * 		sums -> month data
+				 */
 				$id = filter_has_var(INPUT_POST, 'id');
 				if( is_null($id) || $id === false ){
 					throw new Exception('Gestion des paiements : identitifant du paiement manquant.');
@@ -159,30 +151,28 @@ try {
 				}
 
 				//in offline mode the owner is added to the requests sended when returning online
-//				$offline = filter_has_var(INPUT_POST, 'offline');
-//				if( !is_null($offline) && $offline !== false ){
-//					$owner = filter_has_var(INPUT_POST, 'owner');
-//					if( !is_null($owner) && $owner !== false ){
-//						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
-//						if( $owner === false ){
-//							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
-//						}
-//						init::getInstance()->setOwner( $owner );
-//					}
-//				}
+				/*$offline = filter_has_var(INPUT_POST, 'offline');
+				if( !is_null($offline) && $offline !== false ){
+					$owner = filter_has_var(INPUT_POST, 'owner');
+					if( !is_null($owner) && $owner !== false ){
+						$owner = filter_var($_POST['owner'], FILTER_VALIDATE_INT, array('min_range' => 1));
+						if( $owner === false ){
+							throw new Exception('Gestion des paiements : identifiant de la personne incorrect.');
+						}
+						init::getInstance()->setOwner( $owner );
+					}
+				}*/
 
 				$oPayment = new payment($id);
-				$frame[ $oPayment->paymentMonth ] = 0;
+				$paymentBefore = clone $oPayment; //copy before deletion
 				$oPayment->delete();
 
-				$sums = $oPayment->getSums( $frame );
-
 				//when returning online the refresh will be done aside and only one time
-//				if( $offline ){
-//					$response = 'ok';
-//				} else {
-					$response = getFreshData( $smarty, $frame, null, $action );
-//				}
+				/*if( $offline ){
+					$response = 'ok';
+				} else {*/
+				$response = getFreshData( $smarty, null, $action, null, $paymentBefore );
+				//}
 			break;
 		case 'get':
 				$id = filter_has_var(INPUT_POST, 'id');
@@ -208,7 +198,7 @@ try {
 				$oPayment->initNextMonthPayment();
 
 				if( !is_null($frame) ){
-					$response = getFreshData( $smarty, $frame, null, $action );
+					$response = getFreshData( $smarty, $frame, $action );
 				} else {
 					$response = 'ok';
 				}
@@ -226,7 +216,7 @@ try {
 					init::getInstance()->setOwner( $owner );
 				}
 
-				$response = getFreshData( $smarty, $frame, null, $action );
+				$response = getFreshData( $smarty, $frame, $action );
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -289,6 +279,7 @@ try {
 			throw new Exception('Gestion des paiements : action non reconnue.');
 	}
 
+
 	echo json_encode($response);
 	die;
 
@@ -301,21 +292,94 @@ try {
 /*
  * @param object $smarty
  * @param mixed (string | null) $frame : key month (YYYY-MM), value timestamp
- * @param mixed (array ) $deltaIds : array containing the modified payments ids
  * @param string $action : the action name
+ * @param mixed (array ) $deltaIds : array containing the modified payments ids
+ * @param object $paymentBefore : payment before action save
+ * @param object $paymentAfter : payment after action save
  */
-function getFreshData( &$smarty, $frame, $deltaIds, $action ){
-	if( empty($frame) ){
-		return null;
-	}
+function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = null, $paymentAfter = null ){
+	/**
+	 * in which case are we ?
+	 * add & update
+	 * 		delta (&d=1)
+	 * 			payments list -> delta only
+	 * 			balance -> only if payment date (new or old one) <= today
+	 * 			sums -> payment month data
+	 * 			forecasts -> only if current month or next and status 2 or 4
+	 * 		timeframe change (&timeframe=)
+	 * 			payments list -> payment month data
+	 * 			balance -> only if payment date (new or old one) <= today
+	 * 			sums -> payment month data (new and old one)
+	 * 			forecasts -> only if current month or next and status 2 or 4
+	 * delete
+	 * 		payments list -> not needed
+	 * 		balance -> only if payment date (new or old one) <= today
+	 * 		forecast -> only if current month or next and status 2 or 4
+	 * 		sums -> month data
+	 */
+
+	$currentMonth = ( date('d') > 24 ? date('Y-m', strtotime("+1 month")) : date('Y-m') );
+	$nextMonth = ( date('d') > 24 ? date('Y-m', strtotime("+2 month")) : date('Y-m', strtotime("+1 month")) );
 
 	$smarty->assign('monthsTranslation', init::getInstance()->getMonthsTranslation());
 
-	if( $action == 'delete' ){
-		$tsForecast = -1;
-		$tsBalance = -1;
+	$oPayment = new payment();
+	$payments = null;
+	$delta = null;
 
-	} else {
+	if( $action == 'delete' ){
+		if( ( $currentMonth == $paymentBefore->paymentMonth || $nextMonth == $paymentBefore->paymentMonth )
+			&& ( $paymentBefore->statusFK == 2 || $paymentBefore->statusFK == 4 )
+		){
+			$tsForecast = 0;
+		} else $tsForecast = -1;
+
+		if( date('Y-m-d') >= $paymentBefore->paymentDate ){
+			$tsBalance = 0;
+		} else $tsBalance = -1;
+
+		//for sums
+		$frame = array( $paymentBefore->paymentMonth => 0 );
+		$sums = $oPayment->getSums( $frame );
+
+	} elseif( $action == 'add' || $action == 'update' ){
+		if( !empty($deltaIds) ){ //delta
+			$delta = $oPayment->loadByIds( $deltaIds );
+
+			$frame = array( $paymentAfter->paymentMonth => 0 );
+			if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
+				$frame[ $paymentBefore->paymentMonth ] = 0;
+			}
+			$sums = $oPayment->getSums( $frame );
+
+		} elseif( !empty($frame) ){ //timeframe change
+			$payments = $oPayment->loadForTimeFrame( $frame );
+
+			$frame = array( $paymentAfter->paymentMonth => 0 );
+			$sums = $oPayment->getSums( $frame );
+		}
+
+		if( date('Y-m-d') >= $paymentAfter->paymentDate ){
+			$tsBalance = 0;
+		} elseif( !is_null($paymentBefore) && date('Y-m-d') >= $paymentBefore->paymentDate ){
+			$tsBalance = 0;
+		} else $tsBalance = -1;
+
+		if( ( $currentMonth == $paymentAfter->paymentMonth || $nextMonth == $paymentAfter->paymentMonth )
+			&& ( $paymentAfter->statusFK == 2 || $paymentAfter->statusFK == 4 )
+		){
+			$tsForecast = 0;
+		} elseif( !is_null($paymentBefore) ){
+			if( ( $currentMonth == $paymentAfter->paymentMonth || $nextMonth == $paymentAfter->paymentMonth )
+				&& ( $paymentAfter->statusFK == 2 || $paymentAfter->statusFK == 4 )
+			){
+				$tsForecast = 0;
+			}
+		} else $tsForecast = -1;
+
+	} else { //classic case (refresh)
+		$payments = $oPayment->loadForTimeFrame( $frame );
+
 		$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
 		if( is_null($tsForecast) || $tsForecast === false ){
 			$tsForecast = -1;
@@ -367,18 +431,8 @@ function getFreshData( &$smarty, $frame, $deltaIds, $action ){
 		}
 	}
 
-	$oPayment = new payment();
 
-	$tsPayments = 0;
-	if( $action != 'delete' ){ //payments list is not sent back on delete
-		if( is_null($deltaIds) ){
-			$payments = $oPayment->loadForTimeFrame( $frame );
-		} elseif( is_array($deltaIds) ) {
-			$delta = $oPayment->loadByIds( $deltaIds );
-		}
-	}
-
-	$sums = $oPayment->getSums( $frame );
+	//get the data if needed
 
 	if( $tsForecast >= 0 ){
 		$forecasts = $oPayment->getForecasts( $tsForecast );
@@ -423,15 +477,12 @@ function getFreshData( &$smarty, $frame, $deltaIds, $action ){
 	$methods = $oMethod->loadListForFilter(true, false);
 	$smarty->assign('methods', $methods[1]);
 
-	//generate the payments details
+	//for the smarty templates, to get only the "inside" html
 	$smarty->assign('partial', true);
 
 	$response = array();
-	if( is_null($deltaIds) ){
-		if( !empty($payments) ) $response['payments'] = $payments;
-	} elseif( is_array($deltaIds) ){
-		$response['delta'] = $delta;
-	}
+	if( !empty($payments) ) $response['payments'] = $payments;
+	if( !empty($delta) ) $response['delta'] = $delta;
 
 	//those 3 lists are not sent back on delete
 	if( $action != 'delete' ){

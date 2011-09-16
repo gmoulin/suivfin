@@ -351,7 +351,6 @@ $(document).ready(function(){
 					 */
 					var actionCase = false,
 						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']'),
-						tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
 						params = $(':input', '#payment_form').serialize();
 
 					if( $gotMonth.length ){
@@ -380,7 +379,7 @@ $(document).ready(function(){
 
 					//add the case needed info
 					if( actionCase == 'timeframe-change' ){
-						params += '&timeframe=' + tf;
+						params += '&timeframe=' + newMonth;
 					} else if( actionCase == 'delta' ){
 						params += '&d=1';
 					}
@@ -443,6 +442,9 @@ $(document).ready(function(){
 
 									refreshParts( data );
 									refreshWithDelta( data );
+
+									$form.find('datalist, select[id]').loadList();
+									$filter.find('select').loadList();
 								} else {
 									//form errors display
 									formErrors(data);
@@ -1008,6 +1010,7 @@ $(document).ready(function(){
 	 * @param json data : array containing the payments delta
 	 */
 	function refreshWithDelta( data ){
+		console.log( 'refreshWithDelta' );
 		if( data.delta ){
 			//prepare jQuery Template
 			if( !$('#paymentListTemplate').data('tmpl') ){
@@ -1015,13 +1018,23 @@ $(document).ready(function(){
 			}
 
 			data.payments = data.delta; //for the template
+
+			//keep only the data for those lists, as the jQuery template use them
+			if( data.origins ) data.origins = data.origins[1];
+			if( data.methods ) data.methods = data.methods[1];
+			if( data.recipients ) data.recipients = data.recipients[1];
+
+			console.log( data );
 			var $items = $.tmpl('paymentList', data);
 			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).join(', ');
+
+			console.log( $items );
+			console.log( deltaIds );
 
 			//updating the list
 			$container
 				.isotope('remove', $container.children( deltaIds ))
-				.isotope( 'insert', $items);
+				.isotope('insert', $items);
 		}
 	}
 
