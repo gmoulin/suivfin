@@ -89,6 +89,8 @@ class payment extends common {
 						$errors[] = array('label', 'Le libellé est requis.', 'required');
 					} else {
 						$formData['label'] = trim($label);
+						//clean labelList cache if the label does not exists
+						$this->existsLabel($label);
 					}
 
 				//paymentDate, format dd/mm/yyyy
@@ -348,6 +350,37 @@ class payment extends common {
 	}
 
 	/**
+	 * existsByLabel clone for labelList special case
+	 * @param string $name
+	 * @return id or false
+	 */
+	public function existsLabel( $name ){
+		try {
+			$existsLabel = $this->_db->prepare("
+				SELECT id
+				FROM payment
+				WHERE label = :name
+			");
+
+			$existsLabel->execute( array(':name' => $name) );
+
+			$result = $existsLabel->fetchAll();
+			if( count($result) == 0 ){
+				//clear stash cache
+				$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
+				$stash = new Stash($stashFileSystem);
+
+				$stash->setupKey( 'labelList' );
+
+				$stash->clear();
+			}
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
+	}
+
+	/**
 	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
 	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
 	 * @return array[key][entry]
@@ -358,8 +391,7 @@ class payment extends common {
 			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
 			StashBox::setHandler($stashFileSystem);
 
-			StashManager::setHandler(get_class( $this ), $stashFileSystem);
-			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__);
+			$stash = StashBox::getCache('labelList');
 
 			if( $tsOnly ){
 				$ts = $stash->getTimestamp();
@@ -373,7 +405,6 @@ class payment extends common {
 			$list = $stash->get();
 			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
-
 				$loadList = $this->_db->prepare("
 					SELECT DISTINCT(label) FROM ".$this->_table." ORDER BY label
 				");
@@ -394,7 +425,7 @@ class payment extends common {
 			}
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}

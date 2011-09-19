@@ -1,4 +1,9 @@
 <?php
+//obsolete
+header($_SERVER["SERVER_PROTOCOL"]." 555 Response with exception");
+echo 'Obsolete, do not use.';
+die;
+
 //manage dropdown lists content for ajax requests
 try {
     require_once('../conf.ini.php');

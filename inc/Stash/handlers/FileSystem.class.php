@@ -336,8 +336,11 @@ class StashFileSystem implements StashHandler
 	{
 		$path = $this->makePath($key);
 
-		if(strpos($path, '.php') !== false)
-			$path = substr($path, 0, strlen($path) - 4);
+		if(strpos($path, '.php') !== false){
+			//$path = substr($path, 0, strlen($path) - 4);
+			//path -4 is NOT a directory... so the cache file was never deleted...
+			$path = dirname($path);
+		}
 
 		if(is_dir($path))
 			return StashUtilities::deleteRecursive($path);

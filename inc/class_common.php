@@ -293,7 +293,7 @@ class common {
 			}
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -347,7 +347,7 @@ class common {
 			$ts = $stash->getTimestamp();
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -408,7 +408,7 @@ class common {
 			}
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -639,6 +639,28 @@ class common {
 		$stash->setupKey( get_class($this) );
 
 		$stash->clear();
+	}
+
+	/**
+	 * clean the foreign key table from orphan data
+	 * used in clean.php before the global stash clear, so no need for _cleanCaches()
+	 */
+	public static function purgeList(){
+		try {
+			$db = init::getInstance()->dbh();
+
+			$link = get_called_class();
+
+			$purgeList = $db->prepare("
+				DELETE FROM ".$link."
+				WHERE id NOT IN (SELECT DISTINCT(".$link."FK) FROM payment)
+			");
+
+			$purgeList->execute();
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
 	}
 }
 ?>

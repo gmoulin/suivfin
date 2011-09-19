@@ -41,7 +41,8 @@ class evolution extends common {
 				':recipient' => $recipient,
 			) );
 
-			$this->_cleanCaches();
+			//deleteSince is always followed by a calcultateEvolution, so a clean cache is not needed
+			//$this->_cleanCaches();
 
 		} catch ( PDOException $e ) {
 			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );

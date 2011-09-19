@@ -217,6 +217,12 @@ try {
 				}
 
 				$response = getFreshData( $smarty, $frame, $action );
+
+				//nothing has changed, 304
+				if( empty($response) ){
+					header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
+					die;
+				}
 			break;
 		case 'chart':
 				$type = filter_has_var(INPUT_POST, 'type');
@@ -327,6 +333,80 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = nu
 	$payments = null;
 	$delta = null;
 
+	//get all the timestamps for the filters and form datalists
+	if( $action != 'delete' ){
+		$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
+		if( is_null($tsForecast) || $tsForecast === false ){
+			$tsForecast = -1;
+		} else {
+			$tsForecast = filter_var($_POST['tsForecast'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsForecast === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les prévisions incorrect.');
+			}
+		}
+
+		$tsBalance = filter_has_var(INPUT_POST, 'tsBalance');
+		if( is_null($tsBalance) || $tsBalance === false ){
+			$tsBalance = -1;
+		} else {
+			$tsBalance = filter_var($_POST['tsBalance'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsBalance === false ){
+				throw new Exception('Gestion des paiements : horodatage pour le solde incorrect.');
+			}
+		}
+
+		$tsOrigin = filter_has_var(INPUT_POST, 'tsOrigin');
+		if( is_null($tsOrigin) || $tsOrigin === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les origines manquant.');
+		} else {
+			$tsOrigin = filter_var($_POST['tsOrigin'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsOrigin === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les origines incorrect.');
+			}
+		}
+
+		$tsRecipient = filter_has_var(INPUT_POST, 'tsRecipient');
+		if( is_null($tsRecipient) || $tsRecipient === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires manquant.');
+		} else {
+			$tsRecipient = filter_var($_POST['tsRecipient'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsRecipient === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires incorrect.');
+			}
+		}
+
+		$tsMethod = filter_has_var(INPUT_POST, 'tsMethod');
+		if( is_null($tsMethod) || $tsMethod === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les méthodes manquant.');
+		} else {
+			$tsMethod = filter_var($_POST['tsMethod'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsMethod === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les méthodes incorrect.');
+			}
+		}
+
+		$tsLabel = filter_has_var(INPUT_POST, 'tsLabel');
+		if( is_null($tsLabel) || $tsLabel === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les labels manquant.');
+		} else {
+			$tsLabel = filter_var($_POST['tsLabel'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsLabel === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les labels incorrect.');
+			}
+		}
+
+		$tsLocation = filter_has_var(INPUT_POST, 'tsLocation');
+		if( is_null($tsLocation) || $tsLocation === false ){
+			throw new Exception('Gestion des paiements : horodatage pour les localisations manquant.');
+		} else {
+			$tsLocation = filter_var($_POST['tsLocation'], FILTER_VALIDATE_INT, array('min_range' => 0));
+			if( $tsLocation === false ){
+				throw new Exception('Gestion des paiements : horodatage pour les localisations incorrect.');
+			}
+		}
+	}
+
+
 	if( $action == 'delete' ){
 		if( ( $currentMonth == $paymentBefore->paymentMonth || $nextMonth == $paymentBefore->paymentMonth )
 			&& ( $paymentBefore->statusFK == 2 || $paymentBefore->statusFK == 4 )
@@ -380,60 +460,28 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = nu
 	} else { //classic case (refresh)
 		$payments = $oPayment->loadForTimeFrame( $frame );
 
-		$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
-		if( is_null($tsForecast) || $tsForecast === false ){
-			$tsForecast = -1;
-		} else {
-			$tsForecast = filter_var($_POST['tsForecast'], FILTER_VALIDATE_INT, array('min_range' => 0));
-			if( $tsForecast === false ){
-				throw new Exception('Gestion des paiements : horodatage pour les prévisions incorrect.');
+		//timestamp for sums
+		$sumsFrame = filter_has_var(INPUT_POST, 'sumsTimeframe');
+		if( !is_null($sumsFrame) && $sumsFrame !== false ){
+			$sumsFrame = filter_var($_POST['sumsTimeframe'], FILTER_SANITIZE_STRING);
+			if( $frame !== false ){
+				$tmp = explode(',', $sumsFrame);
+				if( empty($tmp) ){
+					$sumsFrame = null;
+				} else {
+					$sumsFrame = array();
+					foreach( $tmp as $couple ){
+						$c = explode('|', $couple);
+						$sumsFrame[ $c[0] ] = $c[1];
+					}
+				}
 			}
 		}
 
-		$tsBalance = filter_has_var(INPUT_POST, 'tsBalance');
-		if( is_null($tsBalance) || $tsBalance === false ){
-			$tsBalance = -1;
-		} else {
-			$tsBalance = filter_var($_POST['tsBalance'], FILTER_VALIDATE_INT, array('min_range' => 0));
-			if( $tsBalance === false ){
-				throw new Exception('Gestion des paiements : horodatage pour le solde incorrect.');
-			}
-		}
-
-		$tsOrigin = filter_has_var(INPUT_POST, 'tsOrigin');
-		if( is_null($tsOrigin) || $tsOrigin === false ){
-			throw new Exception('Gestion des paiements : horodatage pour les origines manquant.');
-		} else {
-			$tsOrigin = filter_var($_POST['tsOrigin'], FILTER_VALIDATE_INT, array('min_range' => 0));
-			if( $tsOrigin === false ){
-				throw new Exception('Gestion des paiements : horodatage pour les origines incorrect.');
-			}
-		}
-
-		$tsRecipient = filter_has_var(INPUT_POST, 'tsRecipient');
-		if( is_null($tsRecipient) || $tsRecipient === false ){
-			throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires manquant.');
-		} else {
-			$tsRecipient = filter_var($_POST['tsRecipient'], FILTER_VALIDATE_INT, array('min_range' => 0));
-			if( $tsRecipient === false ){
-				throw new Exception('Gestion des paiements : horodatage pour les bénéficiaires incorrect.');
-			}
-		}
-
-		$tsMethod = filter_has_var(INPUT_POST, 'tsMethod');
-		if( is_null($tsMethod) || $tsMethod === false ){
-			throw new Exception('Gestion des paiements : horodatage pour les méthodes manquant.');
-		} else {
-			$tsMethod = filter_var($_POST['tsMethod'], FILTER_VALIDATE_INT, array('min_range' => 0));
-			if( $tsMethod === false ){
-				throw new Exception('Gestion des paiements : horodatage pour les méthodes incorrect.');
-			}
-		}
+		$sums = $oPayment->getSums( $sumsFrame );
 	}
 
-
 	//get the data if needed
-
 	if( $tsForecast >= 0 ){
 		$forecasts = $oPayment->getForecasts( $tsForecast );
 		if( !empty($forecasts) ) $smarty->assign('forecasts', $forecasts['data']);
@@ -484,21 +532,34 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = nu
 	if( !empty($payments) ) $response['payments'] = $payments;
 	if( !empty($delta) ) $response['delta'] = $delta;
 
-	//those 3 lists are not sent back on delete
+	//those 5 lists are not sent back on delete
 	if( $action != 'delete' ){
-		if( !is_null($origins) && $tsOrigin != $origins[0] ){
-			$origins[0] = gmdate("D, d M Y H:i:s", $origins[0]) . " GMT";
+		if( !is_null($origins) && $tsOrigin != $origins['lastModified'] ){
+			$origins['lastModified'] = gmdate("D, d M Y H:i:s", $origins['lastModified']) . " GMT";
 			$response['origins'] = $origins;
 		}
 
-		if( !is_null($recipients) && $tsRecipient != $recipients[0] ){
-			$recipients[0] = gmdate("D, d M Y H:i:s", $recipients[0]) . " GMT";
+		if( !is_null($recipients) && $tsRecipient != $recipients['lastModified'] ){
+			$recipients['lastModified'] = gmdate("D, d M Y H:i:s", $recipients['lastModified']) . " GMT";
 			$response['recipients'] = $recipients;
 		}
 
-		if( !is_null($methods) && $tsMethod != $methods[0] ){
-			$methods[0] = gmdate("D, d M Y H:i:s", $methods[0])." GMT";
+		if( !is_null($methods) && $tsMethod != $methods['lastModified'] ){
+			$methods['lastModified'] = gmdate("D, d M Y H:i:s", $methods['lastModified'])." GMT";
 			$response['methods'] = $methods;
+		}
+
+		$labels = $oPayment->loadLabelList(true, false);
+		if( !is_null($labels) && $tsLabel != $labels['lastModified'] ){
+			$labels['lastModified'] = gmdate("D, d M Y H:i:s", $labels['lastModified']) . " GMT";
+			$response['labels'] = $labels;
+		}
+
+		$oLocation = new location();
+		$locations = $oLocation->loadListForFilter(true, false);
+		if( !is_null($locations) && $tsLocation != $locations['lastModified'] ){
+			$locations['lastModified'] = gmdate("D, d M Y H:i:s", $locations['lastModified']) . " GMT";
+			$response['locations'] = $locations;
 		}
 	}
 

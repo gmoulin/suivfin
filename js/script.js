@@ -384,6 +384,39 @@ $(document).ready(function(){
 						params += '&d=1';
 					}
 
+					try{
+						var originParam = 0;
+						var originCache = localStorage.getObject( 'originList' );
+						if( originCache ){
+							originParam = new Date(originCache.lastModified).getTime() / 1000;
+						}
+
+						var methodParam = 0;
+						var methodCache = localStorage.getObject( 'methodList' );
+						if( methodCache ){
+							methodParam = new Date(methodCache.lastModified).getTime() / 1000;
+						}
+
+						var recipientParam = 0;
+						var recipientCache = localStorage.getObject( 'recipientList' );
+						if( recipientCache ){
+							recipientParam = new Date(recipientCache.lastModified).getTime() / 1000;
+						}
+
+						var labelParam = 0;
+						var labelCache = localStorage.getObject( 'labelList' );
+						if( labelCache ){
+							labelParam = new Date(labelCache.lastModified).getTime() / 1000;
+						}
+
+						var locationParam = 0;
+						var locationCache = localStorage.getObject( 'locationList' );
+						if( locationCache ){
+							locationParam = new Date(locationCache.lastModified).getTime() / 1000;
+						}
+					} catch( e ){
+						alert(e);
+					}
 					/*if( $body.data('internet') == 'offline' ){
 						var modifications = localStorage.getObject('modifications') || [];
 						modifications.push(params + '&owner=' + $currentOwner.val() );
@@ -398,7 +431,12 @@ $(document).ready(function(){
 						$('header').addClass('loading');
 						$.ajax({
 							url: 'ajax/payment.php',
-							data: params,
+							data: params
+								+ '&tsOrigin=' + originParam
+								+ '&tsMethod=' + methodParam
+								+ '&tsRecipient=' + recipientParam
+								+ '&tsLabel=' + labelParam
+								+ '&tsLocation=' + locationParam,
 							cache: false,
 							type: 'POST',
 							dataType: 'json',
@@ -417,17 +455,31 @@ $(document).ready(function(){
 									$('body').unbind('click');
 									$form.removeClass('deploy');
 
+									//store localy the new data
+									store( data );
+
 									if( isUpdate ){
 										$container.isotope('remove', $item); //relayout will be done by refreshParts()
 									}
 
-									//store localy the new data
-									store( data );
-
 									refreshParts( data );
 
-									$form.find('datalist, select[id]').loadList();
-									$filter.find('select').loadList();
+									//at least one of the filter or form list has changed
+									if( data.origins ){
+										$('#origin_filter, #originList').loadList();
+									}
+									if( data.recipients ){
+										$('#recipient_filter, #recipientList').loadList();
+									}
+									if( data.methods ){
+										$('#methodList').loadList();
+									}
+									if( data.locations ){
+										$('#location_filter, #locationList').loadList();
+									}
+									if( data.labels ){
+										$('#labelList').loadList();
+									}
 
 									//focus the payment add button
 									$('.form_switch:visible a').focus();
@@ -443,8 +495,22 @@ $(document).ready(function(){
 									refreshParts( data );
 									refreshWithDelta( data );
 
-									$form.find('datalist, select[id]').loadList();
-									$filter.find('select').loadList();
+									//at least one of the filter or form list has changed
+									if( data.origins ){
+										$('#origin_filter, #originList').loadList();
+									}
+									if( data.recipients ){
+										$('#recipient_filter, #recipientList').loadList();
+									}
+									if( data.methods ){
+										$('#methodList').loadList();
+									}
+									if( data.locations ){
+										$('#location_filter, #locationList').loadList();
+									}
+									if( data.labels ){
+										$('#labelList').loadList();
+									}
 								} else {
 									//form errors display
 									formErrors(data);
@@ -963,17 +1029,17 @@ $(document).ready(function(){
 
 			//get lists from cache if missing
 			try {
-				if( !data.origins ) data.origins = localStorage.getObject('originList').data;
-				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList').data;
-				if( !data.methods ) data.methods = localStorage.getObject('methodList').data;
+				if( !data.origins ) data.origins = localStorage.getObject('originList');
+				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList');
+				if( !data.methods ) data.methods = localStorage.getObject('methodList');
 			} catch( e ){
 				alert(e);
 			}
 
 			//add fixed lists
-			data.statuses = statuses;
-			data.types = types;
-			data.currenciesWSymbol = currenciesWSymbol;
+			data.statuses = { 'data': statuses };
+			data.types = { 'data': types };
+			data.currenciesWSymbol = { 'data': currenciesWSymbol };
 
 			//generate the new items via templating
 			var $items = $.tmpl('paymentList', data);
@@ -1019,10 +1085,19 @@ $(document).ready(function(){
 
 			data.payments = data.delta; //for the template
 
-			//keep only the data for those lists, as the jQuery template use them
-			if( data.origins ) data.origins = data.origins[1];
-			if( data.methods ) data.methods = data.methods[1];
-			if( data.recipients ) data.recipients = data.recipients[1];
+			//get lists from cache if missing
+			try {
+				if( !data.origins ) data.origins = localStorage.getObject('originList');
+				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList');
+				if( !data.methods ) data.methods = localStorage.getObject('methodList');
+			} catch( e ){
+				alert(e);
+			}
+
+			//add fixed lists
+			data.statuses = { 'data': statuses };
+			data.types = { 'data': types };
+			data.currenciesWSymbol = { 'data': currenciesWSymbol };
 
 			console.log( data );
 			var $items = $.tmpl('paymentList', data);
@@ -1086,13 +1161,19 @@ $(document).ready(function(){
 			return;
 		}
 
-		var params = {};
+		var paymentsTimeframe = {},
+			sumsTimeframe = {};
 		try {
 			$.each(changes.added, function(i, month){
 				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 				if( monthCache ){
-					params[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
-				} else params[month] = 0;
+					paymentsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
+				} else paymentsTimeframe[month] = 0;
+
+				var monthCache = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
+				if( monthCache ){
+					sumsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
+				} else sumsTimeframe[month] = 0;
 			});
 
 			if( needBalance ){
@@ -1129,29 +1210,72 @@ $(document).ready(function(){
 				recipientParam = new Date(recipientCache.lastModified).getTime() / 1000;
 			}
 
+			var labelParam = 0;
+			var labelCache = localStorage.getObject( 'labelList' );
+			if( labelCache ){
+				labelParam = new Date(labelCache.lastModified).getTime() / 1000;
+			}
+
+			var locationParam = 0;
+			var locationCache = localStorage.getObject( 'locationList' );
+			if( locationCache ){
+				locationParam = new Date(locationCache.lastModified).getTime() / 1000;
+			}
 		} catch( e ){
 			alert(e);
 		}
 
 		$.ajax('ajax/payment.php', {
-			data: 'action=refresh&timeframe=' + $.map(params, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
+			data: 'action=refresh'
+				+ '&timeframe=' + $.map(paymentsTimeframe, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
+				+ '&sumsTimeframe=' + $.map(sumsTimeframe, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
 				+ '&owner=' + $currentOwner.val()
 				+ '&tsOrigin=' + originParam
 				+ '&tsMethod=' + methodParam
 				+ '&tsRecipient=' + recipientParam
+				+ '&tsLabel=' + labelParam
+				+ '&tsLocation=' + locationParam
 				+ ( needBalance ? '&tsBalance=' + balanceParam : '' )
 				+ ( needForecast ? '&tsForecast=' + forecastParam : '' ),
 			dataType: 'json',
 			type: 'post',
 			success: function(data, textStatus, jqXHR){
 				console.log( 'success' );
-				console.log( data.payments );
 				//when nothing has changed, data is empty and will transform into an array when filled, we need an object for jQuery template
 				if( $.isEmptyObject(data) ) data = {};
 
 				//server will send a 304 status if the parts have not changed
 				if( jqXHR.status == 200 ){
 					store( data );
+
+					//form selects and datalists are empty, happens only on page load
+					if( !$('#labelList').children().length ){
+						$form.find('datalist, select[id]').loadList();
+						$filter.find('select').loadList();
+
+					//at least one of the filter or form list has changed
+					} else {
+						if( data.origins ){
+							$('#origin_filter, #originList').loadList();
+						}
+						if( data.recipients ){
+							$('#recipient_filter, #recipientList').loadList();
+						}
+						if( data.methods ){
+							$('#methodList').loadList();
+						}
+						if( data.locations ){
+							$('#location_filter, #locationList').loadList();
+						}
+						if( data.labels ){
+							$('#labelList').loadList();
+						}
+					}
+
+				//form selects and datalists are empty, happens only on page load
+				} else if( !$('#labelList').children().length ){
+					$form.find('datalist, select[id]').loadList();
+					$filter.find('select').loadList();
 				}
 
 				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
@@ -1170,17 +1294,9 @@ $(document).ready(function(){
 					}
 				}
 
-				if( !data.origins ){
-					data.origins = localStorage.getObject('originList').data;
-				}
-
-				if( !data.recipients ){
-					data.recipients = localStorage.getObject('recipientList').data;
-				}
-
-				if( !data.methods ){
-					data.methods = localStorage.getObject('methodList').data;
-				}
+				//location and label lists are not needed for payments template
+				if( data.locations ) data.locations = null;
+				if( data.labels ) data.labels = null;
 
 				//create the objects if missing
 				if( !data.payments ) data.payments = {};
@@ -1222,34 +1338,42 @@ $(document).ready(function(){
 	function store( data ){
 		try {
 			if( data.balances ){
-				localStorage.setObject($currentOwner.val() + '_balance', {'lastModified': data.balances.lastModified, 'html': data.balances.html});
+				localStorage.setObject($currentOwner.val() + '_balance', data.balances);
 			}
 
 			if( data.forecasts ){
-				localStorage.setObject($currentOwner.val() + '_forecast', {'lastModified': data.forecasts.lastModified, 'html': data.forecasts.html});
+				localStorage.setObject($currentOwner.val() + '_forecast', data.forecasts);
 			}
 
 			if( data.origins ){
-				localStorage.setObject('originList', {'lastModified': data.origins[0], 'data': data.origins[1]});
+				localStorage.setObject('originList', data.origins);
 			}
 
 			if( data.recipients ){
-				localStorage.setObject('recipientList', {'lastModified': data.recipients[0], 'data': data.recipients[1]});
+				localStorage.setObject('recipientList', data.recipients);
 			}
 
 			if( data.methods ){
-				localStorage.setObject('methodList', {'lastModified': data.methods[0], 'data': data.methods[1]});
+				localStorage.setObject('methodList', data.methods);
+			}
+
+			if( data.labels ){
+				localStorage.setObject('labelList', data.labels);
+			}
+
+			if( data.locations ){
+				localStorage.setObject('locationList', data.locations);
 			}
 
 			if( data.sums ){
 				$.each(data.sums, function(month, info){
-					localStorage.setObject($currentOwner.val() + '_sums_' + month, {'lastModified': data.sums[month].lastModified, 'html': data.sums[month].html})
+					localStorage.setObject($currentOwner.val() + '_sums_' + month, info)
 				});
 			}
 
 			if( data.payments ){
 				$.each(data.payments, function(month, info){
-					localStorage.setObject($currentOwner.val() + '_payments_' + month, {'lastModified': info.lastModified, 'list': info.list});
+					localStorage.setObject($currentOwner.val() + '_payments_' + month, info);
 				});
 			}
 		} catch( e ){
@@ -1686,12 +1810,11 @@ $(document).ready(function(){
 		});
 	}
 
-	//timeout function for loadList() and reloadParts();
+	//timeout function for reloadParts();
 	function ajaxCalls(){
 		if( !delayAjax ){
 			if( delayTimeout ) clearTimeout(delayTimeout);
 			reloadParts(true, true);
-			setTimeout(function(){ $form.find('datalist, select[id]').loadList(); }, 500);
 		}
 		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);
 	}
@@ -1713,59 +1836,26 @@ $.fn.updateFiltersOutputs = function(){
 }
 
 /**
- * ajax load for <datalist> and <select> options
- * use localStorage to cache results
- * use 'If-Modified-Since' / 'Last-Modified' header and 200 / 304 statuses pairs to get only fresh data when needed
+ * data load for <datalist> and <select> options
+ * use localStorage to get data
  */
 $.fn.loadList = function(){
 	return this.each(function(){
 		var $list = $(this),
-			key = $list.attr('id').replace(/FK$/g, 'List'),
+			key = $list.attr('id').replace(/_filter/g, 'List'),
+			filterClass = key.replace(/List/g, ''),
 			decoder = $('<textarea>'),
-			cachedData,
-			lastModified = 0;
+			cache;
 
 		if( isFennec ){
 			$list.siblings('select').remove();
 		}
 
 		try {
-			cachedData = localStorage.getObject(key);
-			if( cachedData ){
-				lastModified = cachedData.lastModified;
-			}
-		} catch( e ){
-			alert(e);
-		}
-
-		//ask the list values to the server and create the <option>s with it
-		$.ajax('ajax/loadList.php', {
-			data: 'field=' + key,
-			dataType: 'json',
-			cache: false,
-			headers: {
-				'If-Modified-Since': lastModified
-			},
-			success: function(data, textStatus, jqXHR){
-				//server will send a 304 status if the list has not changed
-				if( jqXHR.status == 200 ){
-					try {
-						lastModified = jqXHR.getResponseHeader('Last-Modified');
-
-						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-					} catch( e ){
-						alert(e);
-					}
-
-				} else {
-					data = cachedData.data;
-
-					if( $list.find('option:gt(0)').length ){
-						//options already present, no need to fill the field
-						return;
-					}
-				}
-
+			cache = localStorage.getObject(key);
+			console.log( $list );
+			console.log( cache );
+			if( cache ){
 				var isDatalist = $list.is('datalist');
 
 				if( isDatalist ){
@@ -1790,7 +1880,7 @@ $.fn.loadList = function(){
 					$list.find('option:gt(0)').remove(); //keep the first option aka "placeholder"
 				}
 
-				$.each(data, function(id, name){
+				$.each(cache.data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
 						if( !Modernizr.input.list ){
@@ -1801,7 +1891,7 @@ $.fn.loadList = function(){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}
 					} else {
-						$('<option>', { "value": id, text: name }).appendTo( $list );
+						$('<option>', { "value": "." + filterClass + '_' + id, text: name }).appendTo( $list );
 					}
 				});
 
@@ -1812,7 +1902,9 @@ $.fn.loadList = function(){
 					$list.removeData('selectedId');
 				}
 			}
-		});
+		} catch( e ){
+			alert(e);
+		}
 	});
 }
 
@@ -1918,12 +2010,12 @@ if( typeof Storage != "undefined" ){
 }
 
 /* jquery template getter functions */
-function getValue( data, index ){
-	return data[index];
+function getValue( object, index ){
+	return object.data[index];
 }
 
-function getSymbol( data, index ){
-	return data[index].symbol;
+function getSymbol( object, index ){
+	return object.data[index].symbol;
 }
 
 /*! Copyright (c) 2010 Brandon Aaron (http://brandonaaron.net)
