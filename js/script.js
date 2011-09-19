@@ -785,8 +785,6 @@ $(document).ready(function(){
 						localStorage.setObject(owner + '_payments_' + itemMonth, {'lastModified': 0, 'html': null});
 
 						if( !$.isEmptyObject(data) ){
-							console.log( data );
-							console.log( data.sums );
 							if( data.sums ){
 								$.each(data.sums, function(month, info){
 									localStorage.setObject(owner + '_sums_' + month, {'lastModified': info.lastModified, 'html': info.html})
@@ -877,7 +875,6 @@ $(document).ready(function(){
 
 	//time frame chekboxes
 		$('#time_frame :checkbox').change(function(e){
-			console.log( 'timeframe change' );
 			clearTimeout(buffer);
 
 			//toggle the months checkboxes if the event target is a year checkbox
@@ -899,7 +896,7 @@ $(document).ready(function(){
 			//when submitting an add or update the new data will be in the request response
 			if( !$form.hasClass('submitting') ){
 				//wait 500ms before reloading data, help when user check several checkboxes quickly
-				buffer = setTimeout(function(){ console.log('buffered'); reloadParts(false, false); }, 500);
+				buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
 			}
 		});
 
@@ -980,8 +977,6 @@ $(document).ready(function(){
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
 	function refreshParts( data ){
-		console.log( 'refreshParts' );
-		console.log( data );
 		if( data.sums ){
 			//need to reorder the months
 			var months = [];
@@ -992,8 +987,6 @@ $(document).ready(function(){
 
 			$sums.children('[data-month]').remove();
 			$.each(months, function(i, month){
-				console.log(month);
-				console.log(data.sums[month]);
 				$sums.append(data.sums[month].html);
 			});
 		}
@@ -1076,7 +1069,6 @@ $(document).ready(function(){
 	 * @param json data : array containing the payments delta
 	 */
 	function refreshWithDelta( data ){
-		console.log( 'refreshWithDelta' );
 		if( data.delta ){
 			//prepare jQuery Template
 			if( !$('#paymentListTemplate').data('tmpl') ){
@@ -1099,12 +1091,9 @@ $(document).ready(function(){
 			data.types = { 'data': types };
 			data.currenciesWSymbol = { 'data': currenciesWSymbol };
 
-			console.log( data );
 			var $items = $.tmpl('paymentList', data);
 			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).join(', ');
 
-			console.log( $items );
-			console.log( deltaIds );
 
 			//updating the list
 			$container
@@ -1142,10 +1131,6 @@ $(document).ready(function(){
 		if( timeframe == '' ) return; //no month to manage, do nothing by default
 		var changes = diff( timeframeSnapshot, timeframe );
 
-		console.log( timeframeSnapshot );
-		console.log( timeframe );
-		console.log( changes.removed );
-		console.log( changes.added );
 		//remove payments and parts for removed month
 		if( changes.removed.length ){
 			$.each(changes.removed, function(i, month){
@@ -1240,7 +1225,6 @@ $(document).ready(function(){
 			dataType: 'json',
 			type: 'post',
 			success: function(data, textStatus, jqXHR){
-				console.log( 'success' );
 				//when nothing has changed, data is empty and will transform into an array when filled, we need an object for jQuery template
 				if( $.isEmptyObject(data) ) data = {};
 
@@ -1853,8 +1837,6 @@ $.fn.loadList = function(){
 
 		try {
 			cache = localStorage.getObject(key);
-			console.log( $list );
-			console.log( cache );
 			if( cache ){
 				var isDatalist = $list.is('datalist');
 

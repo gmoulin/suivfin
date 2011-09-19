@@ -89,8 +89,6 @@ class payment extends common {
 						$errors[] = array('label', 'Le libellé est requis.', 'required');
 					} else {
 						$formData['label'] = trim($label);
-						//clean labelList cache if the label does not exists
-						$this->existsLabel($label);
 					}
 
 				//paymentDate, format dd/mm/yyyy
@@ -344,6 +342,9 @@ class payment extends common {
 			}
 
 			$this->_data['ownerFK'] = $this->getOwner();
+
+			//clean labelList cache if the label does not exists
+			$this->existsLabel($formData['label']);
 		}
 
 		return $formData;
