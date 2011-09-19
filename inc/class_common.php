@@ -293,7 +293,7 @@ class common {
 			}
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -306,7 +306,7 @@ class common {
 	/**
 	 * @param boolean $returnTs : flag for the function to return the list and the ts or only the list
 	 * @param boolean $tsOnly : flag for the function to return the cache creation date timestamp only
-	 * @return array[key][entry]
+	 * @return array
 	 */
 	public function loadListForFilter( $returnTs = false, $tsOnly = false ){
 		try {
@@ -327,7 +327,6 @@ class common {
 			}
 
 			$list = $stash->get();
-			$ts = null;
 			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
 
 				$loadList = $this->_db->prepare("
@@ -343,14 +342,12 @@ class common {
 
 				if( !empty($list) ){
 					$stash->store($list, STASH_EXPIRE);
-					$ts = $stash->getTimestamp();
 				}
-			} elseif( $returnTs ){
-				$ts = $stash->getTimestamp();
 			}
+			$ts = $stash->getTimestamp();
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -411,7 +408,7 @@ class common {
 			}
 
 			if( $returnTs ){
-				return array($ts, $list);
+				return array('lastModified' => $ts, 'data' => $list);
 			} else {
 				return $list;
 			}
@@ -642,6 +639,28 @@ class common {
 		$stash->setupKey( get_class($this) );
 
 		$stash->clear();
+	}
+
+	/**
+	 * clean the foreign key table from orphan data
+	 * used in clean.php before the global stash clear, so no need for _cleanCaches()
+	 */
+	public static function purgeList(){
+		try {
+			$db = init::getInstance()->dbh();
+
+			$link = get_called_class();
+
+			$purgeList = $db->prepare("
+				DELETE FROM ".$link."
+				WHERE id NOT IN (SELECT DISTINCT(".$link."FK) FROM payment)
+			");
+
+			$purgeList->execute();
+
+		} catch ( PDOException $e ) {
+			erreur_pdo( $e, get_class( $this ), __FUNCTION__ );
+		}
 	}
 }
 ?>

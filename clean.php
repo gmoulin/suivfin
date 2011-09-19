@@ -33,6 +33,11 @@ try {
 		}
 		closedir($handle);
 
+		//clean the foreign keys table from orphan data
+		origin::purgeList();
+		method::purgeList();
+		location::purgeList();
+		recipient::purgeList();
 
 		if( !is_dir(STASH_PATH) ){
 			echo 'stash cache not cleaned, folder missing. ('.STASH_PATH.')';

@@ -17,9 +17,6 @@
 		Origine :
 		<select name="origin" id="origin_filter">
 			<option value="*" selected="selected">Tout</option>
-			{foreach $origins as $id => $name}
-				<option value=".origin_{$id}">{$name}</option>
-			{/foreach}
 		</select>
 	</section>
 
@@ -39,9 +36,6 @@
 		Bénéficiaire :
 		<select name="recipient" id="recipient_filter">
 			<option value="*" selected="selected">Tout</option>
-			{foreach $recipients as $id => $name}
-				<option value=".recipient_{$id}">{$name}</option>
-			{/foreach}
 		</select>
 	</section>
 
@@ -85,9 +79,6 @@
 		Localisation :
 		<select name="location" id="location_filter">
 			<option value="*" selected="selected">Tout</option>
-			{foreach $locations as $id => $name}
-				<option value=".location_{$id}">{$name}</option>
-			{/foreach}
 		</select>
 	</section>
 </aside>

@@ -3,11 +3,11 @@
 		<section id="sums" class="clearfix">
 	{/if}
 	{if !empty($sums.list)}
-		{foreach $sums.list as $month => $sum_types}
+		<div data-month="{$sumMonth}">
 			<table>
 				<thead>
 					<tr>
-						<th title="du 24 précédent au 25">{$monthsTranslation[$month|substr:-2]}</th>
+						<th title="du 24 précédent au 25">{$monthsTranslation[$sumMonth|substr:-2]}</th>
 						{foreach $sums.fromto as $ori}
 							<th class="fromto">
 								{$origins[$ori]|replace:$owners[$owner]:''|replace:'Liquide ':''|replace:'Euro':'€'|replace:'Franc':'CHF'|trim}
@@ -19,16 +19,16 @@
 					<tr>
 						<td class="type">Balance</td>
 						{foreach $sums.fromto as $header}
-							{if !isset($sums.balance[$month][$header])}
+							{if !isset($sums.balance[$header])}
 								<td></td>
 							{else}
-								{foreach $sums.balance[$month][$header] as $currency => $amount}
+								{foreach $sums.balance[$header] as $currency => $amount}
 									<td>{$amount|number_format:2:'.':'\''} {$currenciesWSymbol[$currency].symbol}</td>
 								{/foreach}
 							{/if}
 						{/foreach}
 					</tr>
-					{foreach $sum_types as $type => $sum_fromto}
+					{foreach $sums.list as $type => $sum_fromto}
 						<tr>
 							<td class="type">{$types[$type]|capitalize}</td>
 							{foreach $sums.fromto as $header}
@@ -47,10 +47,10 @@
 					<tr>
 						<th>Total</th>
 						{foreach $sums.fromto as $header}
-							{if !isset($sums.total[$month][$header])}
+							{if !isset($sums.total[$header])}
 								<td></td>
 							{else}
-								{foreach $sums.total[$month][$header] as $currency => $sum}
+								{foreach $sums.total[$header] as $currency => $sum}
 									<td>{$sum|number_format:2:'.':'\''} {$currenciesWSymbol[$currency].symbol}</td>
 								{/foreach}
 							{/if}
@@ -58,8 +58,7 @@
 					</tr>
 				</tfoot>
 			</table>
-			{if !$sum_types@last}<hr />{/if}
-		{/foreach}
+		</div>
 	{/if}
 	{if !$partial}
 		</section>

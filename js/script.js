@@ -46,55 +46,32 @@ if( Modernizr.applicationcache ){
 	}
 
 	//just force reload of the page if an update is available
-	window.applicationCache.addEventListener(
-		'updateready',
-		function(){
-			//busy visual information
-			$('header').removeClass('loading');
-			if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
-				window.applicationCache.swapCache();
-				window.location.reload();
-			} else {
-				delayAjax = false;
-			}
-		},
-		false
-	);
+	window.applicationCache.addEventListener('updateready', function(){
+		if( confirm('Une nouvelle version est disponible, voulez-vous recharger la page ?') ){
+			window.applicationCache.swapCache();
+			window.location.reload();
+		} else {
+			delayAjax = false;
+		}
+	}, false);
 
-	window.applicationCache.addEventListener(
-		'checking',
-		function(){
-			//delay ajax calls if there is a new manifest version
-			delayAjax = true;
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'downloading',
-		function(){
-			//busy visual information
-			$('header').addClass('loading');
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'noupdate',
-		function(){
-			delayAjax = false;
-			$('header').removeClass('loading');
-		},
-		false
-	);
-	window.applicationCache.addEventListener(
-		'error',
-		function(){
-			//delay ajax calls if there is a new manifest version
-			delayAjax = false;
-			$('header').removeClass('loading');
-			alert('Error while downloading the new version');
-		},
-		false
-	);
+	window.applicationCache.addEventListener('checking', function(){
+		//delay ajax calls if there is a new manifest version
+		delayAjax = true;
+	}, false);
+
+	/*window.applicationCache.addEventListener('downloading', function(){
+	}, false);*/
+
+	window.applicationCache.addEventListener('noupdate', function(){
+		delayAjax = false;
+	}, false);
+
+	window.applicationCache.addEventListener('error', function(){
+		//delay ajax calls if there is a new manifest version
+		delayAjax = false;
+		alert('Error while downloading the new version');
+	}, false);
 
 	//sometimes a DOM exception is raised by update() on opera...
 	try {
@@ -215,21 +192,33 @@ var isFennec = navigator.userAgent.indexOf('Fennec') != -1;
 
 $(document).ready(function(){
 
-	var $body = $('body'),
-		$container = $('#container'),
-		$sums = $('#sums'),
-		$form = $('#payment_form'),
-		$filter = $('#filter'),
-		$timeframe = $('#time_frame'),
-		$currentOwner = $('#current_owner'),
-		filters = {},
-		buffer = null,
-		chart = null,
-		legendCurrency = [];
+	var $body		   = $('body'),
+		$container	   = $('#container'),
+		$sums		   = $('#sums'),
+		$forecast	   = $('#forecasts'),
+		$balance	   = $('#balances'),
+		$sums		   = $('#sums'),
+		$form		   = $('#payment_form'),
+		$filter		   = $('#filter'),
+		$timeframe	   = $('#time_frame'),
+		$currentOwner  = $('#current_owner'),
+		filters		   = {},
+		buffer		   = null,
+		chart		   = null,
+		legendCurrency = [],
+		currentDate	   = new Date();
+		if( currentDate.getDate() > 24 ){
+			currentDate.setMonth(currentDate.getMonth() + 1 );
+			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
+		} else {
+			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
+		}
+		currentDate.setMonth(currentDate.getMonth() + 1 );
+		var nextMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 
 	/* online - offline modes */
 		/* @todo to finish and test */
-		window.addEventListener("online", function(){
+		/*window.addEventListener("online", function(){
 			$body.removeClass("offline")
 				 .data('internet', 'online');
 
@@ -291,7 +280,7 @@ $(document).ready(function(){
 		} else {
 			$body.addClass("offline")
 				 .data('internet', 'offline');
-		}
+		}*/
 
 	//ajax global management
 		$('header').ajaxStart(function(){
@@ -303,6 +292,7 @@ $(document).ready(function(){
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
+		//cache is managed via Last-Modified headers
 		$.ajaxSetup({cache: false});
 
 	//forms actions
@@ -320,109 +310,226 @@ $(document).ready(function(){
 			});
 		});
 
-		$form.submit(function(e){
-			e.preventDefault();
-			if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
-				$form.addClass('submitting'); //multiple call protection and visual loading display
+		$form
+			.submit(function(e){
+				e.preventDefault();
+				if( $(this)[0].checkValidity() && !$form.hasClass('submitting') ){
+					$form.addClass('submitting'); //multiple call protection and visual loading display
 
-				//is payment month present in time frame
-				var paymentDate = $('#paymentDate').val().split('/'),
-					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
-					tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
-					m = tmp.getMonth() + 1, //javascript month index start at 0
-					newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );
+					//is payment month present in time frame
+					var paymentDate = $('#paymentDate').val().split('/'),
+						tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]),
+						tmp = (tmp.getDate() > 24 ? new Date(tmp.getFullYear(), tmp.getMonth() + 1, 1) : tmp),
+						m = tmp.getMonth() + 1, //javascript month index start at 0
+						newMonth = tmp.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); //format YYYY-MM
 
-				var needReload = false,
-					$cb = $('#time_frame').find('input[value=' + newMonth + ']');
-				if( $cb.length ){
-					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					if( !$cb.is(':checked') ) $('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
-				} else {
-					needReload = true;
-				}
+					var isUpdate = ( $('#id').val() > 0 ? true : false );
+					if( isUpdate ){
+						var $item = $('#payment_' + $('#id').val());
+						var oldDate = $item.attr('data-date'), //unix timestamp in seconds
+							oldMonth = $item.attr('data-month'); //format YYYY-MM
+					}
 
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
-					params = $(':input', '#payment_form').serialize() + ( !needReload ? '&timeframe=' + tf : '' );
+					/**
+					 * in which case are we ?
+					 * delta (&d=1)
+					 * 		payments list -> delta only
+					 * 		balance -> only if current month
+					 * 		sums -> payment month data
+					 * 		forecasts -> only if status 2 or 4
+					 * timeframe change (&timeframe=)
+					 * 		payments list -> payment month data, delete payment in list if update
+					 * 		balance -> only if payment date (new or old one) <= today
+					 * 		sums -> payment month data (new and old one)
+					 * 		forecasts -> only if status 2 or 4
+					 * reload
+					 * 		payments list -> not needed
+					 * 		balance -> not needed
+					 * 		sums -> not needed
+					 * 		forecasts ->  not needed
+					 * 		save new timeframe and use it after reload
+					 */
+					var actionCase = false,
+						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']'),
+						params = $(':input', '#payment_form').serialize();
 
-				if( !Modernizr.input.list || isFennec ){
-					params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
-
-					$('input[list]', '#payment_form').each(function(){
-						var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
-							param = '&' + this.name + '=';
-						params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
-					});
-
-					params += ( !needReload ? '&timeframe=' + tf : '' );
-				}
-
-				if( $body.data('internet') == 'offline' ){
-					var modifications = localStorage.getObject('modifications') || [];
-					modifications.push(params + '&owner=' + $currentOwner.val() );
-					localStorage.setObject('modifications', modifications);
-
-					//form hide
-					$('body').unbind('click');
-					$form.removeClass('submitting').removeClass('deploy');
-
-					alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
-				} else {
-					$('header').addClass('loading');
-					$.ajax({
-						url: 'ajax/payment.php',
-						data: params,
-						cache: false,
-						type: 'POST',
-						dataType: 'json',
-						complete: function(){
-							$form.removeClass('submitting');
-						},
-						success: function(data, textStatus, jqXHR){
-							$form.removeClass('submitting'); //security, sometimes complete() is not called...
-							if( data == 'ok' ){
-								if( needReload ) window.location.reload();
-								else reloadParts();
-
-							} else if( data.payments ){
-								$('header').removeClass('loading');
-								//form hide
-								$('body').unbind('click');
-								$form.removeClass('deploy');
-
-								try {
-									lastModified = jqXHR.getResponseHeader('Last-Modified');
-
-									var key = $currentOwner.val() + '_' + $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-
-									localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-								} catch( e ){
-									alert(e);
-								}
-
-								refreshParts( data );
-
-								$form.find('datalist, select[id]').loadList();
-								$filter.find('select').loadList();
-
-								//focus the payment add button
-								$('.form_switch:visible a').focus();
-							} else {
-								//form errors display
-								formErrors(data);
-							}
+					if( $gotMonth.length ){
+						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
+						if( !$gotMonth.is(':checked') ){
+							$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+							actionCase = 'timeframe-change';
+						} else {
+							actionCase = 'delta';
 						}
-					});
+					} else {
+						actionCase = 'reload';
+					}
+
+					//special case for Fennec and false positive support of datalist
+					//@todo remove when full support
+					if( !Modernizr.input.list || isFennec ){
+						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
+
+						$('input[list]', '#payment_form').each(function(){
+							var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
+								param = '&' + this.name + '=';
+							params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
+						});
+					}
+
+					//add the case needed info
+					if( actionCase == 'timeframe-change' ){
+						params += '&timeframe=' + newMonth;
+					} else if( actionCase == 'delta' ){
+						params += '&d=1';
+					}
+
+					try{
+						var originParam = 0;
+						var originCache = localStorage.getObject( 'originList' );
+						if( originCache ){
+							originParam = new Date(originCache.lastModified).getTime() / 1000;
+						}
+
+						var methodParam = 0;
+						var methodCache = localStorage.getObject( 'methodList' );
+						if( methodCache ){
+							methodParam = new Date(methodCache.lastModified).getTime() / 1000;
+						}
+
+						var recipientParam = 0;
+						var recipientCache = localStorage.getObject( 'recipientList' );
+						if( recipientCache ){
+							recipientParam = new Date(recipientCache.lastModified).getTime() / 1000;
+						}
+
+						var labelParam = 0;
+						var labelCache = localStorage.getObject( 'labelList' );
+						if( labelCache ){
+							labelParam = new Date(labelCache.lastModified).getTime() / 1000;
+						}
+
+						var locationParam = 0;
+						var locationCache = localStorage.getObject( 'locationList' );
+						if( locationCache ){
+							locationParam = new Date(locationCache.lastModified).getTime() / 1000;
+						}
+					} catch( e ){
+						alert(e);
+					}
+					/*if( $body.data('internet') == 'offline' ){
+						var modifications = localStorage.getObject('modifications') || [];
+						modifications.push(params + '&owner=' + $currentOwner.val() );
+						localStorage.setObject('modifications', modifications);
+
+						//form hide
+						$('body').unbind('click');
+						$form.removeClass('submitting').removeClass('deploy');
+
+						alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
+					} else {*/
+						$('header').addClass('loading');
+						$.ajax({
+							url: 'ajax/payment.php',
+							data: params
+								+ '&tsOrigin=' + originParam
+								+ '&tsMethod=' + methodParam
+								+ '&tsRecipient=' + recipientParam
+								+ '&tsLabel=' + labelParam
+								+ '&tsLocation=' + locationParam,
+							cache: false,
+							type: 'POST',
+							dataType: 'json',
+							complete: function(){
+								$form.removeClass('submitting');
+							},
+							success: function(data, textStatus, jqXHR){
+								$form.removeClass('submitting'); //security, sometimes complete() is not called...
+
+								if( actionCase == 'reload' && data == 'ok' ){
+									window.location.reload(); //the time frame is missing a month, need to reload the page
+
+								} else if( actionCase == 'timeframe-change' && data.payments ){
+									$('header').removeClass('loading');
+									//form hide
+									$('body').unbind('click');
+									$form.removeClass('deploy');
+
+									//store localy the new data
+									store( data );
+
+									if( isUpdate ){
+										$container.isotope('remove', $item); //relayout will be done by refreshParts()
+									}
+
+									refreshParts( data );
+
+									//at least one of the filter or form list has changed
+									if( data.origins ){
+										$('#origin_filter, #originList').loadList();
+									}
+									if( data.recipients ){
+										$('#recipient_filter, #recipientList').loadList();
+									}
+									if( data.methods ){
+										$('#methodList').loadList();
+									}
+									if( data.locations ){
+										$('#location_filter, #locationList').loadList();
+									}
+									if( data.labels ){
+										$('#labelList').loadList();
+									}
+
+									//focus the payment add button
+									$('.form_switch:visible a').focus();
+								} else if( data.delta ){
+									$('header').removeClass('loading');
+									//form hide
+									$('body').unbind('click');
+									$form.removeClass('deploy');
+
+									//no need to remove the localStorage for payment month data as lastModified date is obsolete
+									store( data );
+
+									refreshParts( data );
+									refreshWithDelta( data );
+
+									//at least one of the filter or form list has changed
+									if( data.origins ){
+										$('#origin_filter, #originList').loadList();
+									}
+									if( data.recipients ){
+										$('#recipient_filter, #recipientList').loadList();
+									}
+									if( data.methods ){
+										$('#methodList').loadList();
+									}
+									if( data.locations ){
+										$('#location_filter, #locationList').loadList();
+									}
+									if( data.labels ){
+										$('#labelList').loadList();
+									}
+								} else {
+									//form errors display
+									formErrors(data);
+								}
+							}
+						});
+					//}
 				}
-			}
-		}).delegate('input[name=typeFK]', 'change', function(e){
-			if( this.id == 'type_3' ){
-				$form.find('.ownerChoice').fadeIn();
-			} else {
-				$form.find('.ownerChoice:visible').fadeOut();
-			}
-		}).find('fieldset').click(function(e){
-			e.stopPropagation();
-		});
+			})
+			.delegate('input[name=typeFK]', 'change', function(e){
+				if( this.id == 'type_3' ){
+					$form.find('.ownerChoice').fadeIn();
+				} else {
+					$form.find('.ownerChoice:visible').fadeOut();
+				}
+			})
+			.find('fieldset').click(function(e){
+				e.stopPropagation();
+			});
 
 		$('#formCancel').click(function(){
 			$('body').unbind('click');
@@ -442,7 +549,8 @@ $(document).ready(function(){
 					$form.removeClass('deploy').removeClass('submitting');
 				}
 			}
-		}).delegate('#amount', 'keydown', function(e){
+		})
+		.delegate('#amount', 'keydown', function(e){
 			if( e.which == 188 ){ //, pressed (comma)
 				e.preventDefault();
 				$('#amount').val(function(){ return this.value + '.'; });
@@ -516,7 +624,8 @@ $(document).ready(function(){
 					return parseFloat( $elem.data('amount') );
 				}
 			}
-		}).delegate('.edit, .fork', 'click', function(e){
+		})
+		.delegate('.edit, .fork', 'click', function(e){
 			e.preventDefault();
 			$form.resetForm()
 				 .addClass('deploy');
@@ -605,34 +714,86 @@ $(document).ready(function(){
 					if( $this.hasClass('fork') ) $('#id').val('');
 				});
 			}
-		}).delegate('.trash', 'click', function(e){
+		})
+		.delegate('.trash', 'click', function(e){
 			e.preventDefault();
 			if( confirm('Êtes-vous sûr de supprimer ce paiement ?') ){
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(','),
-					params = 'action=delete&id=' + $(this).attr('href') + '&timeframe=' + tf;
+				var $item = $(this).closest('.item'),
+					itemMonth = $item.attr('data-month'),
+					itemStatus = $item.attr('data-status'),
+					owner = $currentOwner.val();
 
-				if( $body.data('internet') == 'offline' ){
-					var deletions = localStorage.getObject('deletions') || [];
-					deletions.push(params + '&owner=' + $currentOwner.val() );
-					localStorage.setObject('deletions', deletions);
+				//remove the payment
+				$container.isotope('remove', $item).isotope('reLayout');
+				applyFilters();
 
-					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
+				//need balance ?
+				//yes if payment is for current month
+				var balanceParam = '';
+				if( itemMonth == currentMonth ){
+					try{
+						balanceParam = 0;
+						var balanceCache = localStorage.getObject( owner + '_balance' );
+						if( balanceCache ){
+							balanceParam = new Date(balanceCache.lastModified).getTime() / 1000;
+						}
+					} catch(e){
+						alert(e);
+					}
+				}
 
-					$container.isotope('remove', $(this).closest('.item')).isotope('reLayout');
-					applyFilters();
+				//need forecast ?
+				//yes if for current month or the next and if status is 2 or 4 (foreseen or to pay)
+				var forecastParam = '';
+				if( (   itemMonth == currentMonth
+					 || itemMonth == nextMonth )
+					&&
+					(   itemStatus == 2
+					 || itemStatus == 4 )
+				){
+					try{
+						forecastParam = 0;
+						var forecastCache = localStorage.getObject( owner + '_forecast' );
+						if( forecastCache ){
+							forecastParam = new Date(forecastCache.lastModified).getTime() / 1000;
+						}
+					} catch(e){
+						alert(e);
+					}
+				}
 
-				} else {
+				//need sum ?
+				//always, will be sent back by the server
+
+				//prepare the ajax call parameters
+				var params = 'action=delete&id=' + $(this).attr('href')
+					+ ( balanceParam.length ? '&tsBalance=' + balanceParam : '' )
+					+ ( forecastParam.length ? '&tsForecast=' + forecastParam : '' );
+
+//				if( $body.data('internet') == 'offline' ){
+//					var deletions = localStorage.getObject('deletions') || [];
+//					deletions.push(params + '&owner=' + $currentOwner.val() );
+//					localStorage.setObject('deletions', deletions);
+//
+//					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
+//
+//
+//				} else {
 					$.post('ajax/payment.php', params, function(data){
-						if( data.payments ){
-							$form.find('datalist, select[id]').loadList();
-							$filter.find('select').loadList();
+						//the month payments list has changed, remove the corresponding localStorage lastModified
+						//@todo remove the corresponding storage completely when API provide the method to
+						localStorage.setObject(owner + '_payments_' + itemMonth, {'lastModified': 0, 'html': null});
 
-							refreshParts( data );
-						} else {
-							alert( data );
+						if( !$.isEmptyObject(data) ){
+							if( data.sums ){
+								$.each(data.sums, function(month, info){
+									localStorage.setObject(owner + '_sums_' + month, {'lastModified': info.lastModified, 'html': info.html})
+									$sums.children('[data-month='+ month +']').replaceWith(info.html);
+								});
+							}
 						}
 					});
-				}
+//				}
 			}
 		});
 
@@ -661,9 +822,6 @@ $(document).ready(function(){
 			localStorage.setObject('filters', filters);
 
 			applyFilters();
-		}).find('.primary').each(function(){
-			//output the current value
-			$(this).closest('section').children('output').text( $(this).text() );
 		});
 
 	//filter list
@@ -679,7 +837,7 @@ $(document).ready(function(){
 			localStorage.setObject('filters', filters);
 
 			applyFilters();
-		});
+		}); //updateFiltersOutputs() will be done in refreshParts()
 
 	//next month recurrent payments generation
 		$('.next_month a').click(function(e){
@@ -717,6 +875,8 @@ $(document).ready(function(){
 
 	//time frame chekboxes
 		$('#time_frame :checkbox').change(function(e){
+			clearTimeout(buffer);
+
 			//toggle the months checkboxes if the event target is a year checkbox
 			if( $(this).hasClass('year') ){
 				var isChecked = $(this).is(':checked');
@@ -733,10 +893,10 @@ $(document).ready(function(){
 				$(this).closest('ul').parent().find('.year').prop({ checked: ( $months.length ? true : false ) });
 			}
 
+			//when submitting an add or update the new data will be in the request response
 			if( !$form.hasClass('submitting') ){
 				//wait 500ms before reloading data, help when user check several checkboxes quickly
-				clearTimeout(buffer);
-				buffer = setTimeout(function(){ reloadParts(); }, 500);
+				buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
 			}
 		});
 
@@ -817,104 +977,393 @@ $(document).ready(function(){
 	 * @params json data: array containing payments, forecasts and sums html code
 	 */
 	function refreshParts( data ){
-		$sums.empty().html( data.sums );
+		if( data.sums ){
+			//need to reorder the months
+			var months = [];
+			$.each(data.sums, function(month, info){
+				months.push(month);
+			});
+			months.sort();
 
-		var $forecast = $('#forecasts'),
-			title = $forecast.children('h2').detach();
-		$forecast.empty().html( data.forecasts ).prepend( title );
-
-		var $balance = $('#balances'),
-			title = $balance.children('h2').detach();
-		$balance.empty().html( data.balances ).prepend( title );
-
-		//prepare jQuery Template
-		if( !$('#paymentListTemplate').data('tmpl') ){
-			$('#paymentListTemplate').template('paymentList');
+			$sums.children('[data-month]').remove();
+			$.each(months, function(i, month){
+				$sums.append(data.sums[month].html);
+			});
 		}
 
-		//empty list then add new elements
-		var $items = $.tmpl('paymentList', data);
-		$container.isotope('remove', $container.children('.item')).isotope('reLayout').append( $items ).isotope( 'appended', $items);
+		if( data.forecasts ){
+			var title = $forecast.children('h2').detach();
+			$forecast.empty().html( data.forecasts.html ).prepend( title );
+		}
 
-		//test if there is any cached filters, which are updated on each filters changes
-		try {
-			cachedFilters = localStorage.getObject('filters');
-			if( cachedFilters != null ){
-				$.each(cachedFilters, function(group, filter){
-					var $f = $filter.find('select[name='+ group +']');
-					if( $f.length ){
-						$f.val( filter ).trigger('change');
-					} else {
-						$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
-							.filter('[data-filter="'+ filter +'"]').trigger('click'); //add primary class for persistent filter via click triggering
-					}
-				});
+		if( data.balances ){
+			var title = $balance.children('h2').detach();
+			$balance.empty().html( data.balances.html ).prepend( title );
+		}
 
-				filters = cachedFilters;
+		if( data.payments ){
+			//prepare jQuery Template
+			if( !$('#paymentListTemplate').data('tmpl') ){
+				$('#paymentListTemplate').template('paymentList');
 			}
-		} catch( e ){
-			alert(e);
-		}
 
-		applyFilters();
+			//add the new elements for each month
+			//prepare payments for jQuery templating
+			var tmp = [];
+			$.each(data.payments, function(month, info){
+				if( month.length == 7 ){
+					$.each(info.list, function(i, payment){
+						tmp.push(payment);
+					});
+				}
+			});
+			data.payments = null; //memory cleaning
+			data.payments = tmp;
+
+			//get lists from cache if missing
+			try {
+				if( !data.origins ) data.origins = localStorage.getObject('originList');
+				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList');
+				if( !data.methods ) data.methods = localStorage.getObject('methodList');
+			} catch( e ){
+				alert(e);
+			}
+
+			//add fixed lists
+			data.statuses = { 'data': statuses };
+			data.types = { 'data': types };
+			data.currenciesWSymbol = { 'data': currenciesWSymbol };
+
+			//generate the new items via templating
+			var $items = $.tmpl('paymentList', data);
+			//append the new items to isotope
+			$container.isotope('insert', $items);
+
+			//test if there is any cached filters, which are updated on each filters changes
+			try {
+				cachedFilters = localStorage.getObject('filters');
+				if( cachedFilters != null ){
+					$.each(cachedFilters, function(group, filter){
+						var $f = $filter.find('select[name='+ group +']');
+						if( $f.length ){
+							$f.val( filter ).trigger('change');
+						} else {
+							$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
+								.filter('[data-filter="'+ filter +'"]').addClass('primary').updateFiltersOutputs(); //add primary class on the cached filter and update the output
+						}
+					});
+
+					filters = cachedFilters; //update the filters list for applyFilters()
+				} else {
+					$filter.find('.primary').updateFiltersOutputs();
+				}
+				applyFilters();
+			} catch( e ){
+				alert(e);
+			}
+		}
 	}
 
+	/**
+	 * refresh the payments with only the delta from ajax return
+	 * @param json data : array containing the payments delta
+	 */
+	function refreshWithDelta( data ){
+		if( data.delta ){
+			//prepare jQuery Template
+			if( !$('#paymentListTemplate').data('tmpl') ){
+				$('#paymentListTemplate').template('paymentList');
+			}
+
+			data.payments = data.delta; //for the template
+
+			//get lists from cache if missing
+			try {
+				if( !data.origins ) data.origins = localStorage.getObject('originList');
+				if( !data.recipients ) data.recipients = localStorage.getObject('recipientList');
+				if( !data.methods ) data.methods = localStorage.getObject('methodList');
+			} catch( e ){
+				alert(e);
+			}
+
+			//add fixed lists
+			data.statuses = { 'data': statuses };
+			data.types = { 'data': types };
+			data.currenciesWSymbol = { 'data': currenciesWSymbol };
+
+			var $items = $.tmpl('paymentList', data);
+			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).join(', ');
+
+
+			//updating the list
+			$container
+				.isotope('remove', $container.children( deltaIds ))
+				.isotope('insert', $items);
+		}
+	}
+
+	/**
+	 * get the changes between to arrays
+	 * @param o : old array
+	 * @param n : new array
+	 * @return object {added, removed}
+	 */
+	function diff( o, n ){
+		var a = []; var r = [];
+
+		$.each(o, function(i, m){
+			if( $.inArray(m, n) == -1 ) r.push(m);
+		});
+		$.each(n, function(i, m){
+			if( $.inArray(m, o) == -1 ) a.push(m);
+		});
+
+		return {'added': a, 'removed': r};
+	}
 
 	/**
 	 * reload the payments, sums and forecasts according to the selected months
 	 */
-	function reloadParts(){
-		var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
-		if( tf == '' ) return;
+	var timeframeSnapshot = [];
+	function reloadParts( needBalance, needForecast ){
+		//get the changes between the snapshot and the current timeframe
+		var timeframe = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
+		if( timeframe == '' ) return; //no month to manage, do nothing by default
+		var changes = diff( timeframeSnapshot, timeframe );
 
-		var cachedData,
-			lastModified = 0,
-			key = $currentOwner.val() + '_' + tf;
+		//remove payments and parts for removed month
+		if( changes.removed.length ){
+			$.each(changes.removed, function(i, month){
+				$container.isotope('remove', $container.children().filter('[data-month='+ month +']') );
+				$sums.children('[data-month='+ month +']').remove();
+			});
+			if( !changes.added.length ) $container.isotope('reLayout'); //to reLayout only once and only if changes.added is empty
+		}
 
+		//no added month so no need to request data from the server
+		if( !changes.added.length ){
+			timeframeSnapshot = timeframe; //update the snapshot
+			return;
+		}
+
+		var paymentsTimeframe = {},
+			sumsTimeframe = {};
 		try {
-			cachedData = localStorage.getObject(key);
+			$.each(changes.added, function(i, month){
+				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
+				if( monthCache ){
+					paymentsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
+				} else paymentsTimeframe[month] = 0;
 
-			if( cachedData ){
-				lastModified = cachedData.lastModified;
+				var monthCache = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
+				if( monthCache ){
+					sumsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
+				} else sumsTimeframe[month] = 0;
+			});
+
+			if( needBalance ){
+				var balanceParam = 0;
+				var balanceCache = localStorage.getObject( $currentOwner.val() + '_balance' );
+				if( balanceCache ){
+					balanceParam = new Date(balanceCache.lastModified).getTime() / 1000;
+				}
+			}
+
+			if( needForecast ){
+				var forecastParam = 0;
+				var forecastCache = localStorage.getObject( $currentOwner.val() + '_forecast' );
+				if( forecastCache ){
+					forecastParam = new Date(forecastCache.lastModified).getTime() / 1000;
+				}
+			}
+
+			var originParam = 0;
+			var originCache = localStorage.getObject( 'originList' );
+			if( originCache ){
+				originParam = new Date(originCache.lastModified).getTime() / 1000;
+			}
+
+			var methodParam = 0;
+			var methodCache = localStorage.getObject( 'methodList' );
+			if( methodCache ){
+				methodParam = new Date(methodCache.lastModified).getTime() / 1000;
+			}
+
+			var recipientParam = 0;
+			var recipientCache = localStorage.getObject( 'recipientList' );
+			if( recipientCache ){
+				recipientParam = new Date(recipientCache.lastModified).getTime() / 1000;
+			}
+
+			var labelParam = 0;
+			var labelCache = localStorage.getObject( 'labelList' );
+			if( labelCache ){
+				labelParam = new Date(labelCache.lastModified).getTime() / 1000;
+			}
+
+			var locationParam = 0;
+			var locationCache = localStorage.getObject( 'locationList' );
+			if( locationCache ){
+				locationParam = new Date(locationCache.lastModified).getTime() / 1000;
 			}
 		} catch( e ){
 			alert(e);
 		}
 
-		//resfresh sums
-		$('header').addClass('loading');
 		$.ajax('ajax/payment.php', {
-			data: 'action=refresh&timeframe=' + tf + '&owner=' + $currentOwner.val(),
+			data: 'action=refresh'
+				+ '&timeframe=' + $.map(paymentsTimeframe, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
+				+ '&sumsTimeframe=' + $.map(sumsTimeframe, function(timestamp, month){ return month + '|' + timestamp; }).join(',')
+				+ '&owner=' + $currentOwner.val()
+				+ '&tsOrigin=' + originParam
+				+ '&tsMethod=' + methodParam
+				+ '&tsRecipient=' + recipientParam
+				+ '&tsLabel=' + labelParam
+				+ '&tsLocation=' + locationParam
+				+ ( needBalance ? '&tsBalance=' + balanceParam : '' )
+				+ ( needForecast ? '&tsForecast=' + forecastParam : '' ),
 			dataType: 'json',
 			type: 'post',
-			headers: {
-				'If-Modified-Since': lastModified
-			},
 			success: function(data, textStatus, jqXHR){
-				//server will send a 304 status if the list has not changed
-				if( jqXHR.status == 200 ){
-					try {
-						lastModified = jqXHR.getResponseHeader('Last-Modified');
+				//when nothing has changed, data is empty and will transform into an array when filled, we need an object for jQuery template
+				if( $.isEmptyObject(data) ) data = {};
 
-						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
+				//server will send a 304 status if the parts have not changed
+				if( jqXHR.status == 200 ){
+					store( data );
+
+					//form selects and datalists are empty, happens only on page load
+					if( !$('#labelList').children().length ){
+						$form.find('datalist, select[id]').loadList();
+						$filter.find('select').loadList();
+
+					//at least one of the filter or form list has changed
+					} else {
+						if( data.origins ){
+							$('#origin_filter, #originList').loadList();
+						}
+						if( data.recipients ){
+							$('#recipient_filter, #recipientList').loadList();
+						}
+						if( data.methods ){
+							$('#methodList').loadList();
+						}
+						if( data.locations ){
+							$('#location_filter, #locationList').loadList();
+						}
+						if( data.labels ){
+							$('#labelList').loadList();
+						}
+					}
+
+				//form selects and datalists are empty, happens only on page load
+				} else if( !$('#labelList').children().length ){
+					$form.find('datalist, select[id]').loadList();
+					$filter.find('select').loadList();
+				}
+
+				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
+					try {
+						data.balances = localStorage.getObject( $currentOwner.val() + '_balance' );
 					} catch( e ){
 						alert(e);
 					}
-
-				} else {
-					data = cachedData.data;
 				}
 
-				if( data.payments ){
-					refreshParts( data );
-				} else {
-					alert( data );
+				if( needForecast && !data.forecasts ){ //forecast is needed but none returned (no changes)
+					try {
+						data.forecasts = localStorage.getObject( $currentOwner.val() + '_forecast' );
+					} catch( e ){
+						alert(e);
+					}
 				}
-				$('header').removeClass('loading');
+
+				//location and label lists are not needed for payments template
+				if( data.locations ) data.locations = null;
+				if( data.labels ) data.labels = null;
+
+				//create the objects if missing
+				if( !data.payments ) data.payments = {};
+				if( !data.sums ) data.sums = {};
+
+				//check payments list availability for each added months and retrieve cached data if missing
+				$.each(changes.added, function(i, month){
+					try {
+						if( !data.payments[month] ){
+							data.payments[month] = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
+						}
+					} catch( e ){
+						alert(e);
+					}
+				});
+
+				//check sums list availability for each months and retrieve cached data if missing
+				//refreshParts() need all the sums because it has to reorder them
+				$.each(timeframe, function(i, month){
+					try {
+						if( !data.sums[month] ){
+							data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
+						}
+					} catch( e ){
+						alert(e);
+					}
+				});
+
+				timeframeSnapshot = timeframe; //update the snapshot
+				refreshParts( data );
 			}
 		});
 	}
 
+	/**
+	 * store the data localy using LocalStorage
+	 *
+	 */
+	function store( data ){
+		try {
+			if( data.balances ){
+				localStorage.setObject($currentOwner.val() + '_balance', data.balances);
+			}
+
+			if( data.forecasts ){
+				localStorage.setObject($currentOwner.val() + '_forecast', data.forecasts);
+			}
+
+			if( data.origins ){
+				localStorage.setObject('originList', data.origins);
+			}
+
+			if( data.recipients ){
+				localStorage.setObject('recipientList', data.recipients);
+			}
+
+			if( data.methods ){
+				localStorage.setObject('methodList', data.methods);
+			}
+
+			if( data.labels ){
+				localStorage.setObject('labelList', data.labels);
+			}
+
+			if( data.locations ){
+				localStorage.setObject('locationList', data.locations);
+			}
+
+			if( data.sums ){
+				$.each(data.sums, function(month, info){
+					localStorage.setObject($currentOwner.val() + '_sums_' + month, info)
+				});
+			}
+
+			if( data.payments ){
+				$.each(data.payments, function(month, info){
+					localStorage.setObject($currentOwner.val() + '_payments_' + month, info);
+				});
+			}
+		} catch( e ){
+			alert(e);
+		}
+	}
 
 	/**
 	 * apply given filters to isotope
@@ -1345,13 +1794,11 @@ $(document).ready(function(){
 		});
 	}
 
-
-	//timeout function for loadList() and reloadParts();
+	//timeout function for reloadParts();
 	function ajaxCalls(){
 		if( !delayAjax ){
 			if( delayTimeout ) clearTimeout(delayTimeout);
-			$form.find('datalist, select[id]').loadList();
-			reloadParts();
+			reloadParts(true, true);
 		}
 		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);
 	}
@@ -1363,60 +1810,34 @@ $(document).ready(function(){
 
 
 /**
- * ajax load for <datalist> and <select> options
- * use localStorage to cache results
- * use 'If-Modified-Since' / 'Last-Modified' header and 200 / 304 statuses pairs to get only fresh data when needed
+ * update the output for filters
+ */
+$.fn.updateFiltersOutputs = function(){
+	return this.each(function(){
+		//output the current value
+		$(this).closest('section').children('output').text( $(this).text() );
+	});
+}
+
+/**
+ * data load for <datalist> and <select> options
+ * use localStorage to get data
  */
 $.fn.loadList = function(){
 	return this.each(function(){
 		var $list = $(this),
-			key = $list.attr('id').replace(/FK$/g, 'List'),
+			key = $list.attr('id').replace(/_filter/g, 'List'),
+			filterClass = key.replace(/List/g, ''),
 			decoder = $('<textarea>'),
-			cachedData,
-			lastModified = 0;
+			cache;
 
 		if( isFennec ){
 			$list.siblings('select').remove();
 		}
 
 		try {
-			cachedData = localStorage.getObject(key);
-			if( cachedData ){
-				lastModified = cachedData.lastModified;
-			}
-		} catch( e ){
-			alert(e);
-		}
-
-		//ask the list values to the server and create the <option>s with it
-		$('header').addClass('loading');
-		$.ajax('ajax/loadList.php', {
-			data: 'field=' + key,
-			dataType: 'json',
-			cache: false,
-			headers: {
-				'If-Modified-Since': lastModified
-			},
-			success: function(data, textStatus, jqXHR){
-				//server will send a 304 status if the list has not changed
-				if( jqXHR.status == 200 ){
-					try {
-						lastModified = jqXHR.getResponseHeader('Last-Modified');
-
-						localStorage.setObject(key, {'lastModified': lastModified, 'data': data});
-					} catch( e ){
-						alert(e);
-					}
-
-				} else {
-					data = cachedData.data;
-
-					if( $list.find('option:gt(0)').length ){
-						//options already present, no need to fill the field
-						return;
-					}
-				}
-
+			cache = localStorage.getObject(key);
+			if( cache ){
 				var isDatalist = $list.is('datalist');
 
 				if( isDatalist ){
@@ -1441,7 +1862,7 @@ $.fn.loadList = function(){
 					$list.find('option:gt(0)').remove(); //keep the first option aka "placeholder"
 				}
 
-				$.each(data, function(id, name){
+				$.each(cache.data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
 						if( !Modernizr.input.list ){
@@ -1452,7 +1873,7 @@ $.fn.loadList = function(){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}
 					} else {
-						$('<option>', { "value": id, text: name }).appendTo( $list );
+						$('<option>', { "value": "." + filterClass + '_' + id, text: name }).appendTo( $list );
 					}
 				});
 
@@ -1462,10 +1883,10 @@ $.fn.loadList = function(){
 					$list.val( list.data('selectedId') );
 					$list.removeData('selectedId');
 				}
-
-				$('header').removeClass('loading');
 			}
-		});
+		} catch( e ){
+			alert(e);
+		}
 	});
 }
 
@@ -1515,7 +1936,14 @@ String.prototype.formatDate = function(){
 String.prototype.timestamp = function(){
 	var d = this.substr(0, 10).split('-'),
 		tmp = new Date(d[0], d[1], d[2]);
-	return tmp.getTime();
+	return tmp.getTime() / 1000; //only need the timestamp in seconds
+}
+
+String.prototype.getMonth = function(){
+	var d = this.substr(0, 10).split('-');
+	if( d[2] >= 25 ) tmp = new Date(d[0], d[1], d[2])
+	else tmp = new Date(d[0], d[1]+1, d[2]);
+	return tmp.getFullYear() + '-' + (tmp.getMonth() + 1);
 }
 
 String.prototype.capitalize = function(){
@@ -1564,12 +1992,12 @@ if( typeof Storage != "undefined" ){
 }
 
 /* jquery template getter functions */
-function getValue( data, index ){
-	return data[index];
+function getValue( object, index ){
+	return object.data[index];
 }
 
-function getSymbol( data, index ){
-	return data[index].symbol;
+function getSymbol( object, index ){
+	return object.data[index].symbol;
 }
 
 /*! Copyright (c) 2010 Brandon Aaron (http://brandonaaron.net)
@@ -1628,7 +2056,7 @@ function getSymbol( data, index ){
 
 		// Old school scrollwheel delta
 		if ( event.wheelDelta ) { delta = event.wheelDelta/120; }
-		if ( event.detail     ) { delta = -event.detail/3; }
+		if ( event.detail	  ) { delta = -event.detail/3; }
 
 		// New school multidimensional scroll (touchpads) deltas
 		deltaY = delta;

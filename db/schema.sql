@@ -121,6 +121,7 @@ CREATE  TABLE IF NOT EXISTS `suivfin`.`payment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `label` VARCHAR(255) NOT NULL ,
   `paymentDate` DATE NOT NULL ,
+  `paymentMonth` VARCHAR(7) NOT NULL ,
   `amount` DECIMAL(7,2) UNSIGNED NOT NULL ,
   `comment` TEXT NULL ,
   `recurrent` TINYINT(1)  NOT NULL ,

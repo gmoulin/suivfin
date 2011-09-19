@@ -5,8 +5,8 @@
 		<!-- JavaScript at the bottom for fast page loading -->
 
 		<!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-		<script src="js/libs/jquery-1.6.2.min.js"></script>
-		<script>window.jQuery || document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js">\x3C/script>')</script>
+		<script src="js/libs/jquery-1.6.3.min.js"></script>
+		<script>window.jQuery || document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.min.js">\x3C/script>')</script>
 
 
 		<!-- scripts concatenated and minified via ant build script-->
@@ -19,6 +19,9 @@
 
 		<script>
 			var limits = {$limits|json_encode};
+			var statuses = {$statuses|json_encode};
+			var types = {$types|json_encode};
+			var currenciesWSymbol = {$currenciesWSymbol|json_encode};
 		</script>
 		{include file="payment.template.html"}
 
