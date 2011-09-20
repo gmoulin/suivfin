@@ -464,23 +464,6 @@ $(document).ready(function(){
 
 									refreshParts( data );
 
-									//at least one of the filter or form list has changed
-									if( data.origins ){
-										$('#origin_filter, #originList').loadList();
-									}
-									if( data.recipients ){
-										$('#recipient_filter, #recipientList').loadList();
-									}
-									if( data.methods ){
-										$('#methodList').loadList();
-									}
-									if( data.locations ){
-										$('#location_filter, #locationList').loadList();
-									}
-									if( data.labels ){
-										$('#labelList').loadList();
-									}
-
 									//focus the payment add button
 									$('.form_switch:visible a').focus();
 								} else if( data.delta ){
@@ -494,26 +477,27 @@ $(document).ready(function(){
 
 									refreshParts( data );
 									refreshWithDelta( data );
-
-									//at least one of the filter or form list has changed
-									if( data.origins ){
-										$('#origin_filter, #originList').loadList();
-									}
-									if( data.recipients ){
-										$('#recipient_filter, #recipientList').loadList();
-									}
-									if( data.methods ){
-										$('#methodList').loadList();
-									}
-									if( data.locations ){
-										$('#location_filter, #locationList').loadList();
-									}
-									if( data.labels ){
-										$('#labelList').loadList();
-									}
 								} else {
 									//form errors display
 									formErrors(data);
+									return;
+								}
+
+								//at least one of the filter or form list has changed
+								if( data.origins ){
+									$('#origin_filter, #originList').loadList();
+								}
+								if( data.recipients ){
+									$('#recipient_filter, #recipientList').loadList();
+								}
+								if( data.methods ){
+									$('#methodList').loadList();
+								}
+								if( data.locations ){
+									$('#location_filter, #locationList').loadList();
+								}
+								if( data.labels ){
+									$('#labelList').loadList();
 								}
 							}
 						});
@@ -805,39 +789,45 @@ $(document).ready(function(){
 		});
 
 	//filter buttons
-		$filter.delegate('a', 'click', function(e){
-			e.preventDefault();
+		$filter
+			.delegate(':radio', 'change', function(e){
+				e.preventDefault();
 
-			var $this = $(this),
-				group = $this.data('group'),
-				filter = $this.data('filter');
+				var $this = $(this),
+					group = $this.attr('name'),
+					filter = $this.val();
 
-			//output the current value
-			$this.closest('section').children('output').text( $(this).text() );
+				//output the current value
+				$this.closest('section').children('output').text( $(this).text() );
 
-			// store filter value in object
-			filters[ group ] = filter;
+				// store filter value in object
+				filters[ group ] = filter;
 
-			//for filters persistence
-			localStorage.setObject('filters', filters);
+				//for filters persistence
+				localStorage.setObject('filters', filters);
 
-			applyFilters();
-		});
+				applyFilters();
+			})
+			.delegate(':checkbox', 'change', function(e){
+				e.preventDefault();
 
-	//filter list
-		$filter.delegate('select', 'change', function(e){
-			var $this = $(this),
-				group = $this.attr('name'),
-				filter = $this.val();
+				var $this = $(this),
+					group = $this.attr('name'),
+					$checked = $this.closest('ul').find(':checkbox:checked'),
+					values = $checked.map(function(){ return this.value; }).join(','),
+					output = $checked.map(function(){ return $(this).parent().text() }).join(', '); //label text
 
-			// store filter value in object
-			filters[ group ] = filter;
+				//output the current value
+				$this.closest('section').children('output').text( output );
 
-			//for filters persistence
-			localStorage.setObject('filters', filters);
+				// store filter value in object
+				filters[ group ] = values;
 
-			applyFilters();
-		}); //updateFiltersOutputs() will be done in refreshParts()
+				//for filters persistence
+				localStorage.setObject('filters', filters);
+
+				applyFilters();
+			});
 
 	//next month recurrent payments generation
 		$('.next_month a').click(function(e){
@@ -1866,12 +1856,11 @@ $.fn.loadList = function(){
 					}
 
 				} else {
-					var isFilter = false;
-					if( $list.attr('id').search(/Filter/) != -1 && list.val() != '' ){
-						$list.data('sav', list.val());
-						isFilter = true;
-					}
-					$list.find('option:gt(0)').remove(); //keep the first option aka "placeholder"
+					//save the checked values
+					$list.data('sav', list.children(':input:checked').map(function(){ return this.value }));
+					//keep the first option aka "placeholder"
+					$list.find('li:gt(0)').remove();
+					var $li = $list.find('li:first').clone();
 				}
 
 				$.each(cache.data, function(id, name){
@@ -1885,15 +1874,26 @@ $.fn.loadList = function(){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}
 					} else {
-						$('<option>', { "value": "." + filterClass + '_' + id, text: name }).appendTo( $list );
+						var $newLi = $li.clone();
+						console.log( $newLi );
+						var $input = $newLi.find('input').val( "." + filterClass + '_' + id ).attr('id', filterClass + '_' + id).detach();
+						console.log( $input );
+						$newLi.children('label')
+								.attr('for', filterClass + '_' + id)
+								.text( name )
+								.prepend( $input );
+						console.log( $newLi );
+
+						$newLi.appendTo( $list );
 					}
 				});
 
-				if( isFilter ) $list.val( $list.data('sav') );
-
-				if( $list.data('selectedId') ){
-					$list.val( list.data('selectedId') );
-					$list.removeData('selectedId');
+				//recheck previously checked values
+				if( !isDatalist && $list.data('sav') ){
+					$.each( $list.data('sav'), function(){
+						$list.find('input[value='+ this +']').prop('checked', true);
+					});
+					$list.data('sav', null);
 				}
 			}
 		} catch( e ){
