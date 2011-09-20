@@ -689,30 +689,30 @@ class payment extends common {
 				// type = 1 means deposits, and for them it's the recipient
 				// recipient and origin have the same ids for bank accounts and cash
 				$sql = "
-					SELECT `month`, sum, paymentDate, fromto, typeFK, currencyFK
+					SELECT `month`, sum, paymentDate, fromto, typeFK, currencyFK, recurrent
 					FROM (
 							(
-								SELECT paymentMonth AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT paymentMonth AS `month`, SUM( amount ) AS `sum`, paymentDate, p.originFK AS 'fromto', p.typeFK, p.currencyFK, p.recurrent
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner1
 								AND p.typeFK != 1
 								AND p.originFK = l.originFK
 								AND p.currencyFK = l.currencyFK
-								GROUP BY paymentMonth, p.typeFK, fromto, p.currencyFK
+								GROUP BY paymentMonth, p.typeFK, p.recurrent, fromto, p.currencyFK
 							) UNION (
-								SELECT paymentMonth AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK
+								SELECT paymentMonth AS `month`, SUM( amount ) AS `sum`, paymentDate, p.recipientFK AS 'fromto', p.typeFK, p.currencyFK, p.recurrent
 								FROM ".$this->_table." p
 								INNER JOIN ".$this->_join." l ON p.ownerFK = l.ownerFK
 								WHERE p.ownerFK = :owner2
 								AND p.typeFK = 1
 								AND p.recipientFK = l.originFK
 								AND p.currencyFK = l.currencyFK
-								GROUP BY paymentMonth, p.typeFK, fromto, p.currencyFK
+								GROUP BY paymentMonth, p.typeFK, p.recurrent, fromto, p.currencyFK
 							)
 					) sub
 					WHERE `month` = :month
-					ORDER BY typeFK, fromto, currencyFK
+					ORDER BY typeFK, recurrent, fromto, currencyFK
 				";
 
 				$q = $this->_db->prepare($sql);
@@ -724,7 +724,7 @@ class payment extends common {
 
 				if( $q->rowCount() > 0 ){
 					while( $r = $q->fetch() ){
-						$sums['list'][ $r['typeFK'] ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
+						$sums['list'][ $r['typeFK'].($r['recurrent'] ? 'r' : '') ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
 
 						if( !isset($sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ]) ){
 							if(    isset($sums['balance'][ $r['fromto'] ])

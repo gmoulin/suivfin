@@ -30,7 +30,13 @@
 					</tr>
 					{foreach $sums.list as $type => $sum_fromto}
 						<tr>
-							<td class="type">{$types[$type]|capitalize}</td>
+							{if strpos($type, 'r') !== false}
+								{assign var="isRecurrent" value=1}
+								{assign var="type" value=$type|replace:'r':''}
+							{else}
+								{assign var="isRecurrent" value=0}
+							{/if}
+							<td class="type{if $isRecurrent == 1} recurrent{/if}">{$types[$type]|capitalize}</td>
 							{foreach $sums.fromto as $header}
 								{if !isset($sum_fromto[$header])}
 									<td></td>

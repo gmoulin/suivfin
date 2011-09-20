@@ -1034,6 +1034,12 @@ $(document).ready(function(){
 			data.types = { 'data': types };
 			data.currenciesWSymbol = { 'data': currenciesWSymbol };
 
+			//today's date
+			var now = new Date(),
+				m = now.getMonth() + 1,
+				d = now.getDate();
+			data.now = now.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+
 			//generate the new items via templating
 			var $items = $.tmpl('paymentList', data);
 			//append the new items to isotope
@@ -1090,6 +1096,12 @@ $(document).ready(function(){
 			data.statuses = { 'data': statuses };
 			data.types = { 'data': types };
 			data.currenciesWSymbol = { 'data': currenciesWSymbol };
+
+			//today's date
+			var now = new Date(),
+				m = now.getMonth() + 1,
+				d = now.getDate();
+			data.now = now.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
 
 			var $items = $.tmpl('paymentList', data);
 			var deltaIds = $.map(data.delta, function(payment){ return '#payment_' + payment['id']; }).join(', ');
