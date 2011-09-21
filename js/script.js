@@ -207,12 +207,14 @@ $(document).ready(function(){
 		chart		   = null,
 		legendCurrency = [],
 		currentDate	   = new Date();
+
 		if( currentDate.getDate() > 24 ){
 			currentDate.setMonth(currentDate.getMonth() + 1 );
 			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 		} else {
 			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 		}
+
 		currentDate.setMonth(currentDate.getMonth() + 1 );
 		var nextMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 
@@ -447,7 +449,16 @@ $(document).ready(function(){
 								$form.removeClass('submitting'); //security, sometimes complete() is not called...
 
 								if( actionCase == 'reload' && data == 'ok' ){
-									window.location.reload(); //the time frame is missing a month, need to reload the page
+									//save the new timeframe for use after the reload
+									try {
+										timeframeSnapshot.push( newMonth );
+										localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
+									} catch( e ){
+										alert(e);
+									}
+
+									//the time frame is missing a month, need to reload the page
+									window.location.reload();
 
 								} else if( actionCase == 'timeframe-change' && data.payments ){
 									$('header').removeClass('loading');
@@ -520,6 +531,7 @@ $(document).ready(function(){
 			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
 
+		//application shortcuts
 		$(document).unbind('keydown').keydown(function(e){
 			//"a" pressed for add
 			if( e.which == 65 ){
@@ -534,6 +546,7 @@ $(document).ready(function(){
 				}
 			}
 		})
+		//swap comma for dot in the amount field
 		.delegate('#amount', 'keydown', function(e){
 			if( e.which == 188 ){ //, pressed (comma)
 				e.preventDefault();
@@ -788,7 +801,7 @@ $(document).ready(function(){
 			$('#container').isotope({ sortBy: sortName });
 		});
 
-	//filter buttons
+	//filters
 		$filter
 			.delegate(':radio', 'change', function(e){
 				e.preventDefault();
@@ -842,7 +855,7 @@ $(document).ready(function(){
 				var needReload = false;
 				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$('#time_frame').find('input[value=' + newMonth + ']').pro({ checked: true }).change();
+					$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
 				} else {
 					needReload = true;
 				}
@@ -851,7 +864,17 @@ $(document).ready(function(){
 
 				$.post('ajax/payment.php', 'action=initNextMonth' + ( !needReload ? '&timeframe=' + tf : '' ), function(data){
 					if( data == 'ok' ){
-						if( needReload ) window.location.reload();
+						if( needReload ){
+							//save the new timeframe for use after the reload
+							try {
+								timeframeSnapshot.push( newMonth );
+								localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
+							} catch( e ){
+								alert(e);
+							}
+
+							window.location.reload();
+						}
 
 					} else if( data.payments ){
 						refreshParts( data );
@@ -1130,8 +1153,15 @@ $(document).ready(function(){
 	function reloadParts( needBalance, needForecast ){
 		//get the changes between the snapshot and the current timeframe
 		var timeframe = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
-		if( timeframe == '' ) return; //no month to manage, do nothing by default
+		if( !timeframe.length ) return; //no month to manage, do nothing by default
 		var changes = diff( timeframeSnapshot, timeframe );
+
+		//save the new timeframe for use on page load
+		try {
+			localStorage.setObject( $currentOwner.val() + '_timeframe', timeframe );
+		} catch( e ){
+			alert(e);
+		}
 
 		//remove payments and parts for removed month
 		if( changes.removed.length ){
@@ -1800,6 +1830,24 @@ $(document).ready(function(){
 	function ajaxCalls(){
 		if( !delayAjax ){
 			if( delayTimeout ) clearTimeout(delayTimeout);
+
+			//try to get the last timeframe used by the user,
+			//which can have been updated before a forced reload
+			try {
+				var persistentTimeframe = localStorage.getObject($currentOwner.val() + '_timeframe');
+				if( persistentTimeframe && persistentTimeframe.length ){
+					//uncheck all checkboxes, by default at least one is checked, for the current month
+					$timeframe.find('input:checked').prop('checked', false);
+
+					//update the timeframe checkboxes
+					$.each( persistentTimeframe, function(){
+						$timeframe.find('input[value='+ this +']').prop('checked', true).change(); //change() for checking the year checkbox if needed
+					});
+				}
+
+			} catch( e ){
+				alert(e);
+			}
 			reloadParts(true, true);
 		}
 		else delayTimeout = setTimeout(function(){ ajaxCalls(); }, 1000);

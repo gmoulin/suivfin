@@ -63,6 +63,22 @@ class evolution extends common {
 			}
 			$origins = array_unique($origins);
 
+			//get the newest payment date
+			$paymentDate = "
+				SELECT paymentDate
+				FROM payment
+				ORDER BY paymentDate DESC
+				LIMIT 1
+			";
+			$query = $this->_db->prepare($paymentDate);
+			$query->execute();
+			$rs = $query->fetch();
+			if( !empty($rs['paymentDate']) ){
+				$end = date("Y-m-d", strtotime("+1 day", strtotime( $rs['paymentDate'] )));
+			} else {
+				$end = date("Y-m-d", strtotime("+2 months"));
+			}
+
 			$lastDate = "
 				SELECT evolutionDate, amount
 				FROM ".$this->_table."
@@ -105,7 +121,6 @@ class evolution extends common {
 					$this->amount = $rs['amount'];
 				}
 
-				$end = date("Y-m-d",strtotime("+2 months"));;
 				while( $this->evolutionDate <= $end ){
 					$this->id = null; //force add
 

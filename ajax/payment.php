@@ -515,15 +515,15 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = nu
 	//the next 3 lists can change with new payments, so timestamp is used
 	$oOrigin = new origin();
 	$origins = $oOrigin->loadListForFilter(true, false);
-	$smarty->assign('origins', $origins[1]);
+	$smarty->assign('origins', $origins['data']);
 
 	$oRecipient = new recipient();
 	$recipients = $oRecipient->loadListForFilter(true, false);
-	$smarty->assign('recipients', $recipients[1]);
+	$smarty->assign('recipients', $recipients['data']);
 
 	$oMethod = new method();
 	$methods = $oMethod->loadListForFilter(true, false);
-	$smarty->assign('methods', $methods[1]);
+	$smarty->assign('methods', $methods['data']);
 
 	//for the smarty templates, to get only the "inside" html
 	$smarty->assign('partial', true);

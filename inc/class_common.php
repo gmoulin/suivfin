@@ -96,7 +96,6 @@ class common {
 
 	/**
 	 * fill the table fields into $_fields for the class defined $_table
-	 * @todo stash
 	 */
 	protected function getColumns(){
 		try {

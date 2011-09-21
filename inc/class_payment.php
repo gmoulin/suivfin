@@ -446,7 +446,7 @@ class payment extends common {
 		//delete evolutions for the payment origin
 		$oEvolution = new evolution();
 		$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK'], $this->_data['recipientFK']);
-		//calculate all missing evolution until today
+		//calculate all missing evolution
 		$oEvolution->calculateEvolution();
 	}
 
