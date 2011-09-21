@@ -295,7 +295,7 @@ $(document).ready(function(){
 		});
 
 		//cache is managed via Last-Modified headers
-		$.ajaxSetup({cache: false});
+		$.ajaxSetup({ 'cache': false });
 
 	//forms actions
 		//add button
@@ -826,12 +826,20 @@ $(document).ready(function(){
 
 				var $this = $(this),
 					group = $this.attr('name'),
-					$checked = $this.closest('ul').find(':checkbox:checked'),
-					values = $checked.map(function(){ return this.value; }).join(','),
-					output = $checked.map(function(){ return $(this).parent().text() }).join(', '); //label text
+					$div = $this.closest('div'),
+					$checked = $div.find(':checkbox:checked');
+
+				//manage the "all" value
+				if( $this.val() == '*' ){
+					$div.find(':checkbox:gt(0)').prop('checked', false);
+				} else {
+					$div.find(':checkbox:first').prop('checked', false);
+				}
+
+				var values = $checked.map(function(){ return this.value; }).get().join(',');
 
 				//output the current value
-				$this.closest('section').children('output').text( output );
+				$this.updateFiltersOutputs();
 
 				// store filter value in object
 				filters[ group ] = values;
@@ -1005,14 +1013,25 @@ $(document).ready(function(){
 		}
 
 		if( data.forecasts ){
+			$forecast.css('width', '');
 			var title = $forecast.children('h2').detach();
 			$forecast.empty().html( data.forecasts.html ).prepend( title );
 		}
 
 		if( data.balances ){
+			$balance.css('width', '');
 			var title = $balance.children('h2').detach();
 			$balance.empty().html( data.balances.html ).prepend( title );
 		}
+
+		//force the blocks width
+		var fixWidth = ( $balance.outerWidth() > $forecast.outerWidth() ? $balance.outerWidth() : $forecast.outerWidth());
+		$balance.css('width', fixWidth);
+		$forecast.css('width', fixWidth);
+
+		$filter
+			.css('width', function(){ return $('#calculs').width() - $balance.innerWidth() - 10 - 5; }) // 10 for padding and 5 for a margin
+			.css('height', function(){ return $balance.outerHeight() + $forecast.outerHeight() - 5; }); // 5 for bottom margin
 
 		if( data.payments ){
 			//prepare jQuery Template
@@ -1061,21 +1080,19 @@ $(document).ready(function(){
 			//test if there is any cached filters, which are updated on each filters changes
 			try {
 				cachedFilters = localStorage.getObject('filters');
-				if( cachedFilters != null ){
+				if( cachedFilters ){
 					$.each(cachedFilters, function(group, filter){
-						var $f = $filter.find('select[name='+ group +']');
-						if( $f.length ){
-							$f.val( filter ).trigger('change');
-						} else {
-							$filter.find('a[data-group='+ group +']').removeClass('primary') //remove primary class from <a>s
-								.filter('[data-filter="'+ filter +'"]').addClass('primary').updateFiltersOutputs(); //add primary class on the cached filter and update the output
-						}
+						var values = filter.split(','),
+							$inputs = $filter.find('input[name='+ group +']').prop('checked', false);
+						$.each( values, function(){
+							$inputs.filter('[value="'+ this +'"]').prop('checked', true);
+						});
 					});
 
 					filters = cachedFilters; //update the filters list for applyFilters()
-				} else {
-					$filter.find('.primary').updateFiltersOutputs();
 				}
+
+				$filter.find('section').find(':checked:first').updateFiltersOutputs();
 				applyFilters();
 			} catch( e ){
 				alert(e);
@@ -1267,7 +1284,7 @@ $(document).ready(function(){
 					//form selects and datalists are empty, happens only on page load
 					if( !$('#labelList').children().length ){
 						$form.find('datalist, select[id]').loadList();
-						$filter.find('select').loadList();
+						$filter.find('.dropdown[id]').loadList();
 
 					//at least one of the filter or form list has changed
 					} else {
@@ -1291,7 +1308,7 @@ $(document).ready(function(){
 				//form selects and datalists are empty, happens only on page load
 				} else if( !$('#labelList').children().length ){
 					$form.find('datalist, select[id]').loadList();
-					$filter.find('select').loadList();
+					$filter.find('.dropdown[id]').loadList();
 				}
 
 				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
@@ -1865,7 +1882,13 @@ $(document).ready(function(){
 $.fn.updateFiltersOutputs = function(){
 	return this.each(function(){
 		//output the current value
-		$(this).closest('section').children('output').text( $(this).text() );
+		var output = $(this).closest('div').find('input:checked').map(function(){ return $(this).parent().text(); }).get();
+		if( output.length > 1 ){
+			output = output.length + ' selected';
+		} else {
+			output = output[0];
+		}
+		$(this).closest('section').children('output').text( output );
 	});
 }
 
@@ -1905,7 +1928,7 @@ $.fn.loadList = function(){
 
 				} else {
 					//save the checked values
-					$list.data('sav', list.children(':input:checked').map(function(){ return this.value }));
+					$list.data('sav', $list.children('input:checked').map(function(){ return this.value }));
 					//keep the first option aka "placeholder"
 					$list.find('li:gt(0)').remove();
 					var $li = $list.find('li:first').clone();
@@ -1923,14 +1946,11 @@ $.fn.loadList = function(){
 						}
 					} else {
 						var $newLi = $li.clone();
-						console.log( $newLi );
-						var $input = $newLi.find('input').val( "." + filterClass + '_' + id ).attr('id', filterClass + '_' + id).detach();
-						console.log( $input );
+						var $input = $newLi.find('input').val( "." + filterClass + '_' + id ).attr('id', filterClass + '_' + id).prop('checked', false).detach();
 						$newLi.children('label')
 								.attr('for', filterClass + '_' + id)
 								.text( name )
 								.prepend( $input );
-						console.log( $newLi );
 
 						$newLi.appendTo( $list );
 					}

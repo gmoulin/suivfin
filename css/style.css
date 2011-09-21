@@ -434,7 +434,8 @@
 
 		#sums,
 		#forecasts,
-		#balances {
+		#balances,
+		#filter {
 			display: inline-block;
 			vertical-align: top;
 			padding: 0;
@@ -958,35 +959,64 @@
 		}
 
 	/* filters */
-		#filter {
-			padding: 10px 10px 25px;
-			background-color: #ccc;
-			border-width: 1px 0;
-			border-color: #fff #000 #666;
-			border-style: solid;
-		}
-
 		#filter section {
-			display: block;
-			padding: 5px;
 			position: relative;
+			padding: 2px 0;
+			margin: 1px 0;
 		}
 
-		#filter output {
+		#filter h3 {
+			display: inline-block;
+			min-width: 83px;
+			margin: 0;
+			padding: 0;
+			font-weight: normal;
+		}
+
+		#filter .dropdown {
 			display: none;
 		}
 
-		#filter div {
-			padding: 0;
+		#filter .dropdown ul {
 			margin: 0;
+			padding: 0;
+			list-style: none;
 		}
 
-		#filter .button {
-			padding: 0.5em;
+		#filter .dropdown li {
+			display: block;
+			margin: 1px 0;
 		}
 
-		#filter select {
-			max-width: 150px;
+		#filter section:hover .dropdown {
+			display: block;
+			position: absolute;
+			top: -2px;
+			left: 83px;
+			max-height: 150px;
+			overflow-y: auto;
+			overflow-x: hidden;
+			background-color: lightBlue;
+			border: 1px solid #FF7722;
+			padding: 3px;
+			border-radius: 6px;
+			z-index: 1;
+			margin-right: 20px;
+		}
+
+		#filter label {
+			white-space: nowrap;
+			display: block;
+			padding: 2px 3px;
+		}
+
+		#filter input {
+			margin-right: 3px;
+		}
+
+		#filter input[type=checkbox] {
+			position: relative;
+			top: 0;
 		}
 
 	/* sorts */
@@ -1425,10 +1455,6 @@
 			margin-left: -1px;
 		}
 
-		#filter .button-group .button {
-			float: none;
-		}
-
 		.button-group > .button:not(:first-child):not(:last-child),
 		.button-group li:not(:first-child):not(:last-child) .button {
 			-webkit-border-radius: 0;
@@ -1591,12 +1617,8 @@
 			padding: 0 0 38px 0;
 		}
 
-		#filter section {
-			white-space: nowrap;
-		}
 
-		body > .sort .button,
-		#filter .button {
+		body > .sort .button {
 			padding: 0.5em 1em;
 		}
 
@@ -1714,11 +1736,6 @@
 			margin-top: 41px;
 		}
 
-		#filter {
-			border-bottom-color: #666;
-			box-shadow: -2px 0px 2px 1px rgba(0, 0, 0, .4), 0 .9em .5em -0.2em rgba(255, 255, 255, .2) inset;
-		}
-
 		#payment_form {
 			position: fixed;
 		}
@@ -1777,37 +1794,12 @@
 			display: block;
 		}
 
-		#filter {
-			border-bottom-width: 0;
-			margin-bottom: 3px;
-		}
-
 		.switch_view:not(.icon) {
 			float: none;
 			margin: 0 auto;
 			display: inline;
 		}
 
-		#filter section {
-			display: inline;
-		}
-
-		#filter output {
-			display: inline
-		}
-
-		#filter div {
-			display: none;
-			position: absolute;
-			top: 90%;
-			left: 0;
-		}
-
-		#filter section:hover div {
-			display: block;
-			z-index: 2;
-			white-space: nowrap;
-		}
 	}
 
 	/*1382px __________________________________________________________________________________________________________ */
@@ -1815,6 +1807,7 @@
 		/* body { background-color: #ebf8da; } */
 
 		#container {
+			margin-top: 39px;
 			max-width: 75%;
 		}
 
@@ -1823,7 +1816,6 @@
 			position: absolute;
 			top: 39px;
 			right: 0;
-			z-index: 9;
 			background: none;
 			border: none;
 			border-radius: 0;
@@ -1840,7 +1832,8 @@
 
 		#sums,
 		#forecasts,
-		#balances {
+		#balances,
+		#filter {
 			background-color: #ccc;
 			border: none;
 			border-radius: 6px 0 0 6px;
@@ -1848,6 +1841,19 @@
 			font-size: 11px;
 			float: right;
 			clear: right;
+		}
+
+		#sums {
+			width: 98%;
+			width: -webkit-calc(100% - 2*5px);
+			width: -o-calc(100% - 2*5px);
+			width: -moz-calc(100% - 2*5px);
+		}
+
+		#filter {
+			border-radius: 6px;
+			float: none;
+			clear: none;
 		}
 
 		#sums table {
@@ -1858,15 +1864,6 @@
 
 		#sums hr {
 			display: block;
-		}
-
-		#filter {
-			padding-top: 50px;
-			max-width: 83%;
-			background-color: transparent;
-			border: none;
-			margin-bottom: 0;
-			box-shadow: none;
 		}
 	}
 

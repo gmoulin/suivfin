@@ -11,7 +11,6 @@
 				<ul class="statuses">
 					{foreach $fc_statuses as $status => $fc_currencies}
 						<li class="status_{$status}">
-							{$statuses[$status]}&nbsp;
 							<ul class="currencies">
 								{foreach $fc_currencies as $currency => $forecast}
 									<li class="currency_{$currency}">

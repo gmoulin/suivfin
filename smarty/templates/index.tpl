@@ -96,10 +96,9 @@
 		{assign var=partial value=false}
 		{include "balance.tpl"}
 		{include "forecast.tpl"}
+		{include "filters.tpl"}
 		{include "sum.tpl"}
 	</aside>
-
-	{include "filters.tpl"}
 
 	<aside class="sort">
 		<h2>Tri : </h2>

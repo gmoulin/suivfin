@@ -1,9 +1,9 @@
 {* labels at the left, list or select on hover, @todo change markup accordingly *}
-<aside id="filter">
+<section id="filter">
 	<h2>Filtres :</h2>
 
 	<section>
-		Fréquence : <output></output>
+		<h3>Fréquence :</h3><output></output>
 		<div class="radio dropdown">
 			<ul>
 			{strip}
@@ -31,7 +31,7 @@
 	</section>
 
 	<section>
-		Origine : <output></output>
+		<h3>Origine :</h3><output></output>
 		<div class="checkbox dropdown" id="origin_filter">
 			<ul>
 			{strip}
@@ -47,7 +47,7 @@
 	</section>
 
 	<section>
-		Status : <output></output>
+		<h3>Status :</h3><output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -71,7 +71,7 @@
 	</section>
 
 	<section>
-		Bénéficiaire : <output></output>
+		<h3>Bénéficiaire :</h3><output></output>
 		<div class="checkbox dropdown" id="recipient_filter">
 			<ul>
 			{strip}
@@ -87,7 +87,7 @@
 	</section>
 
 	<section>
-		Type : <output></output>
+		<h3>Type :</h3><output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -111,7 +111,7 @@
 	</section>
 
 	<section>
-		Monnaie : <output></output>
+		<h3>Monnaie :</h3><output></output>
 		<div class="radio dropdown">
 			<ul>
 			{strip}
@@ -135,7 +135,7 @@
 	</section>
 
 	<section>
-		Méthode : <output></output>
+		<h3>Méthode :</h3><output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -159,7 +159,7 @@
 	</section>
 
 	<section>
-		Localisation : <output></output>
+		<h3>Localisation :</h3><output></output>
 		<div class="checkbox dropdown" id="location_filter">
 			<ul>
 			{strip}
@@ -173,4 +173,4 @@
 			</ul>
 		</div>
 	</section>
-</aside>
+</section>
