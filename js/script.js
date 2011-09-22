@@ -531,23 +531,8 @@ $(document).ready(function(){
 			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
 
-		//application shortcuts
-		$(document).unbind('keydown').keydown(function(e){
-			//"a" pressed for add
-			if( e.which == 65 ){
-				$('#payment_form:not(.deploy)')
-					.resetForm()
-					.addClass('deploy');
-
-			} else if( e.keyCode == 27 ){
-				if( $form.hasClass('deploy') ){
-					$('body').unbind('click');
-					$form.removeClass('deploy').removeClass('submitting');
-				}
-			}
-		})
 		//swap comma for dot in the amount field
-		.delegate('#amount', 'keydown', function(e){
+		$(document).delegate('#amount', 'keydown', function(e){
 			if( e.which == 188 ){ //, pressed (comma)
 				e.preventDefault();
 				$('#amount').val(function(){ return this.value + '.'; });
@@ -593,6 +578,29 @@ $(document).ready(function(){
 				$(this).removeProp('required');
 			});
 		}
+
+	//application shortcuts
+	$(document).unbind('keydown').keydown(function(e){
+		//"a" pressed for add
+		if( e.which == 65 ){
+			$('#payment_form:not(.deploy)')
+				.resetForm()
+				.addClass('deploy');
+
+		//escape pressed
+		} else if( e.keyCode == 27 ){
+			if( $form.hasClass('deploy') ){
+				$('body').unbind('click');
+				$form.removeClass('deploy').removeClass('submitting');
+
+			//close any opened filter dropdown
+			} else if( $filter.find('section .switch.active').length ){
+				$filter.find('section .switch.active').each(function(){
+					$(this).trigger('click');
+				});
+			}
+		}
+	});
 
 	//isotope
 		$('#container').isotope({
@@ -767,15 +775,15 @@ $(document).ready(function(){
 					+ ( balanceParam.length ? '&tsBalance=' + balanceParam : '' )
 					+ ( forecastParam.length ? '&tsForecast=' + forecastParam : '' );
 
-//				if( $body.data('internet') == 'offline' ){
-//					var deletions = localStorage.getObject('deletions') || [];
-//					deletions.push(params + '&owner=' + $currentOwner.val() );
-//					localStorage.setObject('deletions', deletions);
-//
-//					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
-//
-//
-//				} else {
+				/*if( $body.data('internet') == 'offline' ){
+					var deletions = localStorage.getObject('deletions') || [];
+					deletions.push(params + '&owner=' + $currentOwner.val() );
+					localStorage.setObject('deletions', deletions);
+
+					alert('Cette suppression sera prise en compte une fois que vous repasserez en ligne.');
+
+
+				} else {*/
 					$.post('ajax/payment.php', params, function(data){
 						//the month payments list has changed, remove the corresponding localStorage lastModified
 						//@todo remove the corresponding storage completely when API provide the method to
@@ -790,7 +798,7 @@ $(document).ready(function(){
 							}
 						}
 					});
-//				}
+				//}
 			}
 		});
 
@@ -822,32 +830,78 @@ $(document).ready(function(){
 				applyFilters();
 			})
 			.delegate(':checkbox', 'change', function(e){
-				e.preventDefault();
-
 				var $this = $(this),
 					group = $this.attr('name'),
 					$div = $this.closest('div'),
-					$checked = $div.find(':checkbox:checked');
+					$quickUl = $div.find('ul:eq(0)'),
+					$limitedUl = $div.find('.limited'),
+					$firstCheckbox = $quickUl.find(':checkbox:eq(0)');
 
 				//manage the "all" value
 				if( $this.val() == '*' ){
-					$div.find(':checkbox:gt(0)').prop('checked', false);
+					//put back the moved <li>s
+					$quickUl.find('li:gt(0)').swapIn( $limitedUl );
+					//uncheck any checked checkboxes in the second <ul>
+					$limitedUl.find(':checkbox').prop('checked', false);
+
 				} else {
-					$div.find(':checkbox:first').prop('checked', false);
+					//uncheck the "all" checkbox
+					$firstCheckbox.prop('checked', false);
+
+					if( $this.prop('checked') ){
+						//put the checkbox <li> in the first <ul>
+						$this.closest('li').swapIn( $quickUl );
+					} else {
+						//put back the checkbox <li> in the second <ul>
+						$this.closest('li').swapIn( $limitedUl );
+					}
 				}
 
-				var values = $checked.map(function(){ return this.value; }).get().join(',');
-
-				//output the current value
-				$this.updateFiltersOutputs();
+				//force the "all" value if none checked
+				if( !$div.find(':checkbox:checked').length ){
+					$firstCheckbox.prop('checked', true);
+				}
 
 				// store filter value in object
-				filters[ group ] = values;
+				//.get() to always get an array
+				filters[ group ] = $div.find(':checkbox:checked').map(function(){ return this.value; }).get();
 
 				//for filters persistence
 				localStorage.setObject('filters', filters);
 
 				applyFilters();
+
+				//output the current value
+				$this.updateFiltersOutputs();
+			})
+			.delegate('h2', 'click', function(e){
+				e.preventDefault();
+				$(this).children().toggleClass('active').closest('section').toggleClass('deploy');
+			})
+			.delegate('section .switch', 'click', function(e){
+				e.preventDefault();
+				var isActive = $(this).hasClass('active');
+				//close other opened dropdown and deactivate activated switches
+				$filter.find('.dropdown.deploy').removeClass('deploy');
+				$filter.find('.switch.active').removeClass('active');
+				if( !isActive ){
+					$(this).addClass('active').siblings('.dropdown').addClass('deploy');
+				}
+			})
+			.delegate('input[type=search]', 'keyup', function(){
+				var query = $.trim( $(this).val() );
+
+				if( query == '' ){
+					$(this).siblings('.limited').children('li').show();
+					return;
+				}
+
+				query = query.replace(/ /gi, '|'); //add OR for regex query
+
+				var $ul = $(this).siblings('ul:eq(0)');
+				$(this).siblings('.limited').children('li').each(function(i, li){
+					$li.children('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
+				});
 			});
 
 	//next month recurrent payments generation
@@ -1029,10 +1083,6 @@ $(document).ready(function(){
 		$balance.css('width', fixWidth);
 		$forecast.css('width', fixWidth);
 
-		$filter
-			.css('width', function(){ return $('#calculs').width() - $balance.innerWidth() - 10 - 5; }) // 10 for padding and 5 for a margin
-			.css('height', function(){ return $balance.outerHeight() + $forecast.outerHeight() - 5; }); // 5 for bottom margin
-
 		if( data.payments ){
 			//prepare jQuery Template
 			if( !$('#paymentListTemplate').data('tmpl') ){
@@ -1074,26 +1124,30 @@ $(document).ready(function(){
 
 			//generate the new items via templating
 			var $items = $.tmpl('paymentList', data);
-			//append the new items to isotope
-			$container.isotope('insert', $items);
 
 			//test if there is any cached filters, which are updated on each filters changes
 			try {
-				cachedFilters = localStorage.getObject('filters');
-				if( cachedFilters ){
-					$.each(cachedFilters, function(group, filter){
-						var values = filter.split(','),
-							$inputs = $filter.find('input[name='+ group +']').prop('checked', false);
-						$.each( values, function(){
-							$inputs.filter('[value="'+ this +'"]').prop('checked', true);
+				if( !filters.length ){ //page load, no filters set
+					cachedFilters = localStorage.getObject('filters');
+					if( cachedFilters ){
+						$.each(cachedFilters, function(group, filter){
+							var $inputs = $filter.find('input[name='+ group +']').prop('checked', false),
+								$quickUl = $inputs.closest('div').children('ul:eq(0)');
+							//check the cached values filter checkboxes and swap them in the first <ul>
+							$.each( filter, function(){
+								$inputs.filter('[value="'+ this +'"]').prop('checked', true).closest('li').swapIn( $quickUl );
+							});
 						});
-					});
 
-					filters = cachedFilters; //update the filters list for applyFilters()
+						filters = cachedFilters; //update the filters list for applyFilters()
+					}
+
+					$filter.find('section').find(':checked:first').updateFiltersOutputs();
+					applyFilters();
 				}
 
-				$filter.find('section').find(':checked:first').updateFiltersOutputs();
-				applyFilters();
+				//append the new items to isotope
+				$container.isotope('insert', $items);
 			} catch( e ){
 				alert(e);
 			}
@@ -1416,21 +1470,26 @@ $(document).ready(function(){
 
 	/**
 	 * apply given filters to isotope
-	 * and sums
 	 */
 	function applyFilters(){
-		var isoFilters = [],
-			prop;
+		var merge = [],
+			group;
 
-		for ( prop in filters ) {
-			isoFilters.push( filters[ prop ] );
+		for( group in filters ){
+			merge.push( filters[group] );
 		}
 
-		/* use of * as "all" selector can cause error with 2 or more consecutive * */
-		$container.isotope({ filter: isoFilters.join('').replace(/\*/g, '') });
+		if( !merge.length ) return;
+
+		//cartesian product (javascript 1.8)
+		merge = merge.reduce(function(previousValue, currentValue, index, array){
+			return [a.concat(b) for each( a in previousValue ) for each( b in currentValue )];
+		});
 
 		var sortName = $('.sort:visible a.primary').attr('href').substr(1);
-		$container.isotope({ sortBy: sortName });
+
+		/* use of * as "all" selector can cause error with 2 or more consecutive * */
+		$container.isotope({ filter: merge.join(',').replace(/\*/g, ''), sortBy: sortName });
 	}
 
 
@@ -1875,6 +1934,42 @@ $(document).ready(function(){
 });
 
 
+/**
+ * swap a <li> into the given target
+ * respect the <li>s order (from data-order value)
+ */
+$.fn.swapIn = function( $target ){
+	return this.each(function(){
+		var $this = $(this).blur(), //remove the ":active" outline
+			order = $this.data('order');
+
+		//try to find the previous <li> based on the order
+		var $prev = $target.children('li[data-order='+ (order-1) +']');
+		if( $prev.length ){
+			$this.insertAfter( $prev );
+		} else {
+			//try to find the next <li> based on the order
+			var $next = $target.find('li[data-order='+ (order+1) +']');
+			if( $next.length ){
+				$this.insertBefore( $next );
+			} else {
+				//parse the $target <li> to find where to insert
+				var inserted = false;
+				$target.children('li').each(function(i, li){
+					if( $(li).data('order') > order ){
+						$this.insertBefore( li );
+						inserted = true;
+						return false; //break out of the each loop
+					}
+				});
+				//the <li> is still not inserted, appending it to the target
+				if( !inserted ){
+					$this.appendTo( $target );
+				}
+			}
+		}
+	});
+}
 
 /**
  * update the output for filters
@@ -1883,8 +1978,9 @@ $.fn.updateFiltersOutputs = function(){
 	return this.each(function(){
 		//output the current value
 		var output = $(this).closest('div').find('input:checked').map(function(){ return $(this).parent().text(); }).get();
+		var title = '';
 		if( output.length > 1 ){
-			output = output.length + ' selected';
+			output = output.join(', ');
 		} else {
 			output = output[0];
 		}
@@ -1928,12 +2024,21 @@ $.fn.loadList = function(){
 
 				} else {
 					//save the checked values
-					$list.data('sav', $list.children('input:checked').map(function(){ return this.value }));
-					//keep the first option aka "placeholder"
+					$list.data('sav', $list.find('input:checked').map(function(){ return this.value }));
+
+					//remove any <ul> after the first
+					$list.children('ul.limited').remove();
+
+					//keep the first option aka "placeholder" in the remaining <ul>
 					$list.find('li:gt(0)').remove();
+
+					//create a new ul after the first one
+					var $ul = $('<ul>', { 'class': 'limited' }).appendTo($list);
+
 					var $li = $list.find('li:first').clone();
 				}
 
+				var i = 1;
 				$.each(cache.data, function(id, name){
 					name = decoder.html(name).val();
 					if( isDatalist ){
@@ -1952,14 +2057,20 @@ $.fn.loadList = function(){
 								.text( name )
 								.prepend( $input );
 
-						$newLi.appendTo( $list );
+						$newLi.attr('data-order', i).appendTo( $ul );
+						i++;
 					}
 				});
 
 				//recheck previously checked values
 				if( !isDatalist && $list.data('sav') ){
 					$.each( $list.data('sav'), function(){
-						$list.find('input[value='+ this +']').prop('checked', true);
+						//[value=*] cause an error
+						if( this == '*' ){
+							$list.find('li:first').prop('checked', true);
+						} else {
+							$list.find('input[value='+ this +']').prop('checked', true);
+						}
 					});
 					$list.data('sav', null);
 				}

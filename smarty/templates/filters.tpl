@@ -1,9 +1,11 @@
 {* labels at the left, list or select on hover, @todo change markup accordingly *}
 <section id="filter">
-	<h2>Filtres :</h2>
+	<h2>Filtres :<span class="switch"></span></h2>
 
 	<section>
-		<h3>Fréquence :</h3><output></output>
+		<h3>Fréquence :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="radio dropdown">
 			<ul>
 			{strip}
@@ -31,11 +33,14 @@
 	</section>
 
 	<section>
-		<h3>Origine :</h3><output></output>
+		<h3>Origine :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown" id="origin_filter">
+			<input type="search" value="" autocomplete="off" />
 			<ul>
 			{strip}
-				<li>
+				<li data-order="0">
 					<label for="origin-all">
 						<input type="checkbox" id="origin-all" name="origin" value="*" checked />
 						Tout
@@ -47,7 +52,9 @@
 	</section>
 
 	<section>
-		<h3>Status :</h3><output></output>
+		<h3>Status :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -71,11 +78,14 @@
 	</section>
 
 	<section>
-		<h3>Bénéficiaire :</h3><output></output>
+		<h3>Bénéficiaire :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown" id="recipient_filter">
+			<input type="search" value="" autocomplete="off" />
 			<ul>
 			{strip}
-				<li>
+				<li data-order="0">
 					<label for="recipient-all">
 						<input type="checkbox" id="recipient-all" name="recipient" value="*" checked />
 						Tout
@@ -87,7 +97,9 @@
 	</section>
 
 	<section>
-		<h3>Type :</h3><output></output>
+		<h3>Type :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -111,7 +123,9 @@
 	</section>
 
 	<section>
-		<h3>Monnaie :</h3><output></output>
+		<h3>Monnaie :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="radio dropdown">
 			<ul>
 			{strip}
@@ -135,7 +149,9 @@
 	</section>
 
 	<section>
-		<h3>Méthode :</h3><output></output>
+		<h3>Méthode :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown">
 			<ul>
 			{strip}
@@ -159,11 +175,14 @@
 	</section>
 
 	<section>
-		<h3>Localisation :</h3><output></output>
+		<h3>Localisation :</h3>
+		<span class="switch"></span>
+		<output></output>
 		<div class="checkbox dropdown" id="location_filter">
+			<input type="search" value="" autocomplete="off" />
 			<ul>
 			{strip}
-				<li>
+				<li data-order="0">
 					<label for="location-all">
 						<input type="checkbox" id="location-all" name="location" value="*" checked />
 						Tout

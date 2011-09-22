@@ -961,20 +961,56 @@
 	/* filters */
 		#filter section {
 			position: relative;
-			padding: 2px 0;
-			margin: 1px 0;
+			padding: 0;
+			margin: 2px 0;
+		}
+
+		#filter h2 {
+			display: block;
+			cursor: pointer;
 		}
 
 		#filter h3 {
 			display: inline-block;
-			min-width: 83px;
+			min-width: 80px;
 			margin: 0;
 			padding: 0;
 			font-weight: normal;
 		}
 
+		#filter .switch {
+			text-indent: -999em;
+			width: 12px;
+			height: 12px;
+			display: inline-block;
+			background-image: url('../img/gh-icons.png');
+			background-position: -1px -372px;
+			background-repeat: no-repeat;
+			cursor: pointer;
+			position: relative;
+			top: 1px;
+			color: #FF7722;
+		}
+
+		#filter h2 .switch {
+			float: right;
+		}
+
+		#filter .switch.active {
+			background-position: -14px -372px;
+		}
+
 		#filter .dropdown {
 			display: none;
+		}
+
+		#filter .dropdown > input {
+			display: block;
+			width: 97%;
+			width: -moz-calc(100% - 7px);
+			width: -webkit-calc(100% - 7px);
+			width: -o-calc(100% - 7px);
+			width: -calc(100% - 7px);
 		}
 
 		#filter .dropdown ul {
@@ -986,22 +1022,33 @@
 		#filter .dropdown li {
 			display: block;
 			margin: 1px 0;
+			width: 100%;
 		}
 
-		#filter section:hover .dropdown {
+		#filter .dropdown.deploy {
 			display: block;
 			position: absolute;
-			top: -2px;
-			left: 83px;
-			max-height: 150px;
-			overflow-y: auto;
-			overflow-x: hidden;
-			background-color: lightBlue;
+			top: 2px;
+			left: 95px;
+			background-color: #CCCCCC;
 			border: 1px solid #FF7722;
-			padding: 3px;
-			border-radius: 6px;
+			padding: 1px;
+			border-radius: 0 6px 6px;
 			z-index: 1;
-			margin-right: 20px;
+		}
+
+		#filter .checkbox[id] ul:not(.limited) {
+			border-bottom: 1px solid #666666;
+		}
+
+		#filter .limited {
+			max-height: 180px;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+
+		#filter .limited li {
+			margin-right: 16px;
 		}
 
 		#filter label {
@@ -1010,7 +1057,7 @@
 			padding: 2px 3px;
 		}
 
-		#filter input {
+		#filter ul input {
 			margin-right: 3px;
 		}
 
@@ -1812,7 +1859,7 @@
 		}
 
 		#calculs {
-			max-width: 25%;
+			width: 25%;
 			position: absolute;
 			top: 39px;
 			right: 0;
@@ -1843,17 +1890,17 @@
 			clear: right;
 		}
 
-		#sums {
+		#sums,
+		#filter {
 			width: 98%;
 			width: -webkit-calc(100% - 2*5px);
 			width: -o-calc(100% - 2*5px);
 			width: -moz-calc(100% - 2*5px);
 		}
 
-		#filter {
-			border-radius: 6px;
-			float: none;
-			clear: none;
+		#filter:not(.deploy) {
+			max-height: 12px;
+			overflow: hidden;
 		}
 
 		#sums table {
