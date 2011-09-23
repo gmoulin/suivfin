@@ -42,7 +42,7 @@ if( Modernizr.applicationcache ){
 		cache.addEventListener('progress', logEvent, false);
 		cache.addEventListener('updateready', logEvent, false);
 
-		setInterval(function(){cache.update()}, 10000);
+		setInterval(function(){ cache.update(); }, 10000);
 	}
 
 	//just force reload of the page if an update is available
@@ -335,21 +335,21 @@ $(document).ready(function(){
 					/**
 					 * in which case are we ?
 					 * delta (&d=1)
-					 * 		payments list -> delta only
-					 * 		balance -> only if current month
-					 * 		sums -> payment month data
-					 * 		forecasts -> only if status 2 or 4
+					 *		payments list -> delta only
+					 *		balance -> only if current month
+					 *		sums -> payment month data
+					 *		forecasts -> only if status 2 or 4
 					 * timeframe change (&timeframe=)
-					 * 		payments list -> payment month data, delete payment in list if update
-					 * 		balance -> only if payment date (new or old one) <= today
-					 * 		sums -> payment month data (new and old one)
-					 * 		forecasts -> only if status 2 or 4
+					 *		payments list -> payment month data, delete payment in list if update
+					 *		balance -> only if payment date (new or old one) <= today
+					 *		sums -> payment month data (new and old one)
+					 *		forecasts -> only if status 2 or 4
 					 * reload
-					 * 		payments list -> not needed
-					 * 		balance -> not needed
-					 * 		sums -> not needed
-					 * 		forecasts ->  not needed
-					 * 		save new timeframe and use it after reload
+					 *		payments list -> not needed
+					 *		balance -> not needed
+					 *		sums -> not needed
+					 *		forecasts ->  not needed
+					 *		save new timeframe and use it after reload
 					 */
 					var actionCase = false,
 						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']'),
@@ -750,10 +750,10 @@ $(document).ready(function(){
 				//need forecast ?
 				//yes if for current month or the next and if status is 2 or 4 (foreseen or to pay)
 				var forecastParam = '';
-				if( (   itemMonth == currentMonth
+				if( (	itemMonth == currentMonth
 					 || itemMonth == nextMonth )
 					&&
-					(   itemStatus == 2
+					(	itemStatus == 2
 					 || itemStatus == 4 )
 				){
 					try{
@@ -802,18 +802,29 @@ $(document).ready(function(){
 			}
 		});
 
-		$('.sort a').click(function(e){
+	//right column toggle
+		$('#calculs').delegate('.toggler', 'click', function(e){
+			$(this).parent().toggleClass('fold');
+			$container.toggleClass('widder');
+
+			setTimeout(function(){ $container.isotope('reLayout'); }, 50);
+		});
+
+	//sort
+		$('#sort a').click(function(e){
 			e.preventDefault();
 			// get href attribute, minus the '#'
 			var sortName = $(this).attr('href').substr(1);
-			$('#container').isotope({ sortBy: sortName });
+			var sortAscending = true;
+			if( sortName == 'date' ){
+				sortAscending = false;
+			}
+			$('#container').isotope({ 'sortBy': sortName, 'sortAscending': sortAscending });
 		});
 
 	//filters
 		$filter
 			.delegate(':radio', 'change', function(e){
-				e.preventDefault();
-
 				var $this = $(this),
 					group = $this.attr('name'),
 					filter = $this.val();
@@ -830,7 +841,7 @@ $(document).ready(function(){
 				applyFilters();
 			})
 			.delegate(':checkbox', 'change', function(e){
-				var $this = $(this),
+				var $this = $(this).blur(), //blur() to remove the focus style (like -moz-focusring)
 					group = $this.attr('name'),
 					$div = $this.closest('div'),
 					$quickUl = $div.find('ul:eq(0)'),
@@ -900,6 +911,7 @@ $(document).ready(function(){
 
 				var $ul = $(this).siblings('ul:eq(0)');
 				$(this).siblings('.limited').children('li').each(function(i, li){
+					var $li = $(li);
 					$li.children('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
 				});
 			});
@@ -949,31 +961,30 @@ $(document).ready(function(){
 		});
 
 	//time frame chekboxes
-		$('#time_frame :checkbox').change(function(e){
-			clearTimeout(buffer);
+		$timeframe
+			.delegate(':checkbox', 'change', function(e){
+				clearTimeout(buffer);
+				var $this = $(this);
 
-			//toggle the months checkboxes if the event target is a year checkbox
-			if( $(this).hasClass('year') ){
-				var isChecked = $(this).is(':checked');
+				//toggle the months checkboxes if the event target is a year checkbox
+				if( $this.hasClass('year') ){
+					$this.siblings('ul').find(':checkbox').prop('checked', $this.prop('checked'));
 
-				var $months = $(this).parent().find('ul.filter');
+				//update the year checkbox checked state
+				} else {
+					var $ul = $this.closest('ul');
+					$ul.parent().find('.year').prop('checked', $ul.find(':checkbox:checked').length ? true : false);
+				}
 
-				$months.find(':checkbox').each(function(i, cb){
-					cb.checked = isChecked;
-				});
-
-			//check the year checkbox if needed
-			} else {
-				var $months = $(this).closest('ul').find(':checkbox:checked');
-				$(this).closest('ul').parent().find('.year').prop({ checked: ( $months.length ? true : false ) });
-			}
-
-			//when submitting an add or update the new data will be in the request response
-			if( !$form.hasClass('submitting') ){
-				//wait 500ms before reloading data, help when user check several checkboxes quickly
-				buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
-			}
-		});
+				//when submitting an add or update the new data will be in the request response
+				if( !$form.hasClass('submitting') ){
+					//wait 500ms before reloading data, help when user check several checkboxes quickly
+					buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
+				}
+			})
+			.delegate('.switch', 'click', function(e){
+				$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
+			});
 
 	//sums cells hover
 		$('#sums')
@@ -1007,6 +1018,7 @@ $(document).ready(function(){
 			});
 
 	//remove <a.button> active state after click
+	//and add the primary class accordingly
 		$('body').delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
@@ -1014,7 +1026,7 @@ $(document).ready(function(){
 	//switch between chart and isotope view
 		$('.switch_view a').data('view', 'isotope').click(function(e){
 			var $this = $(this),
-				paymentSections = ['#container', '#filter', '#time_frame', '.sort', '.next_month', '.form_switch', '#calculs'],
+				paymentSections = ['#container', '#time_frame', '.next_month', '.form_switch', '#calculs'],
 				chartSections = ['#chart', '.chart_type'],
 				currentView;
 
@@ -1045,7 +1057,6 @@ $(document).ready(function(){
 			e.preventDefault();
 			reloadChart( this.rel );
 		});
-
 
 	/**
 	 * refresh the payments, forecast and sum parts with ajax return
@@ -1472,24 +1483,22 @@ $(document).ready(function(){
 	 * apply given filters to isotope
 	 */
 	function applyFilters(){
-		var merge = [],
+		var product = [],
 			group;
 
 		for( group in filters ){
-			merge.push( filters[group] );
+			product.push( filters[group] );
 		}
 
-		if( !merge.length ) return;
+		if( !product.length ) return;
 
 		//cartesian product (javascript 1.8)
-		merge = merge.reduce(function(previousValue, currentValue, index, array){
+		product = product.reduce(function(previousValue, currentValue, index, array){
 			return [a.concat(b) for each( a in previousValue ) for each( b in currentValue )];
 		});
 
-		var sortName = $('.sort:visible a.primary').attr('href').substr(1);
-
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
-		$container.isotope({ filter: merge.join(',').replace(/\*/g, ''), sortBy: sortName });
+		$container.isotope({ filter: product.join(',').replace(/\*/g, '') });
 	}
 
 
@@ -2067,7 +2076,7 @@ $.fn.loadList = function(){
 					$.each( $list.data('sav'), function(){
 						//[value=*] cause an error
 						if( this == '*' ){
-							$list.find('li:first').prop('checked', true);
+							$list.find(':checkbox:first').prop('checked', true);
 						} else {
 							$list.find('input[value='+ this +']').prop('checked', true);
 						}

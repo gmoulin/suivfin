@@ -36,6 +36,7 @@
 					<li>
 						<input type="checkbox" class="year" id="year_{$y}" value="{$y}" {if array_key_exists($y, $selectedTimeFrame)}checked="checked"{/if} autocomplete="off">
 						<label for="year_{$y}">{$y}</label>
+						<span class="switch"></span>
 						<ul class="filter" data-group="month_{$y}">
 							{foreach $months as $m}
 								<li>
@@ -68,18 +69,6 @@
 			<a href="#" class="button pill" title="alterner entre la liste et le graphique">Alterner la présentation</a>
 		</aside>
 
-		<aside class="sort">
-			<h2>Tri : </h2>
-			<div class="button-group">
-				<a href="#date" class="primary button pill">date</a>
-				<a href="#recipient" class="button pill">bénéficiaire</a>
-				<a href="#method" class="button pill">méthode</a>
-				<a href="#origin" class="button pill">origine</a>
-				<a href="#status" class="button pill">statut</a>
-				<a href="#amount" class="button pill">montant</a>
-			</div>
-		</aside>
-
 		<aside class="chart_type">
 			<h2>Type : </h2>
 			<div class="button-group">
@@ -93,23 +82,23 @@
 	{include "form.tpl"}
 
 	<aside id="calculs" class="clearfix">
+		<div class="toggler"></div>
 		{assign var=partial value=false}
 		{include "balance.tpl"}
 		{include "forecast.tpl"}
+		<section id="sort">
+			<h2>Tri : </h2>
+			<div class="button-group">
+				<a href="#date" class="primary button pill">date</a>
+				<a href="#recipient" class="button pill">bénéficiaire</a>
+				<a href="#method" class="button pill">méthode</a>
+				<a href="#origin" class="button pill">origine</a>
+				<a href="#status" class="button pill">statut</a>
+				<a href="#amount" class="button pill">montant</a>
+			</div>
+		</section>
 		{include "filters.tpl"}
 		{include "sum.tpl"}
-	</aside>
-
-	<aside class="sort">
-		<h2>Tri : </h2>
-		<div class="button-group">
-			<a href="#date" class="primary button pill">date</a>
-			<a href="#recipient" class="button pill">bénéficiaire</a>
-			<a href="#method" class="button pill">méthode</a>
-			<a href="#origin" class="button pill">origine</a>
-			<a href="#status" class="button pill">statut</a>
-			<a href="#amount" class="button pill">montant</a>
-		</div>
 	</aside>
 
 	{include "payment.tpl"}
