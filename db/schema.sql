@@ -145,6 +145,7 @@ CREATE  TABLE IF NOT EXISTS `suivfin`.`payment` (
   INDEX `paymentOwnerFK` (`ownerFK` ASC) ,
   INDEX `paymentLocationFK` (`locationFK` ASC) ,
   INDEX `paymentRecipientFK` (`recipientFK` ASC) ,
+  INDEX `paymentMonthIDX` (`paymentMonth` ASC) ,
   CONSTRAINT `paymentTypeFK`
     FOREIGN KEY (`typeFK` )
     REFERENCES `suivfin`.`type` (`id` )
@@ -201,19 +202,6 @@ CREATE  TABLE IF NOT EXISTS `suivfin`.`evolution` (
   PRIMARY KEY (`originFK`, `evolutionDate`) ,
   INDEX `originIDX` (`originFK` ASC) ,
   INDEX `evolutionDateIDX` (`evolutionDate` ASC) )
-ENGINE = MyISAM;
-
-
--- -----------------------------------------------------
--- Table `suivfin`.`list_timestamp`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `suivfin`.`list_timestamp` ;
-
-CREATE  TABLE IF NOT EXISTS `suivfin`.`list_timestamp` (
-  `id` VARCHAR(255) NOT NULL ,
-  `stamp` TIMESTAMP NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `stampIDX` (`stamp` ASC) )
 ENGINE = MyISAM;
 
 

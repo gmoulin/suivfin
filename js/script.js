@@ -972,6 +972,7 @@ $(document).ready(function(){
 
 				//update the year checkbox checked state
 				} else {
+					$this.closest('li').toggleClass('checked', $this.prop('checked'));
 					var $ul = $this.closest('ul');
 					$ul.parent().find('.year').prop('checked', $ul.find(':checkbox:checked').length ? true : false);
 				}
@@ -984,6 +985,9 @@ $(document).ready(function(){
 			})
 			.delegate('.switch', 'click', function(e){
 				$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
+			})
+			.find('li li :checkbox').each(function(){
+				$(this).closest('li').toggleClass('checked', $(this).prop('checked'));
 			});
 
 	//sums cells hover
@@ -1492,9 +1496,19 @@ $(document).ready(function(){
 
 		if( !product.length ) return;
 
-		//cartesian product (javascript 1.8)
+		//cartesian product
 		product = product.reduce(function(previousValue, currentValue, index, array){
-			return [a.concat(b) for each( a in previousValue ) for each( b in currentValue )];
+			//javascript 1.8 (Firefox)
+			//return [a.concat(b) for each( a in previousValue ) for each( b in currentValue )];
+
+			//old javascript versions (other)
+			var tmp = [];
+			for( var a in previousValue ){
+				for( var b in currentValue ){
+					tmp.push(previousValue[a].concat(currentValue[b]));
+				}
+			}
+			return tmp;
 		});
 
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
@@ -1922,7 +1936,7 @@ $(document).ready(function(){
 				var persistentTimeframe = localStorage.getObject($currentOwner.val() + '_timeframe');
 				if( persistentTimeframe && persistentTimeframe.length ){
 					//uncheck all checkboxes, by default at least one is checked, for the current month
-					$timeframe.find('input:checked').prop('checked', false);
+					$timeframe.find(':checkbox:checked').prop('checked', false).closest('li').removeClass('checked');
 
 					//update the timeframe checkboxes
 					$.each( persistentTimeframe, function(){
