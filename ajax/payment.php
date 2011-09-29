@@ -303,7 +303,7 @@ try {
  * @param object $paymentBefore : payment before action save
  * @param object $paymentAfter : payment after action save
  */
-function getFreshData( &$smarty, $frame, $action, $deltaIds, $paymentBefore = null, $paymentAfter = null ){
+function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefore = null, $paymentAfter = null ){
 	/**
 	 * in which case are we ?
 	 * add & update
