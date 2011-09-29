@@ -183,7 +183,6 @@ if( !Modernizr.localstorage ){
 
 		if( typeof window.localStorage == 'undefined' ) window.localStorage = new Storage('local');
 		if( typeof window.sessionStorage == 'undefined' ) window.sessionStorage = new Storage('session');
-
 	})();
 }
 

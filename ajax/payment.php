@@ -26,6 +26,7 @@ try {
 				$frame = array();
 				foreach( $tmp as $couple ){
 					$c = explode('|', $couple);
+					if( count($c) == 1 ) $c[1] = 0;
 					$frame[ $c[0] ] = $c[1];
 				}
 			}
@@ -334,7 +335,7 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 	$delta = null;
 
 	//get all the timestamps for the filters and form datalists
-	if( $action != 'delete' ){
+	if( $action != 'delete' && $action != 'initNextMonth' ){
 		$tsForecast = filter_has_var(INPUT_POST, 'tsForecast');
 		if( is_null($tsForecast) || $tsForecast === false ){
 			$tsForecast = -1;
@@ -457,6 +458,15 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 			}
 		} else $tsForecast = -1;
 
+	} else if( $action == 'initNextMonth' ){
+		$payments = $oPayment->loadForTimeFrame( $frame );
+		$sums = $oPayment->getSums( $frame );
+
+		if( array_key_exists($currentMonth, $frame) || array_key_exists($nextMonth, $frame) ){
+			$tsForecast = 0;
+			$tsBalance = 0;
+		}
+
 	} else { //classic case (refresh)
 		$payments = $oPayment->loadForTimeFrame( $frame );
 
@@ -533,7 +543,7 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 	if( !empty($delta) ) $response['delta'] = $delta;
 
 	//those 5 lists are not sent back on delete
-	if( $action != 'delete' ){
+	if( $action != 'delete' && $action != 'initNextMonth' ){
 		if( !is_null($origins) && $tsOrigin != $origins['lastModified'] ){
 			$origins['lastModified'] = gmdate("D, d M Y H:i:s", $origins['lastModified']) . " GMT";
 			$response['origins'] = $origins;

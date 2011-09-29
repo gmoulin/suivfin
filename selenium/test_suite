@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+  <title>Test Suite</title>
+</head>
+<body>
+<table id="suiteTable" cellpadding="1" cellspacing="1" border="1" class="selenium"><tbody>
+<tr><td><b>Test Suite</b></td></tr>
+<tr><td><a href="page_parts">suivfin open</a></td></tr>
+<tr><td><a href="localStorage">localStorage</a></td></tr>
+<tr><td><a href="isotope_filters">Isotope Filters</a></td></tr>
+<tr><td><a href="isotope_sort">Isotope Sort</a></td></tr>
+<tr><td><a href="timeframe">timeframe</a></td></tr>
+<tr><td><a href="payment_add">payment add</a></td></tr>
+<tr><td><a href="payment_delete">payment delete</a></td></tr>
+<tr><td><a href="payment_edit">payment edit</a></td></tr>
+<tr><td><a href="payment_fork">payment fork</a></td></tr>
+<tr><td><a href="right_column_fold">right_column_fold</a></td></tr>
+<tr><td><a href="chart_expenses">chart_expenses</a></td></tr>
+<tr><td><a href="chart_sums">chart_sums</a></td></tr>
+<tr><td><a href="chart_recipients">chart_recipients</a></td></tr>
+<tr><td><a href="next_month_payments">next_month_payments</a></td></tr>
+</tbody></table>
+</body>
+</html>

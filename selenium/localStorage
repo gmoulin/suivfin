@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>localStorage</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">localStorage</td></tr>
+</thead><tbody>
+<!--test labels list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('labelList') != null</td>
+	<td>true</td>
+</tr>
+<!--test locations list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('locationList') != null</td>
+	<td>true</td>
+</tr>
+<!--test methods list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('methodList') != null</td>
+	<td>true</td>
+</tr>
+<!--test recipients list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('recipientList') != null</td>
+	<td>true</td>
+</tr>
+<!--test forecast data-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('3_forecast') != null</td>
+	<td>true</td>
+</tr>
+<!--test balance data-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('3_balance') != null</td>
+	<td>true</td>
+</tr>
+<!--test timeframe data-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('3_timeframe') != null</td>
+	<td>true</td>
+</tr>
+<!--generate currentMonth-->
+<tr>
+	<td>storeEval</td>
+	<td>(function getCurrentMonth(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); 	var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1); } else { var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1); }&nbsp;&nbsp;return currentMonth; })()</td>
+	<td>currentMonth</td>
+</tr>
+<!--test sums data for current month-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('3_sums_' + storedVars['currentMonth']) != null</td>
+	<td>true</td>
+</tr>
+<!--test payments data for current month-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('3_payments_' + storedVars['currentMonth']) != null</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
