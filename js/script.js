@@ -1538,7 +1538,10 @@ $(document).ready(function(){
 			}
 		}
 
-		if( !product.length ) return;
+		if( !product.length ){
+			$container.isotope({ filter: '*' });
+			return;
+		}
 
 		//cartesian product
 		product = product.reduce(function(previousValue, currentValue, index, array){
