@@ -850,13 +850,16 @@ $(document).ready(function(){
 				//output the current value
 				$this.closest('section').children('output').text( $(this).text() );
 
-				// store filter value in object
-				filters[ group ] = filter;
+				// store filter value in object as an array
+				filters[ group ] = [filter];
 
 				//for filters persistence
 				localStorage.setObject('filters', filters);
 
 				applyFilters();
+
+				//output the current value
+				$this.updateFiltersOutputs();
 			})
 			.delegate(':checkbox', 'change', function(e){
 				var $this = $(this).blur(), //blur() to remove the focus style (like -moz-focusring)
@@ -869,20 +872,23 @@ $(document).ready(function(){
 				//manage the "all" value
 				if( $this.val() == '*' ){
 					//put back the moved <li>s
-					$quickUl.find('li:gt(0)').swapIn( $limitedUl );
+					if( $limitedUl.length ) $quickUl.find('li:gt(0)').swapIn( $limitedUl );
 					//uncheck any checked checkboxes in the second <ul>
-					$limitedUl.find(':checkbox').prop('checked', false);
+					$div.find(':checkbox').prop('checked', false);
 
+					$firstCheckbox.prop('checked', true);
 				} else {
 					//uncheck the "all" checkbox
 					$firstCheckbox.prop('checked', false);
 
-					if( $this.prop('checked') ){
-						//put the checkbox <li> in the first <ul>
-						$this.closest('li').swapIn( $quickUl );
-					} else {
-						//put back the checkbox <li> in the second <ul>
-						$this.closest('li').swapIn( $limitedUl );
+					if( $limitedUl.length ){
+						if( $this.prop('checked') ){
+							//put the checkbox <li> in the first <ul>
+							$this.closest('li').swapIn( $quickUl );
+						} else {
+							//put back the checkbox <li> in the second <ul>
+							$this.closest('li').swapIn( $limitedUl );
+						}
 					}
 				}
 
@@ -932,6 +938,15 @@ $(document).ready(function(){
 					var $li = $(li);
 					$li.children('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
 				});
+			})
+			.click(function(e){
+				//close any open dropdown for an outside click
+				var $t = $(e.target);
+				if( !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('ul').length ){
+					$filter.find('section .switch.active').each(function(){
+						$(this).trigger('click');
+					});
+				}
 			});
 
 	//next month recurrent payments generation
@@ -1165,17 +1180,26 @@ $(document).ready(function(){
 					if( cachedFilters ){
 						$.each(cachedFilters, function(group, filter){
 							var $inputs = $filter.find('input[name='+ group +']').prop('checked', false),
-								$quickUl = $inputs.closest('div').children('ul:eq(0)');
+								$div = $inputs.closest('div'),
+								$quickUl = $div.children('ul:eq(0)');
 							//check the cached values filter checkboxes and swap them in the first <ul>
 							$.each( filter, function(){
-								$inputs.filter('[value="'+ this +'"]').prop('checked', true).closest('li').swapIn( $quickUl );
+								if( this == '*' ){
+									var $checked = $inputs.filter('[id$="-all"]');
+								} else {
+									var $checked = $inputs.filter('[value="'+ this +'"]');
+								}
+								$checked.prop('checked', true);
+
+								//swapIn only for "limited" <li>s
+								if( $checked.closest('ul').hasClass('limited') ) $checked.closest('li').swapIn( $quickUl );
 							});
 						});
 
 						filters = cachedFilters; //update the filters list for applyFilters()
 					}
 
-					$filter.find('section').find(':checked:first').updateFiltersOutputs();
+					$filter.find('.dropdown').find('input:first').updateFiltersOutputs();
 					applyFilters();
 				}
 
@@ -1509,7 +1533,9 @@ $(document).ready(function(){
 			group;
 
 		for( group in filters ){
-			product.push( filters[group] );
+			if( filters[group].join(',') != '*' ){
+				product.push( filters[group] );
+			}
 		}
 
 		if( !product.length ) return;
@@ -1530,7 +1556,7 @@ $(document).ready(function(){
 		});
 
 		/* use of * as "all" selector can cause error with 2 or more consecutive * */
-		$container.isotope({ filter: product.join(',').replace(/\*/g, '') });
+		$container.isotope({ filter: ($.isArray(product) ? product.join(',') : product).replace(/\*/g, '') });
 	}
 
 
@@ -2025,6 +2051,7 @@ $.fn.updateFiltersOutputs = function(){
 		} else {
 			output = output[0];
 		}
+
 		$(this).closest('section').children('output').text( output );
 	});
 }

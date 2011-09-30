@@ -1,6 +1,6 @@
 {* labels at the left, list or select on hover, @todo change markup accordingly *}
-<section id="filter">
-	<h2>Filtres :<span class="switch"></span></h2>
+<section id="filter" class="deploy">
+	<h2>Filtres :<span class="switch active"></span></h2>
 
 	<section>
 		<h3>Fréquence :</h3>
@@ -138,7 +138,7 @@
 				{foreach $currencies as $id => $name}
 					<li>
 						<label for="currency-{$id}">
-							<input type="radio" id="currency-all" name="currency" value=".currency_{$id}" />
+							<input type="radio" id="currency-{$id}" name="currency" value=".currency_{$id}" />
 							{$name}
 						</label>
 					</li>
