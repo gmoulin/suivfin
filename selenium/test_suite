@@ -10,8 +10,13 @@
 <tr><td><b>Test Suite</b></td></tr>
 <tr><td><a href="page_parts">suivfin open</a></td></tr>
 <tr><td><a href="localStorage">localStorage</a></td></tr>
-<tr><td><a href="isotope_filters">Isotope Filters</a></td></tr>
-<tr><td><a href="isotope_sort">Isotope Sort</a></td></tr>
+<tr><td><a href="isotope_filters">isotope_filters</a></td></tr>
+<tr><td><a href="isotope_filter">isotope_filter</a></td></tr>
+<tr><td><a href="isotope_filter_radio">Isotope_filter_radio</a></td></tr>
+<tr><td><a href="isotope_filter_checkbox">isotope_filter_checkbox</a></td></tr>
+<tr><td><a href="isotope_filter_checkbox_limited">isotope_filter_checkbox_limited</a></td></tr>
+<tr><td><a href="isotope_filter_combination">isotope_filter_combination</a></td></tr>
+<tr><td><a href="isotope_sort">isotope_sort</a></td></tr>
 <tr><td><a href="timeframe">timeframe</a></td></tr>
 <tr><td><a href="payment_add">payment add</a></td></tr>
 <tr><td><a href="payment_delete">payment delete</a></td></tr>

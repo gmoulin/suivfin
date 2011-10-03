@@ -912,6 +912,11 @@ $(document).ready(function(){
 			.delegate('h2', 'click', function(e){
 				e.preventDefault();
 				$(this).children().toggleClass('active').closest('section').toggleClass('deploy');
+
+				//close any open dropdown
+				$filter.find('section .switch.active').each(function(){
+					$(this).trigger('click');
+				});
 			})
 			.delegate('section .switch', 'click', function(e){
 				e.preventDefault();

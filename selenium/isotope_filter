@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>isotope_filter</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">isotope_filter</td></tr>
+</thead><tbody>
+<!--check folded state on load-->
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#filter &gt; section:first .switch').hasClass('active');</td>
+	<td>true</td>
+</tr>
+<!--check output not empty-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first output').text().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown deploy on switch click-->
+<tr>
+	<td>click</td>
+	<td>css=section &gt; span.switch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .switch').hasClass('active');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown fold on switch click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#filter &gt; section:first .switch').hasClass('active');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#filter &gt; section:first .dropdown').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>true</td>
+</tr>
+<!--dropdown deploy-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown fold on outside click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; section:eq(2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>true</td>
+</tr>
+<!--dropdown deploy-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown fold on escape keypress-->
+<tr>
+	<td>keyDown</td>
+	<td>css=#filter &gt; section:eq(2)</td>
+	<td>\27</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

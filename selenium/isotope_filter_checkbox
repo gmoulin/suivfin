@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>isotope_filter_checkbox</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">isotope_filter_checkbox</td></tr>
+</thead><tbody>
+<!--reset filters-->
+<tr>
+	<td>runScript</td>
+	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--check input type checkbox-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox:first :checkbox').length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--store visibile payments quantity-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#container').height();</td>
+	<td>heightWithoutFilter</td>
+</tr>
+<!--check input type checkbox click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(1)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:checked').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check local storage filter list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('filters') != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>JSON.parse(window.localStorage.getItem('filters'))[window.$('#filter :checkbox[name=status]:eq(1)').attr('name')] == window.$('#filter :checkbox[name=status]:eq(1)').val()</td>
+	<td>true</td>
+</tr>
+<!--check visible payments quantity-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter']</td>
+	<td>true</td>
+</tr>
+<!--store visibile payments quantity with one filter-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#container').height();</td>
+	<td>heightWithOneFilter</td>
+</tr>
+<!--check input type checkbox click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(3)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(3)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:checked').length == 2;</td>
+	<td>true</td>
+</tr>
+<!--check local storage filter list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('filters') != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>JSON.parse(window.localStorage.getItem('filters'))[window.$('#filter :checkbox[name=status]:eq(1)').attr('name')] == window.$('#filter :checkbox[name=status]:eq(1)').val() + ',' + window.$('#filter :checkbox[name=status]:eq(3)').val()</td>
+	<td>true</td>
+</tr>
+<!--check visible payments quantity-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter'] &amp;&amp; window.$('#container').height() &gt; storedVars['heightWithOneFilter']</td>
+	<td>true</td>
+</tr>
+<!--check input "all" click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(0)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(0)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:checked').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check input uncheck -> force check on "all"-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(1)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(1)').prop('checked');</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:eq(0)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter :checkbox[name=status]:checked').length == 1;</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

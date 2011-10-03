@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>Isotope_filter_radio</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Isotope_filter_radio</td></tr>
+</thead><tbody>
+<!--reset filters-->
+<tr>
+	<td>runScript</td>
+	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--check input type radio-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.radio:first :radio').length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--store visibile payments quantity-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#container').height();</td>
+	<td>heightWithoutFilter</td>
+</tr>
+<!--check input type radio click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.radio:first :radio:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.radio:first :radio:eq(1)').prop('checked');</td>
+	<td>true</td>
+</tr>
+<!--check local storage filter list-->
+<tr>
+	<td>assertEval</td>
+	<td>window.localStorage.getItem('filters') != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>JSON.parse(window.localStorage.getItem('filters'))[window.$('#filter .dropdown.radio:first :radio:eq(1)').attr('name')] == window.$('#filter .dropdown.radio:first :radio:eq(1)').val()</td>
+	<td>true</td>
+</tr>
+<!--check visible payments quantity-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter']</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

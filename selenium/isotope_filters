@@ -11,6 +11,50 @@
 <thead>
 <tr><td rowspan="1" colspan="3">Isotope Filters</td></tr>
 </thead><tbody>
+<!--check deployed state on load-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter &gt; h2 span').hasClass('active');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter').height() &gt; 25;</td>
+	<td>true</td>
+</tr>
+<!--fold #filter-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; h2</td>
+	<td></td>
+</tr>
+<!--check folded state-->
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#filter').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#filter &gt; h2 span').hasClass('active');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter').height() &lt; 25;</td>
+	<td>true</td>
+</tr>
+<!--deploy #filter-->
+<tr>
+	<td>click</td>
+	<td>css=#filter &gt; h2</td>
+	<td></td>
+</tr>
 
 </tbody></table>
 </body>

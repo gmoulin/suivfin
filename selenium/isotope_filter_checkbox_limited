@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>isotope_filter_checkbox_limited</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">isotope_filter_checkbox_limited</td></tr>
+</thead><tbody>
+<!--reset filters-->
+<tr>
+	<td>runScript</td>
+	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('').trigger('keyup');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--check quickUl-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited)').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check quickUl children count-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited) :input').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check limitedUl-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check limitedUl children count-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length &gt; 1;</td>
+	<td>true</td>
+</tr>
+<!--store limitedUl children count-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length;</td>
+	<td>nbLimited</td>
+</tr>
+<!--check swapIn when limited clicked-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul.limited :input:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited) :input').length == 2;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length == storedVars['nbLimited'] - 1;</td>
+	<td>true</td>
+</tr>
+<!--check swapIn when quick unchecked-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul:not(.limited) :input:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited) :input').length == 1;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length == storedVars['nbLimited'];</td>
+	<td>true</td>
+</tr>
+<!--check swapIn reset when "all" clicked-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul.limited :input:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul.limited :input:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul.limited :input:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited) :input').length == 4;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length == storedVars['nbLimited'] - 3;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first ul:not(.limited) :input:eq(0)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul:not(.limited) :input').length == 1;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input').length == storedVars['nbLimited'];</td>
+	<td>true</td>
+</tr>
+<!--check filtering limited list-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('BNP').trigger('keyup');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input:visible').length &lt; storedVars['nbLimited']</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
