@@ -11,7 +11,212 @@
 <thead>
 <tr><td rowspan="1" colspan="3">timeframe</td></tr>
 </thead><tbody>
-
+<!--check default (current month + if day > 20 next month + if day < 5 previous month-->
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m );&nbsp;&nbsp;})()</td>
+	<td>currentMonth</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 20 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>nextMonth</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &lt; 5 ){ currentDate.setMonth(currentDate.getMonth() - 1 ); } var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>previousMonth</td>
+</tr>
+<!--check current month-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').parent().hasClass('checked');</td>
+	<td>true</td>
+</tr>
+<!--check year-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').closest('ul').siblings('input').prop('checked');</td>
+	<td>true</td>
+</tr>
+<!--check next month-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['nextMonth'] +']').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['nextMonth'] +']').parent().hasClass('checked');</td>
+	<td>true</td>
+</tr>
+<!--check year-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['nextMonth'] +']').closest('ul').siblings('input').prop('checked');</td>
+	<td>true</td>
+</tr>
+<!--check previous month-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['previousMonth'] +']').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['previousMonth'] +']').parent().hasClass('checked');</td>
+	<td>true</td>
+</tr>
+<!--check year-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['previousMonth'] +']').closest('ul').siblings('input').prop('checked');</td>
+	<td>true</td>
+</tr>
+<!--check visible months-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame ul ul li:visible').length != 0;</td>
+	<td>true</td>
+</tr>
+<!--check no year 1970-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input:first').val() != 1970;</td>
+	<td>true</td>
+</tr>
+<!--check deploy months list-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#time_frame').width();</td>
+	<td>tfWidth</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#time_frame .switch:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame .switch:first').hasClass('active')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame .switch:first').siblings('ul').hasClass('deploy')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame').width() &gt; storedVars['tfWidth']</td>
+	<td>true</td>
+</tr>
+<!--add ajaxComplete event listener to grab the result-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
+	<td></td>
+</tr>
+<!--store the payments quantity-->
+<tr>
+	<td>storeEval</td>
+	<td>window.$('#container .item').length</td>
+	<td>nbPayments</td>
+</tr>
+<!--time frame present month checked-->
+<tr>
+	<td>click</td>
+	<td>css=#time_frame input[value=2011-12]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value=2011-12]').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value=2011-12]').parent().hasClass('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200 || window.$('header').data('xhr').status == 304;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>(function(){ if( window.$('header').data('xhr').status == 200 ){ var r = JSON.parse(window.$('header').data('xhr').responseText); return r.payments['2011-12'] || r.sums['2011-12']; } else { return window.$('header').data('xhr').responseText == '';}&nbsp;&nbsp;})()</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container .item').length &gt; storedVars['nbPayments']</td>
+	<td>true</td>
+</tr>
+<!--time frame month unchecked-->
+<tr>
+	<td>click</td>
+	<td>css=#time_frame input[value=2011-12]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value=2011-12]').prop('checked');</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value=2011-12]').parent().hasClass('checked');</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container .item').length == storedVars['nbPayments']</td>
+	<td>true</td>
+</tr>
+<!--remove ajaxComplete event listener-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
+	<td></td>
+</tr>
+<!--check fold months list-->
+<tr>
+	<td>click</td>
+	<td>css=#time_frame .switch:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#time_frame .switch:first').hasClass('active')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>!window.$('#time_frame .switch:first').siblings('ul').hasClass('deploy')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame').width() == storedVars['tfWidth']</td>
+	<td>true</td>
+</tr>
 </tbody></table>
 </body>
 </html>

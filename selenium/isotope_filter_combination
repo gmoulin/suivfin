@@ -11,6 +11,126 @@
 <thead>
 <tr><td rowspan="1" colspan="3">isotope_filter_combination</td></tr>
 </thead><tbody>
+<!--reset filters-->
+<tr>
+	<td>runScript</td>
+	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('').trigger('keyup');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--two filters categories, one value each-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:last</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :radio[name=currency]:last</td>
+	<td></td>
+</tr>
+<!--status vérifié, currency franc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_2.status_1&quot;</td>
+	<td>true</td>
+</tr>
+<!--two filters categories, one and two values-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:last</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=status]:eq(3)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :radio[name=currency]:eq(1)</td>
+	<td></td>
+</tr>
+<!--status à vérifier et prévisible, currency euro-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_1.status_3,.currency_1.status_2&quot;</td>
+	<td>true</td>
+</tr>
+<!--two filters categories, two values each-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :radio[name=currency]:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=type]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=type]:eq(2)</td>
+	<td></td>
+</tr>
+<!--status à vérifier et prévisible, type dépense et dépôt-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.status_3.type_2,.status_3.type_1,.status_2.type_2,.status_2.type_1&quot;</td>
+	<td>true</td>
+</tr>
+<!--multiple filters categories, one or several values each-->
+<tr>
+	<td>click</td>
+	<td>css=#filter :radio[name=currency]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :radio[name=recurrent]:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#filter :checkbox[name=method]:eq(1)</td>
+	<td></td>
+</tr>
+<!--reccurent récurrent, status à vérifier et prévisible, type dépense et dépôt, currency euro, method carte-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_1.status_3.type_2.method_3.recurrent,.currency_1.status_3.type_1.method_3.recurrent,.currency_1.status_2.type_2.method_3.recurrent,.currency_1.status_2.type_1.method_3.recurrent&quot;</td>
+	<td>true</td>
+</tr>
+<!--reset filters-->
+<tr>
+	<td>runScript</td>
+	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('').trigger('keyup');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
 
 </tbody></table>
 </body>

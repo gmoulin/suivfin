@@ -293,7 +293,7 @@ $(document).ready(function(){
 			if( xhr.responseText != '' ) alert("Error requesting page " + settings.url + ", error : " + xhr.responseText, 'error');
 		});
 
-		//cache is managed via Last-Modified headers
+		//cache is managed via Last-Modified headers and localeStorage
 		$.ajaxSetup({ 'cache': false });
 
 	//forms actions
@@ -808,12 +808,19 @@ $(document).ready(function(){
 						localStorage.setObject(owner + '_payments_' + itemMonth, {'lastModified': 0, 'html': null});
 
 						if( !$.isEmptyObject(data) ){
+							store( data );
+
+							//replace only the updated sums
 							if( data.sums ){
 								$.each(data.sums, function(month, info){
 									localStorage.setObject(owner + '_sums_' + month, {'lastModified': info.lastModified, 'html': info.html})
 									$sums.children('[data-month='+ month +']').replaceWith(info.html);
 								});
+
+								data.sums = null; //so refreshParts does not proceed the sum part
 							}
+
+							refreshParts( data );
 						}
 					});
 				//}
@@ -832,7 +839,7 @@ $(document).ready(function(){
 		$('#sort a').click(function(e){
 			e.preventDefault();
 			// get href attribute, minus the '#'
-			var sortName = $(this).attr('href').substr(1);
+			var sortName = this.href.substring(this.href.indexOf('#') + 1);
 			var sortAscending = true;
 			if( sortName == 'date' ){
 				sortAscending = false;

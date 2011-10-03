@@ -11,6 +11,160 @@
 <thead>
 <tr><td rowspan="1" colspan="3">Isotope Sort</td></tr>
 </thead><tbody>
+<!--check isotope sort buttons-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(0)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a').length == 6;</td>
+	<td>true</td>
+</tr>
+<!--default date, desc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(0)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == false;</td>
+	<td>true</td>
+</tr>
+<!--recipient button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(1)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort recipient, asc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(1)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == true;</td>
+	<td>true</td>
+</tr>
+<!--method button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(2)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort method, asc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(2)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == true;</td>
+	<td>true</td>
+</tr>
+<!--origin button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(3)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(3)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort origin, asc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(3)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == true;</td>
+	<td>true</td>
+</tr>
+<!--status button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(4)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(4)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort status, asc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(4)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == true;</td>
+	<td>true</td>
+</tr>
+<!--amount button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(5)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(5)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort amount, asc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(5)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == true;</td>
+	<td>true</td>
+</tr>
+<!--date button-->
+<tr>
+	<td>click</td>
+	<td>css=#sort a:eq(0)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#sort a:eq(0)').hasClass('primary');</td>
+	<td>true</td>
+</tr>
+<!--check sort date, desc-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortBy == window.$('#sort a:eq(0)').attr('href').substr(1);</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').data('isotope').options.sortAscending == false;</td>
+	<td>true</td>
+</tr>
 
 </tbody></table>
 </body>

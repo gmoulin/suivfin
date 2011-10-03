@@ -440,7 +440,6 @@ class common {
 
 						if( $key == 'creationDate' || $key == 'modificationDate' ){
 							$values[] = 'NOW()';
-
 						} elseif( isset($this->_data[$key]) && !is_null($this->_data[$key]) ){
 							$values[] = ':'.$key;
 							$params[':'.$key] = $this->_data[$key];

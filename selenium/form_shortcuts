@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>form shortcuts</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">form shortcuts</td></tr>
+</thead><tbody>
+<!--letter a for form deploy-->
+<tr>
+	<td>keyDown</td>
+	<td>css=body</td>
+	<td>65</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').css('top') == '0px';</td>
+	<td>true</td>
+</tr>
+<!--letter a does nothing if form already deployed-->
+<tr>
+	<td>keyDown</td>
+	<td>css=body</td>
+	<td>65</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').css('top') == '0px';</td>
+	<td>true</td>
+</tr>
+<!--escape for form hide-->
+<tr>
+	<td>keyDown</td>
+	<td>css=body</td>
+	<td>\27</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').hasClass('deploy');</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').css('top') == '-750px';</td>
+	<td>true</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

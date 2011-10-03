@@ -18,11 +18,12 @@
 <tr><td><a href="isotope_filter_combination">isotope_filter_combination</a></td></tr>
 <tr><td><a href="isotope_sort">isotope_sort</a></td></tr>
 <tr><td><a href="timeframe">timeframe</a></td></tr>
+<tr><td><a href="right_column">right_column</a></td></tr>
+<tr><td><a href="form_shortcuts">form shortcuts</a></td></tr>
 <tr><td><a href="payment_add">payment add</a></td></tr>
 <tr><td><a href="payment_delete">payment delete</a></td></tr>
 <tr><td><a href="payment_edit">payment edit</a></td></tr>
 <tr><td><a href="payment_fork">payment fork</a></td></tr>
-<tr><td><a href="right_column_fold">right_column_fold</a></td></tr>
 <tr><td><a href="chart_expenses">chart_expenses</a></td></tr>
 <tr><td><a href="chart_sums">chart_sums</a></td></tr>
 <tr><td><a href="chart_recipients">chart_recipients</a></td></tr>
