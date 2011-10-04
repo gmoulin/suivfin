@@ -337,12 +337,12 @@ $(document).ready(function(){
 					 *		payments list -> delta only
 					 *		balance -> only if current month
 					 *		sums -> payment month data
-					 *		forecasts -> only if status 2 or 4
+					 *		forecasts -> only if status 2 or 4 and current month or next
 					 * timeframe change (&timeframe=)
 					 *		payments list -> payment month data, delete payment in list if update
 					 *		balance -> only if payment date (new or old one) <= today
 					 *		sums -> payment month data (new and old one)
-					 *		forecasts -> only if status 2 or 4
+					 *		forecasts -> only if current month or next
 					 * reload
 					 *		payments list -> not needed
 					 *		balance -> not needed
@@ -531,7 +531,7 @@ $(document).ready(function(){
 		});
 
 		//swap comma for dot in the amount field
-		$(document).delegate('#amount', 'keydown', function(e){
+		$('#amount').keydown(function(e){
 			if( e.which == 188 ){ //, pressed (comma)
 				e.preventDefault();
 				$('#amount').val(function(){ return this.value + '.'; });
@@ -608,8 +608,8 @@ $(document).ready(function(){
 		//escape pressed
 		} else if( e.keyCode == 27 ){
 			if( $form.hasClass('deploy') ){
-				$('body').unbind('click');
 				$form.removeClass('deploy').removeClass('submitting');
+				$('.form_switch a').focus(); //remove the focus from any field or button of the form
 
 			//close any opened filter dropdown
 			} else if( $filter.find('section .switch.active').length ){

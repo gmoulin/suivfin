@@ -41,7 +41,7 @@
 <!--status vérifié, currency franc-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_2.status_1&quot;</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.status_1.currency_2&quot;</td>
 	<td>true</td>
 </tr>
 <!--two filters categories, one and two values-->
@@ -68,7 +68,7 @@
 <!--status à vérifier et prévisible, currency euro-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_1.status_3,.currency_1.status_2&quot;</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.status_3.currency_1,.status_2.currency_1&quot;</td>
 	<td>true</td>
 </tr>
 <!--two filters categories, two values each-->
@@ -112,7 +112,7 @@
 <!--reccurent récurrent, status à vérifier et prévisible, type dépense et dépôt, currency euro, method carte-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#container').data('isotope').options.filter == &quot;.currency_1.status_3.type_2.method_3.recurrent,.currency_1.status_3.type_1.method_3.recurrent,.currency_1.status_2.type_2.method_3.recurrent,.currency_1.status_2.type_1.method_3.recurrent&quot;</td>
+	<td>window.$('#container').data('isotope').options.filter == &quot;.recurrent.status_3.type_2.currency_1.method_3,.recurrent.status_3.type_1.currency_1.method_3,.recurrent.status_2.type_2.currency_1.method_3,.recurrent.status_2.type_1.currency_1.method_3&quot;</td>
 	<td>true</td>
 </tr>
 <!--reset filters-->
@@ -131,7 +131,6 @@
 	<td>200</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

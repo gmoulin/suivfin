@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>payment_add_delta_c3</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">payment_add_delta_c3</td></tr>
+</thead><tbody>
+<!--DELTA CASES-->
+<!--current month cases-->
+<!--case delta only, balance, sums for month, forecast (status 4)-->
+<!--add ajaxComplete event listener to grab the result-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
+	<td></td>
+</tr>
+<!--payment months for cases-->
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>currentMonth</td>
+</tr>
+<!--get current month payments-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('#time_frame .switch').removeClass('active')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#time_frame .switch').siblings('ul').removeClass('deploy')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#time_frame input').prop('checked', false).parent().removeClass('checked');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--hide form-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('#payment_form').removeClass('deploy').removeClass('submitting');</td>
+	<td></td>
+</tr>
+<!--deploy form-->
+<tr>
+	<td>click</td>
+	<td>css=.form_switch a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#type_2').prop('checked', true).trigger('change');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form .ownerChoice:visible').length == 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#label').val('test delta, balance, sum, forecast status 2').trigger('change');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#comment').val('test selenium').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#recurrent_0').prop('checked', true).trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#originFK').val('BNP Commun').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#currency_1').prop('checked', true).trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#amount').val('12.34').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#methodFK').val('carte').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#recipientFK').val('Intermarché').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#status_4').prop('checked', true).trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.$('#locationFK').val('Gaillard').trigger('change')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form')[0].checkValidity();</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#formSubmit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].delta &amp;&amp; storedVars['r'].delta.length == 1</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].sums &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']] &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']].html != '' </td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].balances &amp;&amp; storedVars['r'].balances.html != '' </td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].forecasts &amp;&amp; storedVars['r'].forecasts.html != '' </td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_' + storedVars['r'].delta[0].id).length == 1</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_' + storedVars['r'].delta[0].id).hasClass('today');</td>
+	<td>true</td>
+</tr>
+<!--remove ajaxComplete event listener-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

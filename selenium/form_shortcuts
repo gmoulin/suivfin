@@ -27,11 +27,6 @@
 	<td>200</td>
 	<td></td>
 </tr>
-<tr>
-	<td>assertEval</td>
-	<td>window.$('#payment_form').css('top') == '0px';</td>
-	<td>true</td>
-</tr>
 <!--letter a does nothing if form already deployed-->
 <tr>
 	<td>keyDown</td>
@@ -44,9 +39,9 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>assertEval</td>
-	<td>window.$('#payment_form').css('top') == '0px';</td>
-	<td>true</td>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
 </tr>
 <!--escape for form hide-->
 <tr>
@@ -64,12 +59,6 @@
 	<td>200</td>
 	<td></td>
 </tr>
-<tr>
-	<td>assertEval</td>
-	<td>window.$('#payment_form').css('top') == '-750px';</td>
-	<td>true</td>
-</tr>
-
 </tbody></table>
 </body>
 </html>

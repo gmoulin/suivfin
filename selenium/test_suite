@@ -19,7 +19,9 @@
 <tr><td><a href="isotope_sort">isotope_sort</a></td></tr>
 <tr><td><a href="timeframe">timeframe</a></td></tr>
 <tr><td><a href="right_column">right_column</a></td></tr>
-<tr><td><a href="form_shortcuts">form shortcuts</a></td></tr>
+<tr><td><a href="form_shortcuts">form_shortcuts</a></td></tr>
+<tr><td><a href="form_default_values">form_default_values</a></td></tr>
+<tr><td><a href="form_validation">form_validation</a></td></tr>
 <tr><td><a href="payment_add">payment add</a></td></tr>
 <tr><td><a href="payment_delete">payment delete</a></td></tr>
 <tr><td><a href="payment_edit">payment edit</a></td></tr>

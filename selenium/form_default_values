@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>form_default_values</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">form_default_values</td></tr>
+</thead><tbody>
+<!--deploy form-->
+<tr>
+	<td>click</td>
+	<td>css=.form_switch a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').hasClass('deploy');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--check default form values-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#id').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#action').val() ==&nbsp;&nbsp;'add';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#type_2').prop('checked');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#label').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#labelList').children().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#paymentDate').val() ==&nbsp;&nbsp;(function(){ var d = new Date(); return ( d.getDate() &lt; 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) &lt; 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear(); })();</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#comment').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#recurrent_0').prop('checked')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#originFK').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#originList').children().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#currency_1').prop('checked')</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#currency_2').prop('checked')</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#amount').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#methodFK').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#methodList').children().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#recipientFK').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#recipientList').children().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#status_3').prop('checked')</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#locationFK').val() ==&nbsp;&nbsp;'';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#locationList').children().length &gt; 0;</td>
+	<td>true</td>
+</tr>
+<!--fold form via cancel button-->
+<tr>
+	<td>click</td>
+	<td>css=#formCancel</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form').hasClass('deploy');</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

@@ -50,8 +50,8 @@
 				<label for="recurrent_0">Récurrence</label>
 			</li>
 			<li>
-				<label for="recurrent_0"><input type="radio" id="recurrent_0" name="recurrent" value="0" checked="checked"> Non</label>
-				<label for="recurrent_1"><input type="radio" id="recurrent_1" name="recurrent" value="1"> Oui</label>
+				<label for="recurrent_0"><input type="radio" id="recurrent_0" name="recurrent" value="0" checked="checked" required> Non</label>
+				<label for="recurrent_1"><input type="radio" id="recurrent_1" name="recurrent" value="1" required> Oui</label>
 			</li>
 
 			<li>
