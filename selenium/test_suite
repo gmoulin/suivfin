@@ -22,7 +22,15 @@
 <tr><td><a href="form_shortcuts">form_shortcuts</a></td></tr>
 <tr><td><a href="form_default_values">form_default_values</a></td></tr>
 <tr><td><a href="form_validation">form_validation</a></td></tr>
-<tr><td><a href="payment_add">payment add</a></td></tr>
+<tr><td><a href="payment_add_transfer">payment_add_transfer</a></td></tr>
+<tr><td><a href="payment_add_delta_c1">payment_add_delta_c1</a></td></tr>
+<tr><td><a href="payment_add_delta_c2">payment_add_delta_c2</a></td></tr>
+<tr><td><a href="payment_add_delta_c3">payment_add_delta_c3</a></td></tr>
+<tr><td><a href="payment_add_delta_c4">payment_add_delta_c4</a></td></tr>
+<tr><td><a href="payment_add_delta_c5">payment_add_delta_c5</a></td></tr>
+<tr><td><a href="payment_add_delta_c6">payment_add_delta_c6</a></td></tr>
+<tr><td><a href="payment_add_timeframe_c1">payment_add_timeframe_c1</a></td></tr>
+<tr><td><a href="payment_add_timeframe_c2">payment_add_timeframe_c2</a></td></tr>
 <tr><td><a href="payment_delete">payment delete</a></td></tr>
 <tr><td><a href="payment_edit">payment edit</a></td></tr>
 <tr><td><a href="payment_fork">payment fork</a></td></tr>
