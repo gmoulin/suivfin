@@ -28,24 +28,24 @@
 </tr>
 <!--get current month payments-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame .switch').removeClass('active')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame .switch').siblings('ul').removeClass('deploy')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame input').prop('checked', false).parent().removeClass('checked');</td>
 	<td></td>
 </tr>
 <tr>
-	<td>assertEval</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change').prop('checked');</td>
-	<td>true</td>
+	<td></td>
 </tr>
 <!--hide form-->
 <tr>
@@ -70,7 +70,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#type_2').prop('checked', true).trigger('change');</td>
 	<td></td>
 </tr>
@@ -80,52 +80,52 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#label').val('test delta, balance, sum, no forecast').trigger('change');</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#comment').val('test selenium').trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#recurrent_0').prop('checked', true).trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#originFK').val('BNP Commun').trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#currency_1').prop('checked', true).trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#amount').val('12.34').trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#methodFK').val('carte').trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#recipientFK').val('Intermarché').trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#status_3').prop('checked', true).trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#locationFK').val('Gaillard').trigger('change')</td>
 	<td></td>
 </tr>
@@ -176,12 +176,12 @@
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>storedVars['r'].sums &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']] &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']].html != '' </td>
+	<td>storedVars['r'].sums &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']] &amp;&amp; storedVars['r'].sums[storedVars['currentMonth']].html != ''</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>storedVars['r'].balances &amp;&amp; storedVars['r'].balances.html != '' </td>
+	<td>storedVars['r'].balances &amp;&amp; storedVars['r'].balances.html != ''</td>
 	<td>true</td>
 </tr>
 <tr>
@@ -196,11 +196,10 @@
 </tr>
 <!--remove ajaxComplete event listener-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

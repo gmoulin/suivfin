@@ -13,7 +13,7 @@
 </thead><tbody>
 <!--reset filters-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
 	<td></td>
 </tr>
@@ -67,7 +67,6 @@
 	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter']</td>
 	<td>true</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

@@ -186,9 +186,6 @@ if( !Modernizr.localstorage ){
 	})();
 }
 
-//datalist false positive support (no UI)
-var isFennec = navigator.userAgent.indexOf('Fennec') != -1;
-
 $(document).ready(function(){
 
 	var $body		   = $('body'),
@@ -366,9 +363,7 @@ $(document).ready(function(){
 						actionCase = 'reload';
 					}
 
-					//special case for Fennec and false positive support of datalist
-					//@todo remove when full support
-					if( !Modernizr.input.list || isFennec ){
+					if( !Modernizr.input.list ){
 						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
 
 						$('input[list]', '#payment_form').each(function(){
@@ -590,8 +585,8 @@ $(document).ready(function(){
 			}
 		});
 
-		//@todo temporary, to avoid error on form submit for non datalist supporting browser and Fennec false support
-		if( !Modernizr.input.list || isFennec ){
+		//@todo temporary, to avoid error on form submit for non datalist supporting browser
+		if( !Modernizr.input.list ){
 			$form.find('input[list]').each(function(){
 				$(this).removeProp('required');
 			});
@@ -748,50 +743,21 @@ $(document).ready(function(){
 
 				//remove the payment
 				$container.isotope('remove', $item).isotope('reLayout');
-				applyFilters();
+				//applyFilters();
 
 				//need balance ?
-				//yes if payment is for current month
-				var balanceParam = '';
-				if( itemMonth == currentMonth ){
-					try{
-						balanceParam = 0;
-						var balanceCache = localStorage.getObject( owner + '_balance' );
-						if( balanceCache ){
-							balanceParam = new Date(balanceCache.lastModified).getTime() / 1000;
-						}
-					} catch(e){
-						alert(e);
-					}
-				}
+				//yes if payment date <= today
+				//sent back by the server if needed
 
 				//need forecast ?
 				//yes if for current month or the next and if status is 2 or 4 (foreseen or to pay)
-				var forecastParam = '';
-				if( (	itemMonth == currentMonth
-					 || itemMonth == nextMonth )
-					&&
-					(	itemStatus == 2
-					 || itemStatus == 4 )
-				){
-					try{
-						forecastParam = 0;
-						var forecastCache = localStorage.getObject( owner + '_forecast' );
-						if( forecastCache ){
-							forecastParam = new Date(forecastCache.lastModified).getTime() / 1000;
-						}
-					} catch(e){
-						alert(e);
-					}
-				}
+				//sent back by the server if needed
 
 				//need sum ?
 				//always, will be sent back by the server
 
 				//prepare the ajax call parameters
-				var params = 'action=delete&id=' + $(this).attr('href')
-					+ ( balanceParam.length ? '&tsBalance=' + balanceParam : '' )
-					+ ( forecastParam.length ? '&tsForecast=' + forecastParam : '' );
+				var params = 'action=delete&id=' + $(this).attr('href');
 
 				/*if( $body.data('internet') == 'offline' ){
 					var deletions = localStorage.getObject('deletions') || [];
@@ -1306,7 +1272,7 @@ $(document).ready(function(){
 		//remove payments and parts for removed month
 		if( changes.removed.length ){
 			$.each(changes.removed, function(i, month){
-				$container.isotope('remove', $container.children().filter('[data-month='+ month +']') );
+				$container.isotope('remove', $container.children('[data-month='+ month +']') );
 				$sums.children('[data-month='+ month +']').remove();
 			});
 			if( !changes.added.length ) $container.isotope('reLayout'); //to reLayout only once and only if changes.added is empty
@@ -2083,10 +2049,6 @@ $.fn.loadList = function(){
 			decoder = $('<textarea>'),
 			cache;
 
-		if( isFennec ){
-			$list.siblings('select').remove();
-		}
-
 		try {
 			cache = localStorage.getObject(key);
 			if( cache ){
@@ -2095,14 +2057,13 @@ $.fn.loadList = function(){
 				if( isDatalist ){
 					$list.empty();
 
-					if( !Modernizr.input.list || isFennec ){
+					if( !Modernizr.input.list ){
 						var fallback = $('<select>'),
 							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
 						if( field.length ) fallback.attr('name', field.attr('name'));
 						fallback.append('<option value="">');
 
-						if( isFennec ) fallback.addClass('tmp').insertBefore( $list );
-						else $list.append( fallback );
+						$list.append( fallback );
 					}
 
 				} else {
@@ -2127,8 +2088,6 @@ $.fn.loadList = function(){
 					if( isDatalist ){
 						if( !Modernizr.input.list ){
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
-						} else if( isFennec ){
-							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.siblings('select') );
 						} else {
 							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
 						}
@@ -2209,7 +2168,7 @@ String.prototype.formatDate = function(){
 
 String.prototype.timestamp = function(){
 	var d = this.substr(0, 10).split('-'),
-		tmp = new Date(d[0], d[1], d[2]);
+		tmp = new Date(d[0], (parseInt(d[1], 10) - 1), d[2]);
 	return tmp.getTime() / 1000; //only need the timestamp in seconds
 }
 

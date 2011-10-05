@@ -13,12 +13,12 @@
 </thead><tbody>
 <!--reset filters-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('').trigger('keyup');</td>
 	<td></td>
 </tr>
@@ -152,7 +152,7 @@
 </tr>
 <!--check filtering limited list-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val('BNP').trigger('keyup');</td>
 	<td></td>
 </tr>
@@ -161,7 +161,6 @@
 	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input:visible').length &lt; storedVars['nbLimited']</td>
 	<td>true</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

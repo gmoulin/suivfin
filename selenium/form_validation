@@ -19,7 +19,7 @@
 </tr>
 <!--type field-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#type_2').prop('checked', false)</td>
 	<td></td>
 </tr>
@@ -71,7 +71,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#paymentDate').val('')</td>
 	<td></td>
 </tr>
@@ -86,7 +86,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#paymentDate').val('dweiofw')</td>
 	<td></td>
 </tr>
@@ -101,7 +101,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#paymentDate').val('2011-10-04')</td>
 	<td></td>
 </tr>
@@ -117,7 +117,7 @@
 </tr>
 <!--recurrent field-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#recurrent_0').prop('checked', false)</td>
 	<td></td>
 </tr>
@@ -185,7 +185,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#amount').val('dweiofw')</td>
 	<td></td>
 </tr>
@@ -200,7 +200,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#amount').val('12,3')</td>
 	<td></td>
 </tr>
@@ -215,7 +215,7 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#amount').val('')</td>
 	<td></td>
 </tr>
@@ -253,7 +253,7 @@
 </tr>
 <!--status field-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#status_3').prop('checked', false)</td>
 	<td></td>
 </tr>
@@ -314,7 +314,6 @@
 	<td>css=#formCancel</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

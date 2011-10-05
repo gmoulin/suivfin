@@ -34,17 +34,17 @@
 </tr>
 <!--reset checked Month and deployed status-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame .switch').removeClass('active')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame .switch').siblings('ul').removeClass('deploy')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame input').prop('checked', false).parent().removeClass('checked');</td>
 	<td></td>
 </tr>
@@ -223,7 +223,7 @@
 </tr>
 <!--remove ajaxComplete event listener-->
 <tr>
-	<td>runScript</td>
+	<td>getEval</td>
 	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
 	<td></td>
 </tr>

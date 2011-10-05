@@ -4,13 +4,29 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://suivfin.dev/" />
-<title>payment delete</title>
+<title>payment_delete_confirmation</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">payment delete</td></tr>
+<tr><td rowspan="1" colspan="3">payment_delete_confirmation</td></tr>
 </thead><tbody>
+<!--delete payment-->
+<tr>
+	<td>chooseCancelOnNextConfirmation</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#container .item:first .trash').trigger('click');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Êtes-vous sûr de supprimer ce paiement ?</td>
+	<td>true</td>
+</tr>
 
 </tbody></table>
 </body>
