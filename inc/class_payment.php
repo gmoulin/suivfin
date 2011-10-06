@@ -108,7 +108,14 @@ class payment extends common {
 								$errors[] = array('paymentDate', 'Format de date incorrect.', 'error');
 							} else {
 								$formData['paymentDate'] = $date;
-								$formData['paymentMonth'] = ( date( 'd', $d ) > 24 ? date('Y-m', date_add($d, 'P1M')) : date('Y-m', $d) );
+
+								if( date( 'd', $d ) > 24 ){
+									$d = new DateTime($date);
+									$d->add(new DateInterval('P1M'));
+									$formData['paymentMonth'] = $d->format('Y-m');
+								} else {
+									$formData['paymentMonth'] = date('Y-m', $d);
+								}
 							}
 						}
 					}

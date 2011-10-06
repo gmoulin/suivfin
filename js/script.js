@@ -1093,21 +1093,24 @@ $(document).ready(function(){
 		}
 
 		if( data.forecasts ){
-			$forecast.css('width', '');
 			var title = $forecast.children('h2').detach();
 			$forecast.empty().html( data.forecasts.html ).prepend( title );
 		}
 
 		if( data.balances ){
-			$balance.css('width', '');
 			var title = $balance.children('h2').detach();
 			$balance.empty().html( data.balances.html ).prepend( title );
 		}
 
-		//force the blocks width
-		var fixWidth = ( $balance.outerWidth() > $forecast.outerWidth() ? $balance.outerWidth() : $forecast.outerWidth());
-		$balance.css('width', fixWidth);
-		$forecast.css('width', fixWidth);
+		if( data.forecasts || data.balances ){
+			$balance.css('width', '');
+			$forecast.css('width', '');
+
+			//force the blocks width
+			var fixWidth = ( $balance.outerWidth() > $forecast.outerWidth() ? $balance.outerWidth() : $forecast.outerWidth());
+			$balance.css('width', fixWidth);
+			$forecast.css('width', fixWidth);
+		}
 
 		if( data.payments ){
 			//prepare jQuery Template
