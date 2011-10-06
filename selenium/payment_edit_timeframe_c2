@@ -140,17 +140,12 @@
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>storedVars['r'].sums[storedVars['futureMonth']] &amp;&amp; storedVars['r'].sums[storedVars['futureMonth']].html != ''</td>
+	<td>storedVars['r'].sums[storedVars['pastMonth']] &amp;&amp; storedVars['r'].sums[storedVars['pastMonth']].html != ''</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
 	<td>storedVars['r'].balances &amp;&amp; storedVars['r'].balances.html != ''</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].forecasts &amp;&amp; storedVars['r'].forecasts.html != ''</td>
 	<td>true</td>
 </tr>
 <tr>
