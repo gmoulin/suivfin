@@ -11,6 +11,164 @@
 <thead>
 <tr><td rowspan="1" colspan="3">payment edit</td></tr>
 </thead><tbody>
+<!--check form fields values when dupplicating a payment-->
+<!--add ajaxComplete event listener to grab the result-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
+	<td></td>
+</tr>
+<!--payment months for cases-->
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>currentMonth</td>
+</tr>
+<!--get current month payments-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame .switch').removeClass('active')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame .switch').siblings('ul').removeClass('deploy')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame input').prop('checked', false).parent().removeClass('checked');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<!--hide form-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('#payment_form').removeClass('deploy').removeClass('submitting');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>200</td>
+	<td></td>
+</tr>
+<!--deploy form-->
+<tr>
+	<td>click</td>
+	<td>css=#container .item:first .edit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<!--check payment data-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].id &amp;&amp; storedVars['r'].id &gt; 0</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#id').val() == storedVars['r'].id;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#action').val() == 'update';</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#label').val() == storedVars['r'].label;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>(function(){ var tmp = storedVars['r'].paymentDate.substr(0, 10).split('-'); var d = new Date(tmp[0], (parseInt(tmp[1], 10) - 1), tmp[2]); return window.$('#paymentDate').val() == ( d.getDate() &lt; 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) &lt; 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear(); })()</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#amount').val() == storedVars['r'].amount;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#comment').val() == storedVars['r'].comment;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form input[name=recurrent]:checked').val() == storedVars['r'].recurrent;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#recipientFK').val() == window.$('#recipientList').children('[data-id='+ storedVars['r'].recipientFK +']').attr('value');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form input[name=typeFK]:checked').val() == storedVars['r'].typeFK;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form input[name=currencyFK]:checked').val() == storedVars['r'].currencyFK;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#methodFK').val() == window.$('#methodList').children('[data-id='+ storedVars['r'].methodFK +']').attr('value');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#originFK').val() == window.$('#originList').children('[data-id='+ storedVars['r'].originFK +']').attr('value');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form input[name=statusFK]:checked').val() == storedVars['r'].statusFK;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#locationFK').val() == window.$('#locationList').children('[data-id='+ storedVars['r'].locationFK +']').attr('value');</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#payment_form')[0].checkValidity();</td>
+	<td>true</td>
+</tr>
+<!--remove ajaxComplete event listener-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
+	<td></td>
+</tr>
 
 </tbody></table>
 </body>

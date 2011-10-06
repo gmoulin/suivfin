@@ -43,7 +43,12 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change').prop('checked');</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
 	<td></td>
 </tr>
 <!--add perfect candidate for deletion-->
@@ -237,7 +242,6 @@
 	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

@@ -8,7 +8,7 @@
 <body>
 <table id="suiteTable" cellpadding="1" cellspacing="1" border="1" class="selenium"><tbody>
 <tr><td><b>Test Suite</b></td></tr>
-<tr><td><a href="page_parts">suivfin open</a></td></tr>
+<tr><td><a href="suivfin_open">suivfin_open</a></td></tr>
 <tr><td><a href="localStorage">localStorage</a></td></tr>
 <tr><td><a href="isotope_filters">isotope_filters</a></td></tr>
 <tr><td><a href="isotope_filter">isotope_filter</a></td></tr>
@@ -36,8 +36,16 @@
 <tr><td><a href="payment_delete_c2">payment_delete_c2</a></td></tr>
 <tr><td><a href="payment_delete_c3">payment_delete_c3</a></td></tr>
 <tr><td><a href="payment_delete_c4">payment_delete_c4</a></td></tr>
-<tr><td><a href="payment_edit">payment edit</a></td></tr>
 <tr><td><a href="payment_fork">payment fork</a></td></tr>
+<tr><td><a href="payment_edit">payment edit</a></td></tr>
+<tr><td><a href="payment_edit_delta_c1">payment_edit_delta_c1</a></td></tr>
+<tr><td><a href="payment_edit_delta_c2">payment_edit_delta_c2</a></td></tr>
+<tr><td><a href="payment_edit_delta_c3">payment_edit_delta_c3</a></td></tr>
+<tr><td><a href="payment_edit_delta_c4">payment_edit_delta_c4</a></td></tr>
+<tr><td><a href="payment_edit_delta_c5">payment_edit_delta_c5</a></td></tr>
+<tr><td><a href="payment_edit_delta_c6">payment_edit_delta_c6</a></td></tr>
+<tr><td><a href="payment_edit_timeframe_c1">payment_edit_timeframe_c1</a></td></tr>
+<tr><td><a href="payment_edit_timeframe_c2">payment_edit_timeframe_c2</a></td></tr>
 <tr><td><a href="chart_expenses">chart_expenses</a></td></tr>
 <tr><td><a href="chart_sums">chart_sums</a></td></tr>
 <tr><td><a href="chart_recipients">chart_recipients</a></td></tr>

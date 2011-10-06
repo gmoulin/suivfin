@@ -348,13 +348,16 @@ $(document).ready(function(){
 					 *		save new timeframe and use it after reload
 					 */
 					var actionCase = false,
-						$gotMonth = $('#time_frame').find('input[value=' + newMonth + ']'),
+						$gotMonth = $timeframe.find('input[value=' + newMonth + ']'),
 						params = $(':input', '#payment_form').serialize();
 
 					if( $gotMonth.length ){
 						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
 						if( !$gotMonth.is(':checked') ){
-							$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+							$timeframe.find('input[value=' + newMonth + ']').prop({ checked: true }).trigger('change');
+
+							timeframeSnapshot.push(newMonth);
+							localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
 							actionCase = 'timeframe-change';
 						} else {
 							actionCase = 'delta';
@@ -465,6 +468,17 @@ $(document).ready(function(){
 
 									if( isUpdate ){
 										$container.isotope('remove', $item); //relayout will be done by refreshParts()
+									} else {
+										//add missing sums for refreshParts
+										$.each(timeframeSnapshot, function(i, month){
+											try {
+												if( !data.sums[month] ){
+													data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
+												}
+											} catch( e ){
+												alert(e);
+											}
+										});
 									}
 
 									refreshParts( data );
@@ -656,7 +670,7 @@ $(document).ready(function(){
 
 			//in online mode take the values directly from database
 			//in offline mode, get the values from DOM
-			if( $body.data('internet') == 'offline' ){
+			/*if( $body.data('internet') == 'offline' ){
 				$('#id').val( $this.attr('href') );
 
 				var $item = $this.closest('.item'),
@@ -696,7 +710,7 @@ $(document).ready(function(){
 
 				if( $this.hasClass('fork') ) $('#id').val('');
 
-			} else {
+			} else {*/
 				$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
 					var decoder = $('textarea'),
 						$field = null,
@@ -731,7 +745,7 @@ $(document).ready(function(){
 
 					if( $this.hasClass('fork') ) $('#id').val('');
 				});
-			}
+			//}
 		})
 		.delegate('.trash', 'click', function(e){
 			e.preventDefault();
@@ -779,7 +793,6 @@ $(document).ready(function(){
 							//replace only the updated sums
 							if( data.sums ){
 								$.each(data.sums, function(month, info){
-									localStorage.setObject(owner + '_sums_' + month, {'lastModified': info.lastModified, 'html': info.html})
 									$sums.children('[data-month='+ month +']').replaceWith(info.html);
 								});
 
@@ -938,9 +951,9 @@ $(document).ready(function(){
 					newMonth = next.getFullYear() + '-' + (next.getMonth() + 1);
 
 				var needReload = false;
-				if( $('#time_frame').find('input[value=' + newMonth + ']').length ){
+				if( $timeframe.find('input[value=' + newMonth + ']').length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$('#time_frame').find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+					$timeframe.find('input[value=' + newMonth + ']').prop({ checked: true }).change();
 				} else {
 					needReload = true;
 				}
@@ -1968,7 +1981,9 @@ $(document).ready(function(){
 
 					//update the timeframe checkboxes
 					$.each( persistentTimeframe, function(){
-						$timeframe.find('input[value='+ this +']').prop('checked', true).change(); //change() for checking the year checkbox if needed
+						$timeframe.find('input[value='+ this +']').prop('checked', true)
+							.closest('li').addClass('checked')
+							.closest('ul').siblings(':checkbox').prop('checked', true); //check the month and update the year
 					});
 				}
 

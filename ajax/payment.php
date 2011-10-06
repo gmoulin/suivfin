@@ -114,10 +114,12 @@ try {
 						}
 					}
 
-					$paymentBefore = clone $oPayment; //copy before save for update case
-					$oPayment->save();
-					if( $onlyDelta ) $deltaIds[] = $oPayment->id;
+					//save the payment before update
+					if( $action == 'update' ) $paymentBefore = new payment($formData['id']);
 
+					$oPayment->save();
+
+					if( $onlyDelta ) $deltaIds[] = $oPayment->id;
 					//when returning online the refresh will be done aside and only one time
 					if( $offline ){
 						$response = 'ok';
@@ -407,7 +409,6 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		}
 	}
 
-
 	if( $action == 'delete' ){
 		if( ( $currentMonth == $paymentBefore->paymentMonth || $nextMonth == $paymentBefore->paymentMonth )
 			&& ( $paymentBefore->statusFK == 2 || $paymentBefore->statusFK == 4 )
@@ -431,18 +432,23 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 			if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
 				$frame[ $paymentBefore->paymentMonth ] = 0;
 			}
+
 			$sums = $oPayment->getSums( $frame );
 
 		} elseif( !empty($frame) ){ //timeframe change
 			$payments = $oPayment->loadForTimeFrame( $frame );
 
 			$frame = array( $paymentAfter->paymentMonth => 0 );
+			if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
+				$frame[ $paymentBefore->paymentMonth ] = 0;
+			}
+
 			$sums = $oPayment->getSums( $frame );
 		}
 
-		if( date('Y-m-d') >= $paymentAfter->paymentDate ){
+		if( date('Ymd') >= str_replace('-', '', $paymentAfter->paymentDate) ){
 			$tsBalance = 0;
-		} elseif( !is_null($paymentBefore) && date('Y-m-d') >= $paymentBefore->paymentDate ){
+		} elseif( !is_null($paymentBefore) && date('Ymd') >= str_replace('-', '', $paymentBefore->paymentDate) ){
 			$tsBalance = 0;
 		} else $tsBalance = -1;
 
@@ -451,8 +457,8 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		){
 			$tsForecast = 0;
 		} elseif( !is_null($paymentBefore) ){
-			if( ( $currentMonth == $paymentAfter->paymentMonth || $nextMonth == $paymentAfter->paymentMonth )
-				&& ( $paymentAfter->statusFK == 2 || $paymentAfter->statusFK == 4 )
+			if( ( $currentMonth == $paymentBefore->paymentMonth || $nextMonth == $paymentBefore->paymentMonth )
+				&& ( $paymentBefore->statusFK == 2 || $paymentBefore->statusFK == 4 )
 			){
 				$tsForecast = 0;
 			}
