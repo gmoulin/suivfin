@@ -42,9 +42,9 @@
 	<td></td>
 </tr>
 <tr>
-	<td>assertEval</td>
+	<td>getEval</td>
 	<td>window.$('#time_frame input[value='+ storedVars['nextMonth'] +']').prop('checked', true).trigger('change');</td>
-	<td>true</td>
+	<td></td>
 </tr>
 <tr>
 	<td>pause</td>

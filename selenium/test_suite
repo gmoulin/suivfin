@@ -41,6 +41,7 @@
 <tr><td><a href="payment_edit">payment edit</a></td></tr>
 <tr><td><a href="payment_edit_timeframe_c1">payment_edit_timeframe_c1</a></td></tr>
 <tr><td><a href="payment_edit_timeframe_c2">payment_edit_timeframe_c2</a></td></tr>
+<tr><td><a href="next_month_payments_confirmation">next_month_payments_confirmation</a></td></tr>
 <tr><td><a href="next_month_payments">next_month_payments</a></td></tr>
 <tr><td><a href="charts">charts</a></td></tr>
 </tbody></table>

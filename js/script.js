@@ -911,7 +911,7 @@ $(document).ready(function(){
 				var isActive = $(this).hasClass('active');
 				//close other opened dropdown and deactivate activated switches
 				$filter.find('.dropdown.deploy').removeClass('deploy');
-				$filter.find('.switch.active').removeClass('active');
+				$filter.find('section').find('.switch.active').removeClass('active');
 				if( !isActive ){
 					$(this).addClass('active').siblings('.dropdown').addClass('deploy');
 				}
@@ -1106,11 +1106,9 @@ $(document).ready(function(){
 			months.sort();
 
 			$sums.find('div').remove();
-			var html = '';
 			for( var i = 0; i < months.length; i++ ){
-				html += data.sums[ months[i] ].html;
+				$sums.append( data.sums[ months[i] ].html );
 			}
-			$sums.append( html );
 		}
 
 		if( data.forecasts ){
@@ -1181,13 +1179,13 @@ $(document).ready(function(){
 					cachedFilters = localStorage.getObject('filters');
 					if( cachedFilters ){
 						for( var group in cachedFilters ){
-							if( cachedFilter.hasOwnProperty(group) ){
+							if( cachedFilters.hasOwnProperty(group) ){
 								var f = cachedFilters[group],
 									$inputs = $filter.find('input').filter('[name='+ group +']').prop('checked', false),
 									$div = $inputs.closest('div'),
 									$quickUl = $div.find('ul').eq(0);
 								//check the cached values filter checkboxes and swap them in the first <ul>
-								for( var i = 0; i < filter.length; i++ ){
+								for( var i = 0; i < f.length; i++ ){
 									if( f[i] == '*' ){
 										var $checked = $inputs.filter('[id$="-all"]');
 									} else {
@@ -1526,7 +1524,7 @@ $(document).ready(function(){
 			if( data.payments ){
 				for( var month in data.payments ){
 					if( data.payments.hasOwnProperty(month) ){
-						localStorage.setObject($currentOwner.val() + '_sums_' + month, data.payments[month]);
+						localStorage.setObject($currentOwner.val() + '_payments_' + month, data.payments[month]);
 					}
 				}
 			}
@@ -1886,7 +1884,7 @@ $(document).ready(function(){
 
 		var cachedData,
 			lastModified = 0,
-			key = $currentOwner.val() + '_' + type;
+			key = $currentOwner.val() + '_charts_' + type;
 
 		try {
 			cachedData = localStorage.getObject(key);
@@ -2040,7 +2038,7 @@ $.fn.swapIn = function( $target ){
 				var inserted = false;
 				$target.find('li').each2(function(i, $li){
 					if( $li.data('order') > order ){
-						$this.insertBefore( li );
+						$this.insertBefore( $li );
 						inserted = true;
 						return false; //break out of the each loop
 					}

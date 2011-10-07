@@ -143,15 +143,9 @@
 	<td>css=#formSubmit</td>
 	<td></td>
 </tr>
-<!--test timeframe for notPresentMonth-->
-<tr>
-	<td>assertEval</td>
-	<td>window.localStorage.getItem('3_timeframe') != null</td>
-	<td>true</td>
-</tr>
 <tr>
 	<td>pause</td>
-	<td></td>
+	<td>200</td>
 	<td></td>
 </tr>
 <!--test if timeframe was used and removed-->
@@ -170,7 +164,6 @@
 	<td>window.$('#sums [data-month='+ storedVars['notPresentMonth'] +']').length == 1</td>
 	<td>true</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

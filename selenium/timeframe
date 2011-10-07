@@ -187,7 +187,7 @@
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>(function(){ if( window.$('header').data('xhr').status == 200 ){ var r = JSON.parse(window.$('header').data('xhr').responseText); return storedVars['r'].payments['2011-02'] || storedVars['r'].sums['2011-02']; } else { return window.$('header').data('xhr').responseText.length == 0;}&nbsp;&nbsp;})()</td>
+	<td>(function(){ if( window.$('header').data('xhr').status == 200 ){ var r = JSON.parse(window.$('header').data('xhr').responseText); return r.payments['2011-02'].list !='' || r.sums['2011-02'].html != ''; } else { return true;}&nbsp;&nbsp;})()</td>
 	<td>true</td>
 </tr>
 <tr>
