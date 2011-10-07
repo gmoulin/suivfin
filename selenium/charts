@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://suivfin.dev/" />
+<title>chart_expenses</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">chart_expenses</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/</td>
+	<td></td>
+</tr>
+<!--pause for ajax request-->
+<tr>
+	<td>pause</td>
+	<td>3000</td>
+	<td></td>
+</tr>
+<!--add ajaxComplete event listener to grab the result-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
+	<td></td>
+</tr>
+<!--switch to charts (expenses chart by default)-->
+<tr>
+	<td>click</td>
+	<td>css=.switch_view:first a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>2000</td>
+	<td></td>
+</tr>
+<!--check if the page parts switched-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container, #time_frame, .next_month, .form_switch, #calculs').filter(':visible').length == 0;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#chart, .chart_type').filter(':visible').length == 2;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].months != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].sums != null</td>
+	<td>true</td>
+</tr>
+<!--clean xhr data-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('header').removeData('xhr');</td>
+	<td></td>
+</tr>
+<!--sums chart-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('.chart_type:visible .button[rel=evolution]').trigger('click')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>2000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].sums != null</td>
+	<td>true</td>
+</tr>
+<!--recipients chart-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('.chart_type:visible .button[rel=recipient]').trigger('click')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>2000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].currencies != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].months != null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].sums != null</td>
+	<td>true</td>
+</tr>
+<!--remove ajaxComplete event listener-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

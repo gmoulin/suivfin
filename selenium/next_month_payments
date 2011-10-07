@@ -11,6 +11,116 @@
 <thead>
 <tr><td rowspan="1" colspan="3">next_month_payments</td></tr>
 </thead><tbody>
+<!--case delta only, balance, sums for month, no forecast-->
+<!--add ajaxComplete event listener to grab the result-->
+<tr>
+	<td>runScript</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
+	<td></td>
+</tr>
+<!--payment months for cases-->
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>currentMonth</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } currentDate.setMonth(currentDate.getMonth() + 1 ); var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>nextMonth</td>
+</tr>
+<!--get current month payments-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame .switch').removeClass('active')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame .switch').siblings('ul').removeClass('deploy')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame input').prop('checked', false).parent().removeClass('checked');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['currentMonth'] +']').prop('checked', true).trigger('change');</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>chooseCancelOnNextConfirmation</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.next_month:first a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertConfirmation</td>
+	<td>Êtes-vous sûr ? Aucune vérification ne sera réalisée !</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>chooseOkOnNextConfirmation</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.next_month:first a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('header').data('xhr').status == 200</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
+	<td>r</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].payments &amp;&amp; storedVars['r'].payments[storedVars['nextMonth']] &amp;&amp; storedVars['r'].payments[storedVars['nextMonth']].list != ''</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].sums &amp;&amp; storedVars['r'].sums[storedVars['nextMonth']] &amp;&amp; storedVars['r'].sums[storedVars['nextMonth']].html != ''</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].balances == null</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars['r'].forecasts &amp;&amp; storedVars['r'].forecasts.html != ''</td>
+	<td>true</td>
+</tr>
+<!--remove ajaxComplete event listener-->
+<tr>
+	<td>getEval</td>
+	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
+	<td></td>
+</tr>
 
 </tbody></table>
 </body>

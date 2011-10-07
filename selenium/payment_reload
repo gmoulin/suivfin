@@ -4,22 +4,16 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://suivfin.dev/" />
-<title>payment_add_timeframe_c2</title>
+<title>payment_reload</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">payment_add_timeframe_c2</td></tr>
+<tr><td rowspan="1" colspan="3">payment_reload</td></tr>
 </thead><tbody>
-<!--TIME FRAME CHANGE CASES-->
+<!--RELOAD CASE-->
 <!--future month case-->
-<!--case payment list, no balance, sum, no forecast-->
-<!--add ajaxComplete event listener to grab the result-->
-<tr>
-	<td>runScript</td>
-	<td>window.$('header').unbind('ajaxComplete').removeData('xhr').ajaxComplete(function( e, xhr, settings ){ $(this).data('xhr', xhr); });</td>
-	<td></td>
-</tr>
+<!--case payment list and sum for new month, no forecast, no balance-->
 <!--payment months for cases-->
 <tr>
 	<td>storeEval</td>
@@ -28,8 +22,13 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>(function(){ var currentDate = new Date(); if( currentDate.getDate() &gt; 24 ){ currentDate.setMonth(currentDate.getMonth() + 1 ); } currentDate.setMonth(currentDate.getMonth() + 5 ); var m = currentDate.getMonth() + 1; return currentDate.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
-	<td>futureMonth</td>
+	<td>(function(){ var d = new Date(window.$('#time_frame input:last').val() + '-01'); d.setMonth(d.getMonth() + 1 ); var m = d.getMonth() + 1; return d.getFullYear() + '-' + ( (''+m).length == 1 ? '0' + m : m ); })()</td>
+	<td>notPresentMonth</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['notPresentMonth'] +']').length == 0;</td>
+	<td>true</td>
 </tr>
 <!--get current and next month payments-->
 <tr>
@@ -81,12 +80,12 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>window.$('#label').val('test timeframe change, payment list, balance, sum, no forecast').trigger('change');</td>
+	<td>window.$('#label').val('test reload').trigger('change');</td>
 	<td></td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>window.$('#paymentDate').val((function(){ var d = new Date(); d.setMonth(d.getMonth() + 5 ); return ( d.getDate() &lt; 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) &lt; 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear(); })()).trigger('change')</td>
+	<td>window.$('#paymentDate').val((function(){ var d = new Date(storedVars['notPresentMonth'] + '-01'); return ( d.getDate() &lt; 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) &lt; 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear(); })()).trigger('change')</td>
 	<td></td>
 </tr>
 <tr>
@@ -140,61 +139,38 @@
 	<td>true</td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>clickAndWait</td>
 	<td>css=#formSubmit</td>
 	<td></td>
 </tr>
+<!--test timeframe for notPresentMonth-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#time_frame input[value='+ storedVars['futureMonth'] +']').length == 1;</td>
+	<td>window.localStorage.getItem('3_timeframe') != null</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>pause</td>
-	<td>1000</td>
+	<td></td>
 	<td></td>
 </tr>
+<!--test if timeframe was used and removed-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('header').data('xhr').status == 200</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
-	<td>r</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].payments &amp;&amp; storedVars['r'].payments[storedVars['futureMonth']] &amp;&amp; storedVars['r'].payments[storedVars['futureMonth']].list != ''</td>
+	<td>window.localStorage.getItem('3_timeframe') == null</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>storedVars['r'].sums &amp;&amp; storedVars['r'].sums[storedVars['futureMonth']] &amp;&amp; storedVars['r'].sums[storedVars['futureMonth']].html != ''</td>
+	<td>window.$('#time_frame input[value='+ storedVars['notPresentMonth'] +']').prop('checked')</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>storedVars['r'].balances == null</td>
+	<td>window.$('#sums [data-month='+ storedVars['notPresentMonth'] +']').length == 1</td>
 	<td>true</td>
 </tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].forecasts == null</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>window.$('#time_frame input[value='+ storedVars['futureMonth'] +']').prop('checked')</td>
-	<td>true</td>
-</tr>
-<!--remove ajaxComplete event listener-->
-<tr>
-	<td>getEval</td>
-	<td>window.$('header').unbind('ajaxComplete').removeData('xhr');</td>
-	<td></td>
-</tr>
+
 </tbody></table>
 </body>
 </html>

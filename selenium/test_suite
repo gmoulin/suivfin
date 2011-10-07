@@ -31,6 +31,7 @@
 <tr><td><a href="payment_add_delta_c6">payment_add_delta_c6</a></td></tr>
 <tr><td><a href="payment_add_timeframe_c1">payment_add_timeframe_c1</a></td></tr>
 <tr><td><a href="payment_add_timeframe_c2">payment_add_timeframe_c2</a></td></tr>
+<tr><td><a href="payment_reload">payment_reload</a></td></tr>
 <tr><td><a href="payment_delete_confirmation">payment_delete_confirmation</a></td></tr>
 <tr><td><a href="payment_delete_c1">payment_delete_c1</a></td></tr>
 <tr><td><a href="payment_delete_c2">payment_delete_c2</a></td></tr>
@@ -40,10 +41,8 @@
 <tr><td><a href="payment_edit">payment edit</a></td></tr>
 <tr><td><a href="payment_edit_timeframe_c1">payment_edit_timeframe_c1</a></td></tr>
 <tr><td><a href="payment_edit_timeframe_c2">payment_edit_timeframe_c2</a></td></tr>
-<tr><td><a href="chart_expenses">chart_expenses</a></td></tr>
-<tr><td><a href="chart_sums">chart_sums</a></td></tr>
-<tr><td><a href="chart_recipients">chart_recipients</a></td></tr>
 <tr><td><a href="next_month_payments">next_month_payments</a></td></tr>
+<tr><td><a href="charts">charts</a></td></tr>
 </tbody></table>
 </body>
 </html>

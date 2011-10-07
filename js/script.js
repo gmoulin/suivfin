@@ -103,7 +103,7 @@ if( !Modernizr.localstorage ){
 					ca = document.cookie.split(';'),
 					i, c;
 
-				for( i=0; i < ca.length; i++ ){
+				for( i = 0; i < ca.length; i++ ){
 					c = ca[i];
 					while( c.charAt(0)==' ' ){
 						c = c.substring(1,c.length);
@@ -193,7 +193,6 @@ $(document).ready(function(){
 		$sums		   = $('#sums'),
 		$forecast	   = $('#forecasts'),
 		$balance	   = $('#balances'),
-		$sums		   = $('#sums'),
 		$form		   = $('#payment_form'),
 		$filter		   = $('#filter'),
 		$timeframe	   = $('#time_frame'),
@@ -221,19 +220,20 @@ $(document).ready(function(){
 				 .data('internet', 'online');
 
 			var deletions = localStorage.getObject('deletions') || [] ,
-				modifications = localStorage.getObject('modifications') || [];
+				modifications = localStorage.getObject('modifications') || [],
+				i;
 
 			if( deletions.length ){
 				var chore = deletions;
-				$.each( deletions, function(i, deletion){
-					$.post('ajax/payment.php', deletion + '&offline=1', function(data){
+				for( i = 0; i < deletions.length; i++ ){
+					$.post('ajax/payment.php', deletions[i] + '&offline=1', function(data){
 						if( data != 'ok' ){
 							alert(data);
 						} else {
 							chore.shift();
 						}
 					});
-				});
+				}
 
 				if( chore.length ){
 					alert('not all deletions actions have been sent');
@@ -245,15 +245,15 @@ $(document).ready(function(){
 
 			if( modifications.length ){
 				var chore = modifications;
-				$.each( modifications, function(i, modification){
-					$.post('ajax/payment.php', modification + '&offline=1', function(data){
+				for( i = 0; i < modifications.length; i++ ){
+					$.post('ajax/payment.php', modifications[i] + '&offline=1', function(data){
 						if( data != 'ok' ){
 							alert(data);
 						} else {
 							chore.shift();
 						}
 					});
-				});
+				}
 
 				if( chore.length ){
 					alert('not all deletions actions have been sent');
@@ -295,7 +295,7 @@ $(document).ready(function(){
 
 	//forms actions
 		//add button
-		$('.form_switch a').click(function(e){
+		$('.form_switch').find('a').click(function(e){
 			e.preventDefault();
 			e.stopPropagation(); //else it will fire $(document).click() listener
 
@@ -303,7 +303,7 @@ $(document).ready(function(){
 				 .addClass('deploy');
 
 			//hide the form when clicking outside
-			$('body').click(function(e){
+			$body.click(function(e){
 				$form.removeClass('deploy').removeClass('submitting');
 			});
 		});
@@ -348,16 +348,15 @@ $(document).ready(function(){
 					 *		save new timeframe and use it after reload
 					 */
 					var actionCase = false,
-						$gotMonth = $timeframe.find('input[value=' + newMonth + ']'),
-						params = $(':input', '#payment_form').serialize();
+						$gotMonth = $timeframe.find('input').filter('[value=' + newMonth + ']'),
+						params = $form.find('input, textarea, select').serialize();
 
 					if( $gotMonth.length ){
 						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
 						if( !$gotMonth.is(':checked') ){
-							$timeframe.find('input[value=' + newMonth + ']').prop({ checked: true }).trigger('change');
+							$timeframe.find('input').filter('[value=' + newMonth + ']').prop({ checked: true }).trigger('change');
 
 							timeframeSnapshot.push(newMonth);
-							localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
 							actionCase = 'timeframe-change';
 						} else {
 							actionCase = 'delta';
@@ -367,12 +366,12 @@ $(document).ready(function(){
 					}
 
 					if( !Modernizr.input.list ){
-						params = $('input:not([list]), input[type=checkbox], input[type=radio], textarea', '#payment_form').serialize();
+						params = $form.find('input, textarea').filter(':not([list])').serialize();
 
-						$('input[list]', '#payment_form').each(function(){
-							var fallback = $('select[name="'+ this.name +'"]', '#payment_form'),
+						$form.find('input').filter('[list]').each(function(){
+							var $fallback = $form.find('select').filter('[name="'+ this.name +'"]'),
 								param = '&' + this.name + '=';
-							params += param + ( fallback.val() != '' ? fallback.val() : $(this).val() );
+							params += param + ( $fallback.val() != '' ? $fallback.val() : this.value );
 						});
 					}
 
@@ -422,7 +421,7 @@ $(document).ready(function(){
 						localStorage.setObject('modifications', modifications);
 
 						//form hide
-						$('body').unbind('click');
+						$body.unbind('click');
 						$form.removeClass('submitting').removeClass('deploy');
 
 						alert('Cette modification sera prise en compte une fois que vous repasserez en ligne.');
@@ -460,7 +459,7 @@ $(document).ready(function(){
 								} else if( actionCase == 'timeframe-change' && data.payments ){
 									$('header').removeClass('loading');
 									//form hide
-									$('body').unbind('click');
+									$body.unbind('click');
 									$form.removeClass('deploy');
 
 									//store localy the new data
@@ -470,25 +469,26 @@ $(document).ready(function(){
 										$container.isotope('remove', $item); //relayout will be done by refreshParts()
 									} else {
 										//add missing sums for refreshParts
-										$.each(timeframeSnapshot, function(i, month){
+										for( var i = 0; i < timeframeSnapshot.length; i++ ){
 											try {
+												var month = timeframeSnapshot[i];
 												if( !data.sums[month] ){
 													data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
 												}
 											} catch( e ){
 												alert(e);
 											}
-										});
+										}
 									}
 
 									refreshParts( data );
 
 									//focus the payment add button
-									$('.form_switch:visible a').focus();
+									$('.form_switch:visible').find('a').focus();
 								} else if( data.delta ){
 									$('header').removeClass('loading');
 									//form hide
-									$('body').unbind('click');
+									$body.unbind('click');
 									$form.removeClass('deploy');
 
 									//no need to remove the localStorage for payment month data as lastModified date is obsolete
@@ -527,7 +527,7 @@ $(document).ready(function(){
 				if( this.id == 'type_3' ){
 					$form.find('.ownerChoice').fadeIn();
 				} else {
-					$form.find('.ownerChoice:visible').fadeOut();
+					$form.find('.ownerChoice').fadeOut();
 				}
 			})
 			.find('fieldset').click(function(e){
@@ -535,7 +535,7 @@ $(document).ready(function(){
 			});
 
 		$('#formCancel').click(function(){
-			$('body').unbind('click');
+			$body.unbind('click');
 			$form.removeClass('deploy').removeClass('submitting').resetForm();
 		});
 
@@ -601,8 +601,8 @@ $(document).ready(function(){
 
 		//@todo temporary, to avoid error on form submit for non datalist supporting browser
 		if( !Modernizr.input.list ){
-			$form.find('input[list]').each(function(){
-				$(this).removeProp('required');
+			$form.find('input').filter('[list]').each2(function(i, $list){
+				$list.removeProp('required');
 			});
 		}
 
@@ -610,7 +610,7 @@ $(document).ready(function(){
 	$(document).unbind('keydown').keydown(function(e){
 		//"a" pressed for add
 		if( e.which == 65 ){
-			$('#payment_form:not(.deploy)')
+			$form.filter(':not(.deploy)')
 				.resetForm()
 				.addClass('deploy');
 
@@ -618,19 +618,18 @@ $(document).ready(function(){
 		} else if( e.keyCode == 27 ){
 			if( $form.hasClass('deploy') ){
 				$form.removeClass('deploy').removeClass('submitting');
-				$('.form_switch a').focus(); //remove the focus from any field or button of the form
+				$('.form_switch').find('a').focus(); //remove the focus from any field or button of the form
 
 			//close any opened filter dropdown
-			} else if( $filter.find('section .switch.active').length ){
-				$filter.find('section .switch.active').each(function(){
-					$(this).trigger('click');
-				});
+			} else if( $filter.find('section').find('.switch.active').length ){
+				$filter.find('section').find('.switch.active').removeClass('active')
+				$filter.find('.dropdown.deploy').removeClass('deploy');
 			}
 		}
 	});
 
 	//isotope
-		$('#container').isotope({
+		$container.isotope({
 			// options
 			itemSelector: '.item',
 			layoutMode: 'fitRows',
@@ -676,16 +675,17 @@ $(document).ready(function(){
 				var $item = $this.closest('.item'),
 					classes = $item.attr('class');
 				classes.split(' ');
-				$.each(classes, function(i, c){
+				for( var i = 0; i < classes.length; i++ ){
+					var c = classes[i];
 					if( c == 'recurrent' || c == 'punctual' ){
 						$('#recurrent_' + ( c == 'recurrent' ? 1 : 0 )).prop({checked: true});
 
 					} else if( c.indexOf('type_') != -1 || c.indexOf('currency_') != -1 || c.indexOf('location_') != -1 ){
 						$('#' + c).prop({checked: true});
 					}
-				});
+				}
 
-				$('#label').val( $item.find('dd:eq(1)').text() );
+				$('#label').val( $item.find('dd').eq(1).text() );
 
 				var d = new Date( $item.data('date') );
 				$('#paymentDate').val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() );
@@ -694,16 +694,16 @@ $(document).ready(function(){
 				$('#comment').val( $item.data('comment') );
 
 				//originFK
-				$('#originFK').val( $('#originList').find('[data-id=' + $item.data('origin') + ']').text() );
+				$('#originFK').val( $('#originList').find('option').filter('[data-id=' + $item.data('origin') + ']').text() );
 
 				//amount
 				$('#amount').val( $item.data('amount') );
 
 				//methodFK
-				$('#methodFK').val( $('#methodList').find('[data-id=' + $item.data('method') + ']').text() );
+				$('#methodFK').val( $('#methodList').find('option').filte('[data-id=' + $item.data('method') + ']').text() );
 
 				//recipientFK
-				$('#recipientFK').val( $('#recipientList').find('[data-id=' + $item.data('recipient') + ']').text() );
+				$('#recipientFK').val( $('#recipientList').find('option').filter('[data-id=' + $item.data('recipient') + ']').text() );
 
 				//statusFK
 				$('#' + $item.data('status') ).prop({checked: true});
@@ -712,36 +712,39 @@ $(document).ready(function(){
 
 			} else {*/
 				$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
-					var decoder = $('textarea'),
+					var decoder = $('<textarea>'),
 						$field = null,
 						$radio = null;
-					$.each(data, function(key, value){
-						$field = $('#' + key);
-						if( !isNaN(parseInt(value, 10)) ){
-							$radio = $('#' + key.replace(/FK/, '') + '_' + value);
-						} else {
-							$radio = null;
-						}
-						if( $field.length ){
-							//all datalist are for inputs corresponding to foreign key columns (value is an integer)
-							//label column is an exception (value is a string)
-							if( key != 'label' && $field.is('[list]') ){ //datalist
-								$field.val( $('#' + $field.attr('list') ).find('[data-id=' + value + ']').text() );
-
-							} else if( $field.is('textarea') ){
-								$field.val( decoder.html( value ).text() );
-
-							} else if( $field.is('#paymentDate') ){
-								var d = value.split('-');
-								$field.val( d[2] + '/' + d[1] + '/' + d[0] );
-
+					for( var key in data ){
+						if( data.hasOwnProperty(key) ){
+							var value = data[key];
+							$field = $('#' + key);
+							if( !isNaN(parseInt(value, 10)) ){
+								$radio = $('#' + key.replace(/FK/, '') + '_' + value);
 							} else {
-								$field.val( decoder.html( value ).text() );
+								$radio = null;
 							}
-						} else if( $radio.length ){
-							$radio.prop({checked: true});
+							if( $field.length ){
+								//all datalist are for inputs corresponding to foreign key columns (value is an integer)
+								//label column is an exception (value is a string)
+								if( key != 'label' && $field.is('[list]') ){ //datalist
+									$field.val( $('#' + $field.attr('list') ).find('option').filter('[data-id=' + value + ']').text() );
+
+								} else if( $field.is('textarea') ){
+									$field.val( decoder.html( value ).text() );
+
+								} else if( $field.is('#paymentDate') ){
+									var d = value.split('-');
+									$field.val( d[2] + '/' + d[1] + '/' + d[0] );
+
+								} else {
+									$field.val( decoder.html( value ).text() );
+								}
+							} else if( $radio.length ){
+								$radio.prop({checked: true});
+							}
 						}
-					});
+					}
 
 					if( $this.hasClass('fork') ) $('#id').val('');
 				});
@@ -792,9 +795,11 @@ $(document).ready(function(){
 
 							//replace only the updated sums
 							if( data.sums ){
-								$.each(data.sums, function(month, info){
-									$sums.children('[data-month='+ month +']').replaceWith(info.html);
-								});
+								for( var month in data.sums ){
+									if( data.sums.hasOwnProperty(month) ){
+										$sums.find('div').filter('[data-month='+ month +']').replaceWith(data.sums[month].html);
+									}
+								}
 
 								data.sums = null; //so refreshParts does not proceed the sum part
 							}
@@ -815,7 +820,7 @@ $(document).ready(function(){
 		});
 
 	//sort
-		$('#sort a').click(function(e){
+		$('#sort').delegate('a', 'click', function(e){
 			e.preventDefault();
 			// get href attribute, minus the '#'
 			var sortName = this.href.substring(this.href.indexOf('#') + 1);
@@ -823,18 +828,18 @@ $(document).ready(function(){
 			if( sortName == 'date' ){
 				sortAscending = false;
 			}
-			$('#container').isotope({ 'sortBy': sortName, 'sortAscending': sortAscending });
+			$container.isotope({ 'sortBy': sortName, 'sortAscending': sortAscending });
 		});
 
 	//filters
 		$filter
-			.delegate(':radio', 'change', function(e){
+			.delegate('input[type=radio]', 'change', function(e){
 				var $this = $(this),
 					group = $this.attr('name'),
 					filter = $this.val();
 
 				//output the current value
-				$this.closest('section').children('output').text( $(this).text() );
+				$this.closest('section').find('output').text( $(this).text() );
 
 				// store filter value in object as an array
 				filters[ group ] = [filter];
@@ -847,20 +852,20 @@ $(document).ready(function(){
 				//output the current value
 				$this.updateFiltersOutputs();
 			})
-			.delegate(':checkbox', 'change', function(e){
+			.delegate('input[type=checkbox]', 'change', function(e){
 				var $this = $(this).blur(), //blur() to remove the focus style (like -moz-focusring)
 					group = $this.attr('name'),
 					$div = $this.closest('div'),
-					$quickUl = $div.find('ul:eq(0)'),
-					$limitedUl = $div.find('.limited'),
-					$firstCheckbox = $quickUl.find(':checkbox:eq(0)');
+					$quickUl = $div.find('ul').eq(0),
+					$limitedUl = $div.find('ul.limited'),
+					$firstCheckbox = $quickUl.find('input').eq(0);
 
 				//manage the "all" value
 				if( $this.val() == '*' ){
-					//put back the moved <li>s
-					if( $limitedUl.length ) $quickUl.find('li:gt(0)').swapIn( $limitedUl );
+					//put back the moved <lifind tag + class vs>s
+					if( $limitedUl.length ) $quickUl.find('li').filter(':gt(0)').swapIn( $limitedUl );
 					//uncheck any checked checkboxes in the second <ul>
-					$div.find(':checkbox').prop('checked', false);
+					$div.find('input').filter('[type=checkbox]').prop('checked', false);
 
 					$firstCheckbox.prop('checked', true);
 				} else {
@@ -879,13 +884,13 @@ $(document).ready(function(){
 				}
 
 				//force the "all" value if none checked
-				if( !$div.find(':checkbox:checked').length ){
+				if( !$div.find('input').filter('[type=checkbox]:checked').length ){
 					$firstCheckbox.prop('checked', true);
 				}
 
 				// store filter value in object
 				//.get() to always get an array
-				filters[ group ] = $div.find(':checkbox:checked').map(function(){ return this.value; }).get();
+				filters[ group ] = $div.find('input').filter('[type=checkbox]:checked').map(function(){ return this.value; }).get();
 
 				//for filters persistence
 				localStorage.setObject('filters', filters);
@@ -897,12 +902,9 @@ $(document).ready(function(){
 			})
 			.delegate('h2', 'click', function(e){
 				e.preventDefault();
-				$(this).children().toggleClass('active').closest('section').toggleClass('deploy');
-
-				//close any open dropdown
-				$filter.find('section .switch.active').each(function(){
-					$(this).trigger('click');
-				});
+				$filter.find('section').find('.switch.active').removeClass('active');
+				$filter.find('.dropdown.deploy').removeClass('deploy');
+				$(this).find('span').toggleClass('active').closest('section').toggleClass('deploy');
 			})
 			.delegate('section .switch', 'click', function(e){
 				e.preventDefault();
@@ -918,30 +920,28 @@ $(document).ready(function(){
 				var query = $.trim( $(this).val() );
 
 				if( query == '' ){
-					$(this).siblings('.limited').children('li').show();
+					$(this).siblings('.limited').find('li').show();
 					return;
 				}
 
 				query = query.replace(/ /gi, '|'); //add OR for regex query
 
-				var $ul = $(this).siblings('ul:eq(0)');
-				$(this).siblings('.limited').children('li').each(function(i, li){
-					var $li = $(li);
-					$li.children('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
+				var $ul = $(this).siblings('ul').eq(0);
+				$(this).siblings('.limited').find('li').each2(function(i, $li){
+					$li.find('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
 				});
 			})
 			.click(function(e){
 				//close any open dropdown for an outside click
 				var $t = $(e.target);
 				if( !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('ul').length ){
-					$filter.find('section .switch.active').each(function(){
-						$(this).trigger('click');
-					});
+					$filter.find('.dropdown.deploy').removeClass('deploy');
+					$filter.find('section').find('.switch.active').removeClass('active');
 				}
 			});
 
 	//next month recurrent payments generation
-		$('.next_month a').click(function(e){
+		$('.next_month').find('a').click(function(e){
 			e.preventDefault();
 			if( confirm("Êtes-vous sûr ?\nAucune vérification ne sera réalisée !") ){
 
@@ -951,14 +951,14 @@ $(document).ready(function(){
 					newMonth = next.getFullYear() + '-' + (next.getMonth() + 1);
 
 				var needReload = false;
-				if( $timeframe.find('input[value=' + newMonth + ']').length ){
+				if( $timeframe.find('input').filter('[value=' + newMonth + ']').length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$timeframe.find('input[value=' + newMonth + ']').prop({ checked: true }).change();
+					$timeframe.find('input').filter('[value=' + newMonth + ']').prop({ checked: true }).change();
 				} else {
 					needReload = true;
 				}
 
-				var tf = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get().join(',');
+				var tf = $timeframe.find('input').filter(':not(.year):checked').map(function(){ return this.value; }).get().join(',');
 
 				$.post('ajax/payment.php', 'action=initNextMonth' + ( !needReload ? '&timeframe=' + tf : '' ), function(data){
 					if( data == 'ok' ){
@@ -986,19 +986,19 @@ $(document).ready(function(){
 
 	//time frame chekboxes
 		$timeframe
-			.delegate(':checkbox', 'change', function(e){
+			.delegate('input', 'change', function(e){
 				clearTimeout(buffer);
 				var $this = $(this);
 
 				//toggle the months checkboxes if the event target is a year checkbox
 				if( $this.hasClass('year') ){
-					$this.siblings('ul').find(':checkbox').prop('checked', $this.prop('checked'));
+					$this.siblings('ul').find('input').prop('checked', $this.prop('checked'));
 
 				//update the year checkbox checked state
 				} else {
 					$this.closest('li').toggleClass('checked', $this.prop('checked'));
 					var $ul = $this.closest('ul');
-					$ul.parent().find('.year').prop('checked', $ul.find(':checkbox:checked').length ? true : false);
+					$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
 				}
 
 				//when submitting an add or update the new data will be in the request response
@@ -1010,68 +1010,72 @@ $(document).ready(function(){
 			.delegate('.switch', 'click', function(e){
 				$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
 			})
-			.find('li li :checkbox').each(function(){
-				$(this).closest('li').toggleClass('checked', $(this).prop('checked'));
+			.find('li li input').each2(function(i, $input){
+				$input.closest('li').toggleClass('checked', $input.prop('checked'));
 			});
 
 	//sums cells hover
-		$('#sums')
-			.delegate('tbody td:not(.type)', 'mouseenter', function(){
+		$sums
+			.delegate('tbody td', 'mouseenter', function(){
+				if( $(this).hasClass('type') ) return;
+
 				var $this = $(this),
-					index = $this.parent().children(':not(.type)').index($this);
+					index = $this.parent().find('td').filter(':gt(0)').index($this);
 
 				$this.siblings('.type').addClass('highlight');
-				$this.closest('table').find('thead th.fromto:eq(' + index + ')').addClass('highlight');
+				$this.closest('table').find('th.fromto').eq(index).addClass('highlight'); //thead
 			})
-			.delegate('tbody td:not(.type)', 'mouseleave', function(){
+			.delegate('tbody td', 'mouseleave', function(){
+				if( $(this).hasClass('type') ) return;
+
 				var $this = $(this),
-					index = $this.parent().children(':not(.type)').index($this);
+					index = $this.parent().find('td').filter(':gt(0)').index($this);
 
 				$this.siblings('.type').removeClass('highlight');
-				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
+				$this.closest('table').find('th.fromto').eq(index).removeClass('highlight'); //thead
 			})
 			.delegate('tfoot td', 'mouseenter', function(){
 				var $this = $(this),
-					index = $this.parent().children('td').index($this);
+					index = $this.parent().find('td').index($this);
 
 				$this.siblings('th').addClass('highlight');
-				$this.closest('table').find('thead th.fromto:eq(' + index + ')').addClass('highlight');
+				$this.closest('table').find('th.fromto').eq(index).addClass('highlight'); //thead
 			})
 			.delegate('tfoot td', 'mouseleave', function(){
 				var $this = $(this),
-					index = $this.parent().children('td').index($this);
+					index = $this.parent().find('td').index($this);
 
 				$this.siblings('th').removeClass('highlight');
-				$this.closest('table').find('thead th.fromto:eq(' + index + ')').removeClass('highlight');
+				$this.closest('table').find('th.fromto').eq(index).removeClass('highlight'); //thead
 			});
 
 	//remove <a.button> active state after click
 	//and add the primary class accordingly
-		$('body').delegate('.button', 'click', function(){
+		$body.delegate('.button', 'click', function(){
 			$(this).blur().addClass('primary').parent().find('.primary').not( $(this) ).removeClass('primary');
 		});
 
 	//switch between chart and isotope view
-		$('.switch_view a').data('view', 'isotope').click(function(e){
+		$('.switch_view').find('a').data('view', 'isotope').click(function(e){
 			var $this = $(this),
 				paymentSections = ['#container', '#time_frame', '.next_month', '.form_switch', '#calculs'],
 				chartSections = ['#chart', '.chart_type'],
-				currentView;
+				currentView, i;
 
 			$this.data('view', $(this).data('view') == 'isotope' ? 'chart' : 'isotope' )
 				 .toggleClass('isotope chart');
 			currentView = $this.data('view');
 
-			$.each(paymentSections, function(index, section){
-				currentView == 'isotope' ? $(section).css('display', '') : $(section).css('display', 'none');
-			});
+			for( i = 0; i < paymentSections.length; i++ ){
+				currentView == 'isotope' ? $(paymentSections[i]).css('display', '') : $(paymentSections[i]).css('display', 'none');
+			}
 
-			$.each(chartSections, function(index, section){
-				currentView == 'chart' ? $(section).css('display', 'block') : $(section).css('display', 'none');
-			});
+			for( i = 0; i < chartSections.length; i++ ){
+				currentView == 'chart' ? $(chartSections[i]).css('display', 'block') : $(chartSections[i]).css('display', 'none');
+			}
 
 			if( currentView == 'chart' ){
-				$('#chart').height( $('body').height() - 200); //force the chart to use all the available viewport height
+				$('#chart').height( $body.height() - 200); //force the chart to use all the available viewport height
 				reloadChart( null );
 
 			} else if( chart ){ //destroy the chart if present, clean memory and timers
@@ -1081,7 +1085,7 @@ $(document).ready(function(){
 		});
 
 	//chart type
-		$('.chart_type a').click(function(e){
+		$('.chart_type').delegate('a', 'click', function(e){
 			e.preventDefault();
 			reloadChart( this.rel );
 		});
@@ -1094,24 +1098,28 @@ $(document).ready(function(){
 		if( data.sums ){
 			//need to reorder the months
 			var months = [];
-			$.each(data.sums, function(month, info){
-				months.push(month);
-			});
+			for( var month in data.sums ){
+				if( data.sums.hasOwnProperty(month) ){
+					months.push(month);
+				}
+			}
 			months.sort();
 
-			$sums.children('[data-month]').remove();
-			$.each(months, function(i, month){
-				$sums.append(data.sums[month].html);
-			});
+			$sums.find('div').remove();
+			var html = '';
+			for( var i = 0; i < months.length; i++ ){
+				html += data.sums[ months[i] ].html;
+			}
+			$sums.append( html );
 		}
 
 		if( data.forecasts ){
-			var title = $forecast.children('h2').detach();
+			var title = $forecast.find('h2').detach();
 			$forecast.empty().html( data.forecasts.html ).prepend( title );
 		}
 
 		if( data.balances ){
-			var title = $balance.children('h2').detach();
+			var title = $balance.find('h2').detach();
 			$balance.empty().html( data.balances.html ).prepend( title );
 		}
 
@@ -1134,13 +1142,13 @@ $(document).ready(function(){
 			//add the new elements for each month
 			//prepare payments for jQuery templating
 			var tmp = [];
-			$.each(data.payments, function(month, info){
-				if( month.length == 7 ){
-					$.each(info.list, function(i, payment){
-						tmp.push(payment);
-					});
+			for( var month in data.payments ){
+				if( data.payments.hasOwnProperty(month) && month.length == 7 ){ //good format
+					for( var i = 0; i < data.payments[month].list.length; i++ ){
+						tmp.push(data.payments[month].list[i]);
+					}
 				}
-			});
+			}
 			data.payments = null; //memory cleaning
 			data.payments = tmp;
 
@@ -1172,28 +1180,33 @@ $(document).ready(function(){
 				if( !filters.length ){ //page load, no filters set
 					cachedFilters = localStorage.getObject('filters');
 					if( cachedFilters ){
-						$.each(cachedFilters, function(group, filter){
-							var $inputs = $filter.find('input[name='+ group +']').prop('checked', false),
-								$div = $inputs.closest('div'),
-								$quickUl = $div.children('ul:eq(0)');
-							//check the cached values filter checkboxes and swap them in the first <ul>
-							$.each( filter, function(){
-								if( this == '*' ){
-									var $checked = $inputs.filter('[id$="-all"]');
-								} else {
-									var $checked = $inputs.filter('[value="'+ this +'"]');
-								}
-								$checked.prop('checked', true);
+						for( var group in cachedFilters ){
+							if( cachedFilter.hasOwnProperty(group) ){
+								var f = cachedFilters[group],
+									$inputs = $filter.find('input').filter('[name='+ group +']').prop('checked', false),
+									$div = $inputs.closest('div'),
+									$quickUl = $div.find('ul').eq(0);
+								//check the cached values filter checkboxes and swap them in the first <ul>
+								for( var i = 0; i < filter.length; i++ ){
+									if( f[i] == '*' ){
+										var $checked = $inputs.filter('[id$="-all"]');
+									} else {
+										var $checked = $inputs.filter('[value="'+ f[i] +'"]');
+									}
+									$checked.prop('checked', true);
 
-								//swapIn only for "limited" <li>s
-								if( $checked.closest('ul').hasClass('limited') ) $checked.closest('li').swapIn( $quickUl );
-							});
-						});
+									//swapIn only for "limited" <li>s
+									if( $checked.closest('ul').hasClass('limited') ) $checked.closest('li').swapIn( $quickUl );
+								}
+							}
+						}
 
 						filters = cachedFilters; //update the filters list for applyFilters()
 					}
 
-					$filter.find('.dropdown').find('input:first').updateFiltersOutputs();
+					$filter.find('.dropdown').each2(function(i, $dropdown){
+						$dropdown.find('input').eq(0).updateFiltersOutputs();
+					});
 					applyFilters();
 				}
 
@@ -1244,7 +1257,7 @@ $(document).ready(function(){
 
 			//updating the list
 			$container
-				.isotope('remove', $container.children( deltaIds ))
+				.isotope('remove', $container.find( deltaIds ))
 				.isotope('insert', $items);
 		}
 	}
@@ -1256,14 +1269,15 @@ $(document).ready(function(){
 	 * @return object {added, removed}
 	 */
 	function diff( o, n ){
-		var a = []; var r = [];
+		var a = [],
+			r = [];
 
-		$.each(o, function(i, m){
-			if( $.inArray(m, n) == -1 ) r.push(m);
-		});
-		$.each(n, function(i, m){
-			if( $.inArray(m, o) == -1 ) a.push(m);
-		});
+		for( var i = 0; i < o.length; i++ ){
+			if( $.inArray(o[i], n) == -1 ) r.push(o[i]);
+		}
+		for( var i = 0; i < n.length; i++ ){
+			if( $.inArray(n[i], o) == -1 ) a.push(n[i]);
+		}
 
 		return {'added': a, 'removed': r};
 	}
@@ -1274,23 +1288,16 @@ $(document).ready(function(){
 	var timeframeSnapshot = [];
 	function reloadParts( needBalance, needForecast ){
 		//get the changes between the snapshot and the current timeframe
-		var timeframe = $timeframe.find(':checkbox:not(.year):checked').map(function(){ return this.value; }).get();
+		var timeframe = $timeframe.find('input').filter(':not(.year):checked').map(function(){ return this.value; }).get();
 		if( !timeframe.length ) return; //no month to manage, do nothing by default
 		var changes = diff( timeframeSnapshot, timeframe );
 
-		//save the new timeframe for use on page load
-		try {
-			localStorage.setObject( $currentOwner.val() + '_timeframe', timeframe );
-		} catch( e ){
-			alert(e);
-		}
-
 		//remove payments and parts for removed month
 		if( changes.removed.length ){
-			$.each(changes.removed, function(i, month){
-				$container.isotope('remove', $container.children('[data-month='+ month +']') );
-				$sums.children('[data-month='+ month +']').remove();
-			});
+			for( var i = 0; i < changes.removed.length; i++ ){
+				$container.isotope('remove', $container.find('.item').filter('[data-month='+ changes.removed[i] +']') );
+				$sums.find('div').filter('[data-month='+ changes.removed[i] +']').remove();
+			}
 			if( !changes.added.length ) $container.isotope('reLayout'); //to reLayout only once and only if changes.added is empty
 		}
 
@@ -1303,7 +1310,8 @@ $(document).ready(function(){
 		var paymentsTimeframe = {},
 			sumsTimeframe = {};
 		try {
-			$.each(changes.added, function(i, month){
+			for( var i = 0; i < changes.added.length; i++){
+				var month = changes.added[i];
 				var monthCache = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 				if( monthCache ){
 					paymentsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
@@ -1313,7 +1321,7 @@ $(document).ready(function(){
 				if( monthCache ){
 					sumsTimeframe[month] = new Date(monthCache.lastModified).getTime() / 1000; //transform to unix timestamp (in seconds not milliseconds)
 				} else sumsTimeframe[month] = 0;
-			});
+			}
 
 			if( needBalance ){
 				var balanceParam = 0;
@@ -1387,9 +1395,10 @@ $(document).ready(function(){
 					store( data );
 
 					//form selects and datalists are empty, happens only on page load
-					if( !$('#labelList').children().length ){
-						$form.find('datalist, select[id]').loadList();
-						$filter.find('.dropdown[id]').loadList();
+					if( !$('#labelList').find('option').length ){
+						$form.find('datalist').loadList();
+						$form.find('select').filter('[id]').loadList();
+						$filter.find('.dropdown').filter('[id]').loadList();
 
 					//at least one of the filter or form list has changed
 					} else {
@@ -1411,9 +1420,10 @@ $(document).ready(function(){
 					}
 
 				//form selects and datalists are empty, happens only on page load
-				} else if( !$('#labelList').children().length ){
-					$form.find('datalist, select[id]').loadList();
-					$filter.find('.dropdown[id]').loadList();
+				} else if( !$('#labelList').find('option').length ){
+					$form.find('datalist').loadList();
+					$form.find('select').filter('[id]').loadList();
+					$filter.find('.dropdown').filter('[id]').loadList();
 				}
 
 				if( needBalance && !data.balance ){ //balance is needed but none returned (no changes)
@@ -1441,27 +1451,29 @@ $(document).ready(function(){
 				if( !data.sums ) data.sums = {};
 
 				//check payments list availability for each added months and retrieve cached data if missing
-				$.each(changes.added, function(i, month){
+				for( var i = 0; i < changes.added.length; i++ ){
 					try {
+						var month = changes.added[i];
 						if( !data.payments[month] ){
 							data.payments[month] = localStorage.getObject( $currentOwner.val() + '_payments_' + month );
 						}
 					} catch( e ){
 						alert(e);
 					}
-				});
+				}
 
 				//check sums list availability for each months and retrieve cached data if missing
 				//refreshParts() need all the sums because it has to reorder them
-				$.each(timeframe, function(i, month){
+				for( var i = 0; i < timeframe.length; i++ ){
 					try {
+						var month = timeframe[i];
 						if( !data.sums[month] ){
 							data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
 						}
 					} catch( e ){
 						alert(e);
 					}
-				});
+				}
 
 				timeframeSnapshot = timeframe; //update the snapshot
 				refreshParts( data );
@@ -1504,15 +1516,19 @@ $(document).ready(function(){
 			}
 
 			if( data.sums ){
-				$.each(data.sums, function(month, info){
-					localStorage.setObject($currentOwner.val() + '_sums_' + month, info)
-				});
+				for( var month in data.sums ){
+					if( data.sums.hasOwnProperty(month) ){
+						localStorage.setObject($currentOwner.val() + '_sums_' + month, data.sums[month]);
+					}
+				}
 			}
 
 			if( data.payments ){
-				$.each(data.payments, function(month, info){
-					localStorage.setObject($currentOwner.val() + '_payments_' + month, info);
-				});
+				for( var month in data.payments ){
+					if( data.payments.hasOwnProperty(month) ){
+						localStorage.setObject($currentOwner.val() + '_sums_' + month, data.payments[month]);
+					}
+				}
 			}
 		} catch( e ){
 			alert(e);
@@ -1539,14 +1555,10 @@ $(document).ready(function(){
 
 		//cartesian product
 		product = product.reduce(function(previousValue, currentValue, index, array){
-			//javascript 1.8 (Firefox)
-			//return [a.concat(b) for each( a in previousValue ) for each( b in currentValue )];
-
-			//old javascript versions (other)
 			var tmp = [];
-			for( var a in previousValue ){
-				for( var b in currentValue ){
-					tmp.push(previousValue[a].concat(currentValue[b]));
+			for( var i = 0; i < previousValue.length; i++ ){
+				for( var j = 0; j < currentValue.length; j++ ){
+					tmp.push(previousValue[i].concat(currentValue[j]));
 				}
 			}
 			return tmp;
@@ -1808,9 +1820,10 @@ $(document).ready(function(){
 				formatter: function() {
 					var s = '<b>'+ Highcharts.dateFormat('%A %d %B', this.x) +'</b>';
 
-					$.each(this.points, function(i, point) {
+					for( var i = 0; i < this.points.length; i++ ){
+						var point = this.points[i];
 						s += '<br/><span style="color:' + point.series.color + ';">' + point.series.name +'</span>: '+ Highcharts.numberFormat(point.y, 2, '.', '\'') + ' ' + legendCurrency[point.series.name];
-					});
+					}
 
 					return s;
 				},
@@ -1869,7 +1882,7 @@ $(document).ready(function(){
 
 	function reloadChart( type ){
 		//chart type
-		if( type == null ) type = $('.chart_type a.primary').attr('rel');
+		if( type == null ) type = $('.chart_type').find('.primary').attr('rel');
 
 		var cachedData,
 			lastModified = 0,
@@ -1917,9 +1930,9 @@ $(document).ready(function(){
 									expenseOptions.xAxis.categories = data.months;
 
 									//json encode transform the sums in string, float are needed
-									$.each( data.sums, function(i, sum){
-										data.sums[i].data = $.map(sum.data, function(s){ return parseFloat(s); });
-									});
+									for( var i = 0; i < data.sums.length; i++ ){
+										data.sums[i].data = $.map(data.sums[i].data, function(s){ return parseFloat(s); });
+									}
 									expenseOptions.series = data.sums;
 
 									chart = new Highcharts.Chart(expenseOptions);
@@ -1928,16 +1941,18 @@ $(document).ready(function(){
 									legendCurrency = [];
 									evolutionOptions.series = [];
 
-									$.each(data.sums, function(origin, infos){
-										evolutionOptions.series.push({
-											name: origin,
-											pointInterval: 24 * 3600 * 1000,
-											pointStart: Date.UTC(2011, 01, 01), //javascript month start at 0
-											data: $.map(infos.amounts, function(a){ return parseFloat(a); })
-										});
+									for( var origin in data.sums ){
+										if( data.sums.hasOwnProperty(origin) ){
+											evolutionOptions.series.push({
+												name: origin,
+												pointInterval: 24 * 3600 * 1000,
+												pointStart: Date.UTC(2011, 01, 01), //javascript month start at 0
+												data: $.map(data.sums[origin].amounts, function(a){ return parseFloat(a); })
+											});
 
-										legendCurrency[ origin ] = infos.symbol;
-									});
+											legendCurrency[ origin ] = data.sums[origin].symbol;
+										}
+									}
 
 									chart = new Highcharts.Chart(evolutionOptions);
 								break;
@@ -1947,9 +1962,9 @@ $(document).ready(function(){
 									recipientOptions.xAxis.categories = data.months;
 
 									//json encode transform the sums in string, float are needed
-									$.each( data.sums, function(i, infos){
-										data.sums[i].data = $.map(infos.data, function(s){ return parseFloat(s); });
-									});
+									for( var i = 0; i < data.sums.length; i++ ){
+										data.sums[i].data = $.map(data.sums[i].data, function(s){ return parseFloat(s); });
+									}
 									recipientOptions.series = data.sums;
 
 									chart = new Highcharts.Chart(recipientOptions);
@@ -1971,20 +1986,22 @@ $(document).ready(function(){
 		if( !delayAjax ){
 			if( delayTimeout ) clearTimeout(delayTimeout);
 
-			//try to get the last timeframe used by the user,
-			//which can have been updated before a forced reload
+			//try to get the last timeframe updated before a forced reload
 			try {
 				var persistentTimeframe = localStorage.getObject($currentOwner.val() + '_timeframe');
 				if( persistentTimeframe && persistentTimeframe.length ){
+					//remove the stored timeframe
+					localStorage.removeItem($currentOwner.val() + '_timeframe');
+
 					//uncheck all checkboxes, by default at least one is checked, for the current month
-					$timeframe.find(':checkbox:checked').prop('checked', false).closest('li').removeClass('checked');
+					$timeframe.find('input').filter(':checked').prop('checked', false).closest('li').removeClass('checked');
 
 					//update the timeframe checkboxes
-					$.each( persistentTimeframe, function(){
-						$timeframe.find('input[value='+ this +']').prop('checked', true)
+					for( var i = 0; i < persistentTimeframe.length; i++ ){
+						$timeframe.find('input').filter('[value='+ persistentTimeframe[i] +']').prop('checked', true)
 							.closest('li').addClass('checked')
-							.closest('ul').siblings(':checkbox').prop('checked', true); //check the month and update the year
-					});
+							.closest('ul').siblings('input[type=checkbox]').prop('checked', true); //check the month and update the year
+					}
 				}
 
 			} catch( e ){
@@ -2010,19 +2027,19 @@ $.fn.swapIn = function( $target ){
 			order = $this.data('order');
 
 		//try to find the previous <li> based on the order
-		var $prev = $target.children('li[data-order='+ (order-1) +']');
+		var $prev = $target.find('li').filter('[data-order='+ (order-1) +']');
 		if( $prev.length ){
 			$this.insertAfter( $prev );
 		} else {
 			//try to find the next <li> based on the order
-			var $next = $target.find('li[data-order='+ (order+1) +']');
+			var $next = $target.find('li').filter('[data-order='+ (order+1) +']');
 			if( $next.length ){
 				$this.insertBefore( $next );
 			} else {
 				//parse the $target <li> to find where to insert
 				var inserted = false;
-				$target.children('li').each(function(i, li){
-					if( $(li).data('order') > order ){
+				$target.find('li').each2(function(i, $li){
+					if( $li.data('order') > order ){
 						$this.insertBefore( li );
 						inserted = true;
 						return false; //break out of the each loop
@@ -2043,7 +2060,7 @@ $.fn.swapIn = function( $target ){
 $.fn.updateFiltersOutputs = function(){
 	return this.each(function(){
 		//output the current value
-		var output = $(this).closest('div').find('input:checked').map(function(){ return $(this).parent().text(); }).get();
+		var output = $(this).closest('div').find('input').filter(':checked').map(function(){ return $(this).parent().text(); }).get();
 		var title = '';
 		if( output.length > 1 ){
 			output = output.join(', ');
@@ -2051,7 +2068,7 @@ $.fn.updateFiltersOutputs = function(){
 			output = output[0];
 		}
 
-		$(this).closest('section').children('output').text( output );
+		$(this).closest('section').find('output').text( output );
 	});
 }
 
@@ -2077,7 +2094,7 @@ $.fn.loadList = function(){
 
 					if( !Modernizr.input.list ){
 						var fallback = $('<select>'),
-							field = $list.closest('form').find('input[list="'+ $list.attr('id') +'"]');
+							field = $list.closest('form').find('input').filter('[list="'+ $list.attr('id') +'"]');
 						if( field.length ) fallback.attr('name', field.attr('name'));
 						fallback.append('<option value="">');
 
@@ -2086,52 +2103,55 @@ $.fn.loadList = function(){
 
 				} else {
 					//save the checked values
-					$list.data('sav', $list.find('input:checked').map(function(){ return this.value }));
+					$list.data('sav', $list.find('input').filter(':checked').map(function(){ return this.value }));
 
 					//remove any <ul> after the first
-					$list.children('ul.limited').remove();
+					$list.find('ul.limited').remove();
 
 					//keep the first option aka "placeholder" in the remaining <ul>
-					$list.find('li:gt(0)').remove();
+					$list.find('li').filter(':gt(0)').remove();
 
 					//create a new ul after the first one
 					var $ul = $('<ul>', { 'class': 'limited' }).appendTo($list);
 
-					var $li = $list.find('li:first').clone();
+					var $li = $list.find('li').eq(0).clone();
 				}
 
 				var i = 1;
-				$.each(cache.data, function(id, name){
-					name = decoder.html(name).val();
-					if( isDatalist ){
-						if( !Modernizr.input.list ){
-							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.children('select') );
+				for( var id in cache.data ){
+					if( cache.data.hasOwnProperty(id) ){
+						var name = decoder.html(cache.data[id]).val();
+						if( isDatalist ){
+							if( !Modernizr.input.list ){
+								$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list.find('select') );
+							} else {
+								$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
+							}
 						} else {
-							$('<option>', { "value": name, text: name, 'data-id': id }).appendTo( $list );
-						}
-					} else {
-						var $newLi = $li.clone();
-						var $input = $newLi.find('input').val( "." + filterClass + '_' + id ).attr('id', filterClass + '_' + id).prop('checked', false).detach();
-						$newLi.children('label')
-								.attr('for', filterClass + '_' + id)
-								.text( name )
-								.prepend( $input );
+							var $newLi = $li.clone();
+							var $input = $newLi.find('input').val( "." + filterClass + '_' + id ).attr('id', filterClass + '_' + id).prop('checked', false).detach();
+							$newLi.find('label')
+									.attr('for', filterClass + '_' + id)
+									.text( name )
+									.prepend( $input );
 
-						$newLi.attr('data-order', i).appendTo( $ul );
-						i++;
+							$newLi.attr('data-order', i).appendTo( $ul );
+							i++;
+						}
 					}
-				});
+				}
 
 				//recheck previously checked values
 				if( !isDatalist && $list.data('sav') ){
-					$.each( $list.data('sav'), function(){
+					var sav = $list.data('sav');
+					for( var i = 0; i < sav.length; i++ ){
 						//[value=*] cause an error
-						if( this == '*' ){
-							$list.find(':checkbox:first').prop('checked', true);
+						if( sav[i] == '*' ){
+							$list.find('input').filter('[type=checkbox]').eq(0).prop('checked', true);
 						} else {
-							$list.find('input[value='+ this +']').prop('checked', true);
+							$list.find('input').filter('[value='+ sav[i] +']').prop('checked', true);
 						}
-					});
+					}
 					$list.data('sav', null);
 				}
 			}
@@ -2150,8 +2170,8 @@ $.fn.resetForm = function(){
 			d = new Date();
 
 		$f.removeClass('deploy')
-			.find(':input:visible, #id').each(function(i, field){
-				if( field.type == 'radio' ) field.checked = false;
+			.find('input, textarea, select').each(function(i, field){
+				if( field.type == 'radio' || field.type == 'checkbox' ) field.checked = false;
 				else field.value = '';
 			});
 		$f.find('.ownerChoice').hide();
@@ -2171,11 +2191,12 @@ $.fn.resetForm = function(){
  * @param array [[field id, message, error type]]
  */
 function formErrors( data ){
-	$.each(data, function(index, error){
+	for( var i = 0; i < data.length; i++ ){
+		var error = data[i];
 		$('#' + error[0]).addClass(error[2]).siblings('.tip').remove(); //remove previous error message if present
 
 		$('#' + error[0]).parent().append( $('<span>', { 'class': 'tip', 'text': error[1] }) ); //add error message
-	});
+	}
 }
 
 //functions for payment list jquery template
@@ -2250,3 +2271,16 @@ function getValue( object, index ){
 function getSymbol( object, index ){
 	return object.data[index].symbol;
 }
+
+/*
+ * jQuery each2 - v0.2 - 8/02/2010
+ * http://benalman.com/projects/jquery-misc-plugins/
+ *
+ * Inspired by James Padolsey's quickEach
+ * http://gist.github.com/500145
+ *
+ * Copyright (c) 2010 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+(function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);

@@ -47,12 +47,6 @@
 	<td>window.localStorage.getItem('3_balance') != null</td>
 	<td>true</td>
 </tr>
-<!--test timeframe data-->
-<tr>
-	<td>assertEval</td>
-	<td>window.localStorage.getItem('3_timeframe') != null</td>
-	<td>true</td>
-</tr>
 <!--generate currentMonth-->
 <tr>
 	<td>storeEval</td>
@@ -71,7 +65,6 @@
 	<td>window.localStorage.getItem('3_payments_' + storedVars['currentMonth']) != null</td>
 	<td>true</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>
