@@ -29,9 +29,9 @@
 <tr><td><a href="payment_add_delta_c4">payment_add_delta_c4</a></td></tr>
 <tr><td><a href="payment_add_delta_c5">payment_add_delta_c5</a></td></tr>
 <tr><td><a href="payment_add_delta_c6">payment_add_delta_c6</a></td></tr>
+<tr><td><a href="payment_reload">payment_reload</a></td></tr>
 <tr><td><a href="payment_add_timeframe_c1">payment_add_timeframe_c1</a></td></tr>
 <tr><td><a href="payment_add_timeframe_c2">payment_add_timeframe_c2</a></td></tr>
-<tr><td><a href="payment_reload">payment_reload</a></td></tr>
 <tr><td><a href="payment_delete_confirmation">payment_delete_confirmation</a></td></tr>
 <tr><td><a href="payment_delete_c1">payment_delete_c1</a></td></tr>
 <tr><td><a href="payment_delete_c2">payment_delete_c2</a></td></tr>

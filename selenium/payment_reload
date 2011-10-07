@@ -145,14 +145,8 @@
 </tr>
 <tr>
 	<td>pause</td>
-	<td>200</td>
+	<td>2000</td>
 	<td></td>
-</tr>
-<!--test if timeframe was used and removed-->
-<tr>
-	<td>assertEval</td>
-	<td>window.localStorage.getItem('3_timeframe') == null</td>
-	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
