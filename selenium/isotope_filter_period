@@ -4,12 +4,12 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://suivfin.dev/" />
-<title>Isotope_filter_radio</title>
+<title>isotope_filter_period</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">Isotope_filter_radio</td></tr>
+<tr><td rowspan="1" colspan="3">isotope_filter_period</td></tr>
 </thead><tbody>
 <!--reset filters-->
 <tr>
@@ -22,22 +22,33 @@
 	<td>200</td>
 	<td></td>
 </tr>
-<!--check input type radio-->
-<tr>
-	<td>assertEval</td>
-	<td>window.$('#filter section:first :radio').length &gt; 0;</td>
-	<td>true</td>
-</tr>
 <!--store visibile payments quantity-->
 <tr>
 	<td>storeEval</td>
 	<td>window.$('#container').height();</td>
 	<td>heightWithoutFilter</td>
 </tr>
-<!--check input type radio click-->
+<!--check default value when focus-->
 <tr>
 	<td>click</td>
-	<td>css=#filter section:first :radio:eq(1)</td>
+	<td>css=#date_from</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#date_from').val() == (function(){ var d = new Date; return ( d.getDate() &lt; 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) &lt; 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() }());</td>
+	<td>true</td>
+</tr>
+<!--check visible payments quantity-->
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter']</td>
+	<td>true</td>
+</tr>
+<!--check reset-->
+<tr>
+	<td>click</td>
+	<td>css=#date_from + .reset</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,15 +58,16 @@
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter section:first :radio:eq(1)').prop('checked');</td>
+	<td>window.$('#date_from').val() == ''</td>
 	<td>true</td>
 </tr>
 <!--check visible payments quantity-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#container').height() &lt; storedVars['heightWithoutFilter']</td>
+	<td>window.$('#container').height() == storedVars['heightWithoutFilter']</td>
 	<td>true</td>
 </tr>
+
 </tbody></table>
 </body>
 </html>

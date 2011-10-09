@@ -186,6 +186,19 @@ if( !Modernizr.localstorage ){
 	})();
 }
 
+/*
+ * jQuery each2 - v0.2 - 8/02/2010
+ * http://benalman.com/projects/jquery-misc-plugins/
+ *
+ * Inspired by James Padolsey's quickEach
+ * http://gist.github.com/500145
+ *
+ * Copyright (c) 2010 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+(function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);
+
 $(document).ready(function(){
 
 	var $body		   = $('body'),
@@ -449,6 +462,8 @@ $(document).ready(function(){
 									try {
 										timeframeSnapshot.push( newMonth );
 										localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
+										localStorage.setObject('filters', filters);
+										localStorage.setObject('period_dates', [$('#date_from').val(), $('#date_to').val()]);
 									} catch( e ){
 										alert(e);
 									}
@@ -563,7 +578,7 @@ $(document).ready(function(){
 		 * use up and down arrow keys
 		 * shift for changes by 10, ctrl for months and alt for years
 		 */
-		$('#paymentDate').keydown(function(e){
+		$('#paymentDate, #date_from, #date_to').keydown(function(e){
 			if( this.value != '' && ( e.keyCode == 40 || e.keyCode == 38 ) ){
 				var paymentDate = this.value.split('/'),
 					tmp = new Date(paymentDate[2], parseInt(paymentDate[1], 10) - 1, paymentDate[0]);
@@ -607,26 +622,26 @@ $(document).ready(function(){
 		}
 
 	//application shortcuts
-	$(document).unbind('keydown').keydown(function(e){
-		//"a" pressed for add
-		if( e.which == 65 ){
-			$form.filter(':not(.deploy)')
-				.resetForm()
-				.addClass('deploy');
+		$(document).unbind('keydown').keydown(function(e){
+			//"a" pressed for add
+			if( e.which == 65 ){
+				$form.filter(':not(.deploy)')
+					.resetForm()
+					.addClass('deploy');
 
-		//escape pressed
-		} else if( e.keyCode == 27 ){
-			if( $form.hasClass('deploy') ){
-				$form.removeClass('deploy').removeClass('submitting');
-				$('.form_switch').find('a').focus(); //remove the focus from any field or button of the form
+			//escape pressed
+			} else if( e.keyCode == 27 ){
+				if( $form.hasClass('deploy') ){
+					$form.removeClass('deploy').removeClass('submitting');
+					$('.form_switch').find('a').focus(); //remove the focus from any field or button of the form
 
-			//close any opened filter dropdown
-			} else if( $filter.find('section').find('.switch.active').length ){
-				$filter.find('section').find('.switch.active').removeClass('active')
-				$filter.find('.dropdown.deploy').removeClass('deploy');
+				//close any opened filter dropdown
+				} else if( $filter.find('section').find('.switch.active').length ){
+					$filter.find('section').find('.switch.active').removeClass('active')
+					$filter.find('.dropdown.deploy').removeClass('deploy');
+				}
 			}
-		}
-	});
+		});
 
 	//isotope
 		$container.isotope({
@@ -670,7 +685,7 @@ $(document).ready(function(){
 			//in online mode take the values directly from database
 			//in offline mode, get the values from DOM
 			/*if( $body.data('internet') == 'offline' ){
-				$('#id').val( $this.attr('href') );
+				$('#id').val( $this[0].href );
 
 				var $item = $this.closest('.item'),
 					classes = $item.attr('class');
@@ -711,7 +726,7 @@ $(document).ready(function(){
 				if( $this.hasClass('fork') ) $('#id').val('');
 
 			} else {*/
-				$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
+				$.post('ajax/payment.php', 'action=get&id=' + $this[0].href, function(data){
 					var decoder = $('<textarea>'),
 						$field = null,
 						$radio = null;
@@ -774,7 +789,7 @@ $(document).ready(function(){
 				//always, will be sent back by the server
 
 				//prepare the ajax call parameters
-				var params = 'action=delete&id=' + $(this).attr('href');
+				var params = 'action=delete&id=' + this.href;
 
 				/*if( $body.data('internet') == 'offline' ){
 					var deletions = localStorage.getObject('deletions') || [];
@@ -832,29 +847,24 @@ $(document).ready(function(){
 		});
 
 	//filters
-		$filter
-			.delegate('input[type=radio]', 'change', function(e){
-				var $this = $(this),
-					group = $this.attr('name'),
-					filter = $this.val();
+		var $filters_switches = $filter.find('section').find('.switch'),
+			$filters_dropdowns = $filter.find('.dropdown');
 
-				//output the current value
-				$this.closest('section').find('output').text( $(this).text() );
+		$filter
+			//ternary filter (frequency and currency)
+			.delegate('input[type=radio]', 'change', function(e){
+				var group = this.name,
+					filter = this.value;
 
 				// store filter value in object as an array
 				filters[ group ] = [filter];
 
-				//for filters persistence
-				localStorage.setObject('filters', filters);
-
 				applyFilters();
-
-				//output the current value
-				$this.updateFiltersOutputs();
 			})
+			//multi-value filter
 			.delegate('input[type=checkbox]', 'change', function(e){
 				var $this = $(this).blur(), //blur() to remove the focus style (like -moz-focusring)
-					group = $this.attr('name'),
+					group = this.name,
 					$div = $this.closest('div'),
 					$quickUl = $div.find('ul').eq(0),
 					$limitedUl = $div.find('ul.limited'),
@@ -892,30 +902,30 @@ $(document).ready(function(){
 				//.get() to always get an array
 				filters[ group ] = $div.find('input').filter('[type=checkbox]:checked').map(function(){ return this.value; }).get();
 
-				//for filters persistence
-				localStorage.setObject('filters', filters);
-
 				applyFilters();
 
 				//output the current value
 				$this.updateFiltersOutputs();
 			})
+			//deploy toggle on title click
 			.delegate('h2', 'click', function(e){
 				e.preventDefault();
-				$filter.find('section').find('.switch.active').removeClass('active');
-				$filter.find('.dropdown.deploy').removeClass('deploy');
+				$filters_dropdowns.filter('.deploy').removeClass('deploy');
+				$filters_switches.filter('.active').removeClass('active');
 				$(this).find('span').toggleClass('active').closest('section').toggleClass('deploy');
 			})
+			//dropdown toggle on filter switch
 			.delegate('section .switch', 'click', function(e){
 				e.preventDefault();
 				var isActive = $(this).hasClass('active');
 				//close other opened dropdown and deactivate activated switches
-				$filter.find('.dropdown.deploy').removeClass('deploy');
-				$filter.find('section').find('.switch.active').removeClass('active');
+				$filters_dropdowns.filter('.deploy').removeClass('deploy');
+				$filters_switches.filter('.active').removeClass('active');
 				if( !isActive ){
 					$(this).addClass('active').siblings('.dropdown').addClass('deploy');
 				}
 			})
+			//dynamic dropdown filtering
 			.delegate('input[type=search]', 'keyup', function(){
 				var query = $.trim( $(this).val() );
 
@@ -931,12 +941,70 @@ $(document).ready(function(){
 					$li.find('label').text().search(new RegExp(query, 'i')) == -1 ? $li.hide() : $li.show();
 				});
 			})
+			//period default value at today when focused and empty
+			.delegate('#date_from, #date_to', 'focus', function(){
+				if( this.value == '' ){
+					var d = new Date();
+					$(this).val( ( d.getDate() < 10 ? '0' + d.getDate() : d.getDate() ) + '/' + ( ( d.getMonth() + 1 ) < 10 ? '0' : '' ) + ( d.getMonth() + 1 ) + '/' + d.getFullYear() )
+						.trigger('keyup');
+				}
+			})
+			//period filtering
+			.delegate('#date_from, #date_to', 'keyup', function(){
+				var dfrom = document.getElementById('date_from'),
+					dto = document.getElementById('date_to'),
+					date_from = null,
+					date_to = null,
+					tmp;
+				filters['period'] = ["*"]; //reset
+				if( dfrom.checkValidity() && dfrom.value != '' ){
+					date_from = dfrom.value.split('/');
+					date_from = new Date(date_from[2], parseInt(date_from[1], 10) - 1, date_from[0]);
+					date_from = date_from.getTime() / 1000;
+				}
+
+				if( dto.checkValidity() && dto.value != '' ){
+					date_to = dfrom.value.split('/');
+					date_to = new Date(date_to[2], parseInt(date_to[1], 10) - 1, date_to[0]);
+					date_to = date_to.getTime() / 1000;
+				}
+
+				if( date_from != null || date_to != null ){
+					var ids = [];
+					$container.find('.item').each2(function(i, $item){
+						if( ( date_from != null ? $item.data('date') >= date_from : true )
+							&& ( date_to != null ? $item.data('date') <= date_to : true )
+						){
+							ids.push( '#' + $item[0].id );
+						}
+					});
+
+					if( ids.length ){
+						filters['period'] = ids;
+					}
+				}
+
+				applyFilters();
+			})
+			//period input reset
+			.delegate('.reset', 'click', function(){
+				$('#' + $(this).attr('rel')).val('').trigger('keyup');
+			})
+			//close any open dropdown for an outside click inside $filter
 			.click(function(e){
-				//close any open dropdown for an outside click
 				var $t = $(e.target);
-				if( !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('ul').length ){
-					$filter.find('.dropdown.deploy').removeClass('deploy');
-					$filter.find('section').find('.switch.active').removeClass('active');
+				if( !$t.closest('.dropdown').length && !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('ul').length ){
+					$filters_dropdowns.filter('.deploy').removeClass('deploy');
+					$filters_switches.filter('.active').removeClass('active');
+				}
+			});
+
+		//close any open dropdown for a click outside $filter
+			$('body').click(function(e){
+				var $t = $(e.target);
+				if( !$t.closest($filter).length ){
+					$filters_dropdowns.filter('.deploy').removeClass('deploy');
+					$filters_switches.filter('.active').removeClass('active');
 				}
 			});
 
@@ -967,6 +1035,8 @@ $(document).ready(function(){
 							try {
 								timeframeSnapshot.push( newMonth );
 								localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
+								localStorage.setObject('filters', filters);
+								localStorage.setObject('period_dates', [$('#date_from').val(), $('#date_to').val()]);
 							} catch( e ){
 								alert(e);
 							}
@@ -1173,39 +1243,49 @@ $(document).ready(function(){
 			//generate the new items via templating
 			var $items = $.tmpl('paymentList', data);
 
-			//test if there is any cached filters, which are updated on each filters changes
+			//test if there is any cached filters, which are saved before a forced reload
 			try {
-				if( !filters.length ){ //page load, no filters set
-					cachedFilters = localStorage.getObject('filters');
-					if( cachedFilters ){
-						for( var group in cachedFilters ){
-							if( cachedFilters.hasOwnProperty(group) ){
-								var f = cachedFilters[group],
-									$inputs = $filter.find('input').filter('[name='+ group +']').prop('checked', false),
-									$div = $inputs.closest('div'),
-									$quickUl = $div.find('ul').eq(0);
-								//check the cached values filter checkboxes and swap them in the first <ul>
-								for( var i = 0; i < f.length; i++ ){
-									if( f[i] == '*' ){
-										var $checked = $inputs.filter('[id$="-all"]');
-									} else {
-										var $checked = $inputs.filter('[value="'+ f[i] +'"]');
-									}
-									$checked.prop('checked', true);
+				var cachedDates = localStorage.getObject('period_dates');
+				var cachedFilters = localStorage.getObject('filters');
+				if( cachedFilters ){
+					localStorage.removeItem('filters');
 
-									//swapIn only for "limited" <li>s
-									if( $checked.closest('ul').hasClass('limited') ) $checked.closest('li').swapIn( $quickUl );
+					for( var group in cachedFilters ){
+						if( cachedFilters.hasOwnProperty(group) ){
+							var f = cachedFilters[group],
+								$inputs = $filter.find('input').filter('[name='+ group +']').prop('checked', false),
+								$div = $inputs.closest('div'),
+								$quickUl = $div.find('ul').eq(0);
+							//check the cached values filter checkboxes and swap them in the first <ul>
+							for( var i = 0; i < f.length; i++ ){
+								if( f[i] == '*' ){
+									var $checked = $inputs.filter('[id$="-all"]');
+								} else {
+									var $checked = $inputs.filter('[value="'+ f[i] +'"]');
 								}
+								$checked.prop('checked', true);
+
+								//swapIn only for "limited" <li>s
+								if( $checked.closest('ul').hasClass('limited') ) $checked.closest('li').swapIn( $quickUl );
 							}
 						}
-
-						filters = cachedFilters; //update the filters list for applyFilters()
 					}
+
+					filters = cachedFilters; //update the filters list for applyFilters()
 
 					$filter.find('.dropdown').each2(function(i, $dropdown){
 						$dropdown.find('input').eq(0).updateFiltersOutputs();
 					});
-					applyFilters();
+
+					if( !cachedDates ) applyFilters();
+				}
+
+				if( cachedDates ){
+					localStorage.removeItem('period_dates');
+
+					$('#date_from').val( cachedDates[0] );
+					$('#date_to').val( cachedDates[1] )
+						.trigger('keyup'); //will call applyFilters()
 				}
 
 				//append the new items to isotope
@@ -2001,7 +2081,6 @@ $(document).ready(function(){
 							.closest('ul').siblings('input[type=checkbox]').prop('checked', true); //check the month and update the year
 					}
 				}
-
 			} catch( e ){
 				alert(e);
 			}
@@ -2077,7 +2156,7 @@ $.fn.updateFiltersOutputs = function(){
 $.fn.loadList = function(){
 	return this.each(function(){
 		var $list = $(this),
-			key = $list.attr('id').replace(/_filter/g, 'List'),
+			key = $list[0].id.replace(/_filter/g, 'List'),
 			filterClass = key.replace(/List/g, ''),
 			decoder = $('<textarea>'),
 			cache;
@@ -2092,8 +2171,8 @@ $.fn.loadList = function(){
 
 					if( !Modernizr.input.list ){
 						var fallback = $('<select>'),
-							field = $list.closest('form').find('input').filter('[list="'+ $list.attr('id') +'"]');
-						if( field.length ) fallback.attr('name', field.attr('name'));
+							field = $list.closest('form').find('input').filter('[list="'+ $list[0].id +'"]');
+						if( field.length ) fallback.name = field[0].name;
 						fallback.append('<option value="">');
 
 						$list.append( fallback );
@@ -2270,15 +2349,3 @@ function getSymbol( object, index ){
 	return object.data[index].symbol;
 }
 
-/*
- * jQuery each2 - v0.2 - 8/02/2010
- * http://benalman.com/projects/jquery-misc-plugins/
- *
- * Inspired by James Padolsey's quickEach
- * http://gist.github.com/500145
- *
- * Copyright (c) 2010 "Cowboy" Ben Alman
- * Dual licensed under the MIT and GPL licenses.
- * http://benalman.com/about/license/
- */
-(function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);

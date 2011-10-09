@@ -4,32 +4,28 @@
 
 	<section>
 		<h3>Fréquence :</h3>
-		<span class="switch"></span>
-		<output></output>
-		<div class="radio dropdown">
-			<ul>
-			{strip}
-				<li>
-					<label for="frequency-all">
-						<input type="radio" id="frequency-all" name="recurrent" value="*" checked />
-						Tout
-					</label>
-				</li>
-				<li>
-					<label for="frequency-recurrent">
-						<input type="radio" id="frequency-recurrent" name="recurrent" value=".recurrent" />
-						Récurrent
-					</label>
-				</li>
-				<li>
-					<label for="frequency-punctual">
-						<input type="radio" id="frequency-punctual" name="recurrent" value=".punctual" />
-						Ponctuel
-					</label>
-				</li>
-			{/strip}
-			</ul>
-		</div>
+		<ul>
+		{strip}
+			<li>
+				<label for="frequency-all">
+					<input type="radio" id="frequency-all" name="recurrent" value="*" checked />
+					Tout
+				</label>
+			</li>
+			<li>
+				<label for="frequency-recurrent">
+					<input type="radio" id="frequency-recurrent" name="recurrent" value=".recurrent" />
+					Récurrent
+				</label>
+			</li>
+			<li>
+				<label for="frequency-punctual">
+					<input type="radio" id="frequency-punctual" name="recurrent" value=".punctual" />
+					Ponctuel
+				</label>
+			</li>
+		{/strip}
+		</ul>
 	</section>
 
 	<section>
@@ -37,7 +33,8 @@
 		<span class="switch"></span>
 		<output></output>
 		<div class="checkbox dropdown" id="origin_filter">
-			<input type="search" value="" autocomplete="off" />
+			<input type="search" id="origin_search" value="" autocomplete="off" />
+			<span class="reset" rel="origin_search">x</span>
 			<ul>
 			{strip}
 				<li data-order="0">
@@ -82,7 +79,8 @@
 		<span class="switch"></span>
 		<output></output>
 		<div class="checkbox dropdown" id="recipient_filter">
-			<input type="search" value="" autocomplete="off" />
+			<input type="search" id="recipient_search" value="" autocomplete="off" />
+			<span class="reset" rel="recipient_search">x</span>
 			<ul>
 			{strip}
 				<li data-order="0">
@@ -124,28 +122,24 @@
 
 	<section>
 		<h3>Monnaie :</h3>
-		<span class="switch"></span>
-		<output></output>
-		<div class="radio dropdown">
-			<ul>
-			{strip}
+		<ul>
+		{strip}
+			<li>
+				<label for="currency-all">
+					<input type="radio" id="currency-all" name="currency" value="*" checked />
+					Tout
+				</label>
+			</li>
+			{foreach $currencies as $id => $name}
 				<li>
-					<label for="currency-all">
-						<input type="radio" id="currency-all" name="currency" value="*" checked />
-						Tout
+					<label for="currency-{$id}">
+						<input type="radio" id="currency-{$id}" name="currency" value=".currency_{$id}" />
+						{$name}
 					</label>
 				</li>
-				{foreach $currencies as $id => $name}
-					<li>
-						<label for="currency-{$id}">
-							<input type="radio" id="currency-{$id}" name="currency" value=".currency_{$id}" />
-							{$name}
-						</label>
-					</li>
-				{/foreach}
-			{/strip}
-			</ul>
-		</div>
+			{/foreach}
+		{/strip}
+		</ul>
 	</section>
 
 	<section>
@@ -179,7 +173,8 @@
 		<span class="switch"></span>
 		<output></output>
 		<div class="checkbox dropdown" id="location_filter">
-			<input type="search" value="" autocomplete="off" />
+			<input type="search" id="location_search" value="" autocomplete="off" />
+			<span class="reset" rel="location_search">x</span>
 			<ul>
 			{strip}
 				<li data-order="0">
@@ -191,5 +186,15 @@
 			{/strip}
 			</ul>
 		</div>
+	</section>
+
+	<section>
+		<h3>Période :</h3>
+		<label for="date_from">Du</label>
+		<input type="text" name="from" id="date_from" value="" pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$" />
+		<span class="reset" rel="date_from">x</span>
+		<label for="date_to">Au</label>
+		<input type="text" name="to" id="date_to" value="" value="" pattern="^([012][123456789]|[123]0|31)\/([0][123456789]|[1][012])\/20[0-9]{ldelim}2{rdelim}$" />
+		<span class="reset" rel="date_to">x</span>
 	</section>
 </section>
