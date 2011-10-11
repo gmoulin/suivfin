@@ -2147,7 +2147,9 @@ $.fn.loadList = function(){
 						if( sav[i] == '*' ){
 							$list.find('input').filter('[type=checkbox]').eq(0).prop('checked', true);
 						} else {
-							$list.find('input').filter('[value='+ sav[i] +']').prop('checked', true);
+							$list.find('input').filter('[value="'+ sav[i] +'"]').prop('checked', true)
+								//do the swapIn if needed
+								.closest('ul.limited').swapIn( $list.find('ul').filter(':not(.limited)') );
 						}
 					}
 					$list.data('sav', null);
