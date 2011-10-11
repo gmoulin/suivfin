@@ -14,102 +14,123 @@
 <!--check folded state on load-->
 <tr>
 	<td>assertEval</td>
-	<td>!window.$('#filter &gt; section:first .switch').hasClass('active');</td>
-	<td>true</td>
+	<td>window.$('#filter section .switch').hasClass('active');</td>
+	<td>false</td>
 </tr>
 <!--check output not empty-->
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first output').text().length &gt; 0;</td>
+	<td>window.$('#filter output:first').text().length &gt; 0;</td>
 	<td>true</td>
 </tr>
 <!--check dropdown deploy on switch click-->
 <tr>
 	<td>click</td>
-	<td>css=section &gt; span.switch</td>
+	<td>css=#filter section .switch:first</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .switch').hasClass('active');</td>
+	<td>window.$('#filter section .switch:first').hasClass('active');</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown').hasClass('deploy');</td>
+	<td>window.$('#filter section .dropdown:first').hasClass('deploy');</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
 	<td>true</td>
 </tr>
 <!--check dropdown fold on switch click-->
 <tr>
 	<td>click</td>
-	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td>css=#filter section .switch:first</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>!window.$('#filter &gt; section:first .switch').hasClass('active');</td>
+	<td>!window.$('#filter section .switch:first').hasClass('active');</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>!window.$('#filter &gt; section:first .dropdown').hasClass('deploy');</td>
+	<td>!window.$('#filter section .dropdown:first').hasClass('deploy');</td>
 	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>window.$('#filter section .dropdown:first:visible').length == 0;</td>
 	<td>true</td>
 </tr>
 <!--dropdown deploy-->
 <tr>
 	<td>click</td>
-	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td>css=#filter section span.switch:first</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
 	<td>true</td>
 </tr>
 <!--check dropdown fold on outside click-->
 <tr>
 	<td>click</td>
-	<td>css=#filter &gt; section:eq(2)</td>
+	<td>css=#filter section:eq(2)</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>window.$('#filter .dropdown:visible').length == 0;</td>
 	<td>true</td>
 </tr>
 <!--dropdown deploy-->
 <tr>
 	<td>click</td>
-	<td>css=#filter &gt; section:first &gt; span.switch</td>
+	<td>css=#filter section span.switch:first</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length &gt; 0;</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
 	<td>true</td>
 </tr>
 <!--check dropdown fold on escape keypress-->
 <tr>
 	<td>keyDown</td>
-	<td>css=#filter &gt; section:eq(2)</td>
+	<td>css=#filter section:eq(2)</td>
 	<td>\27</td>
 </tr>
 <tr>
 	<td>assertEval</td>
-	<td>window.$('#filter &gt; section:first .dropdown:visible').length == 0;</td>
+	<td>window.$('#filter .dropdown:visible').length == 0;</td>
 	<td>true</td>
 </tr>
-
+<!--dropdown deploy-->
+<tr>
+	<td>click</td>
+	<td>css=#filter section span.switch:first</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown fold on click oustide #filters-->
+<tr>
+	<td>click</td>
+	<td>css=#container</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown:visible').length == 0;</td>
+	<td>true</td>
+</tr>
 </tbody></table>
 </body>
 </html>

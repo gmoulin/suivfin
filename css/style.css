@@ -1065,10 +1065,19 @@
 			width: -calc(100% - 7px);
 		}
 
-		#filter .dropdown ul {
+		#filter ul {
 			margin: 0;
 			padding: 0;
 			list-style: none;
+		}
+
+		#filter section > ul {
+			display: inline;
+			margin-left: -4px;
+		}
+
+		#filter section > ul li {
+			display: inline-block;
 		}
 
 		#filter .dropdown li {
@@ -1103,7 +1112,7 @@
 			margin-right: 16px;
 		}
 
-		#filter label {
+		#filter li label {
 			white-space: nowrap;
 			display: block;
 			padding: 2px 3px;
@@ -1116,6 +1125,33 @@
 		#filter input[type=checkbox] {
 			position: relative;
 			top: 0;
+		}
+
+		#filter section > input[type=text] {
+			width: 70px;
+			position: relative;
+		}
+
+		#filter .reset {
+			position: relative;
+			background-color: #000;
+			color: #fff;
+			border-radius: 6px;
+			font-weight: bold;
+			width: 12px;
+			height: 12px;
+			display: inline-block;
+			text-align: center;
+			left: -18px;
+			line-height: 10px;
+			cursor: pointer;
+			margin-right: -15px;
+		}
+
+		#filter .dropdown .reset {
+			float: right;
+			top: -16px;
+			line-height: 12px;
 		}
 
 		/*#filter input[type="checkbox"]:focus,

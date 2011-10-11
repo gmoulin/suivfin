@@ -12,7 +12,8 @@
 <tr><td><a href="localStorage">localStorage</a></td></tr>
 <tr><td><a href="isotope_filters">isotope_filters</a></td></tr>
 <tr><td><a href="isotope_filter">isotope_filter</a></td></tr>
-<tr><td><a href="isotope_filter_radio">Isotope_filter_radio</a></td></tr>
+<tr><td><a href="isotope_filter_radio">isotope_filter_radio</a></td></tr>
+<tr><td><a href="isotope_filter_period">isotope_filter_period</a></td></tr>
 <tr><td><a href="isotope_filter_checkbox">isotope_filter_checkbox</a></td></tr>
 <tr><td><a href="isotope_filter_checkbox_limited">isotope_filter_checkbox_limited</a></td></tr>
 <tr><td><a href="isotope_filter_combination">isotope_filter_combination</a></td></tr>

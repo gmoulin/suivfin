@@ -14,7 +14,7 @@
 <!--reset filters-->
 <tr>
 	<td>getEval</td>
-	<td>(function(){ window.$('#filter :input').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); })()</td>
+	<td>(function(){ window.$('#filter').find(':radio, :checkbox').prop('checked', false); window.$('#filter section :input[id$=&quot;-all&quot;]').click(); window.$('#date_from, #date_to').val(''); })()</td>
 	<td></td>
 </tr>
 <tr>
@@ -159,6 +159,22 @@
 <tr>
 	<td>assertEval</td>
 	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input:visible').length &lt; storedVars['nbLimited']</td>
+	<td>true</td>
+</tr>
+<!--check reset-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown.checkbox[id]:first &gt; input + .reset</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first &gt; input').val() == ''</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input:visible').length == storedVars['nbLimited']</td>
 	<td>true</td>
 </tr>
 </tbody></table>
