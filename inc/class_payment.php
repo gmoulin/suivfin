@@ -733,7 +733,7 @@ class payment extends common {
 					while( $r = $q->fetch() ){
 						$sums['list'][ $r['typeFK'].($r['recurrent'] ? 'r' : '') ][ $r['fromto'] ][ $r['currencyFK'] ] = $r['sum'];
 
-						if( !isset($sums['total'][ $r['month'] ][ $r['fromto'] ][ $r['currencyFK'] ]) ){
+						if( !isset($sums['total'][ $r['fromto'] ][ $r['currencyFK'] ]) ){
 							if(    isset($sums['balance'][ $r['fromto'] ])
 								&& isset($sums['balance'][ $r['fromto'] ][ $r['currencyFK'] ])
 							){
