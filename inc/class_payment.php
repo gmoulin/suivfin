@@ -45,6 +45,7 @@ class payment extends common {
 			'originFK'			=> FILTER_SANITIZE_STRING,
 			'statusFK'			=> FILTER_SANITIZE_NUMBER_INT,
 			'locationFK'		=> FILTER_SANITIZE_STRING,
+			'owner'				=> FILTER_SANITIZE_NUMBER_INT,
 		);
 
 		foreach( $args as $field => $validation ){
@@ -78,6 +79,17 @@ class payment extends common {
 							$errors[] = array('label', 'Identifiant du paiement inconnu.', 'error');
 						}
 					}
+				}
+			}
+
+			//errors are set to #label because #id is hidden
+			//check owner, will serve only if $this->getOwner() return an incorrect value
+			if( is_null($owner) || $owner === false ){
+				$errors[] = array('label', 'Compte incorrect, merci de recharger la page.', 'error');
+			} else {
+				$check = filter_var($owner, FILTER_VALIDATE_INT, array('min_range' => 1, 'max_range' => 3));
+				if( $check === false ){
+					$errors[] = array('label', 'Compte incorrect, merci de recharger la page.', 'error');
 				}
 			}
 
@@ -335,17 +347,24 @@ class payment extends common {
 				if( $this->_data['paymentDate'] != $formData['paymentDate'] ){
 					$since = date('Y-m-d', min( strtotime($this->_data['paymentDate']), strtotime($formData['paymentDate']) ) );
 					//delete evolutions for the payment old origin, recalculation will be done in save function
-					$oEvolution->deleteSince($since, $this->_data['originFK']);
+					$oEvolution->deleteSince($since, $this->_data['originFK'], $this->_data['recipientFK']);
 				}
 
 				if( $this->_data['originFK'] != $formData['originFK'] ){
 					//delete evolutions for the payment old origin, recalculation will be done in save function
-					$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK']);
+					$oEvolution->deleteSince($this->_data['paymentDate'], $this->_data['originFK'], $this->_data['recipientFK']);
 				}
 			}
 
 			foreach( self::$_fields[$this->_table] as $k => $v ){
 				if( isset($formData[$v]) ) $this->_data[$v] = $formData[$v];
+			}
+
+			//bulletproofing
+			$check = $this->getOwner();
+			if( empty($check) ){
+				init::getInstance()->setOwner( $owner );
+				$this->_data['ownerFK'] = $this->getOwner();
 			}
 
 			$this->_data['ownerFK'] = $this->getOwner();
