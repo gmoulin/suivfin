@@ -200,7 +200,6 @@ if( !Modernizr.localstorage ){
 (function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);
 
 $(document).ready(function(){
-
 	var $body		   = $('body'),
 		$container	   = $('#container'),
 		$sums		   = $('#sums'),
@@ -214,7 +213,24 @@ $(document).ready(function(){
 		buffer		   = null,
 		chart		   = null,
 		legendCurrency = [],
+		isMobile       = false,
+		isTouch        = false,
 		currentDate	   = new Date();
+
+		if( Modernizr.mq('only screen and (max-width: 480px)') ){
+			if( Modernizr.touch() ) isTouch = true;
+
+			isMobile = true;
+
+			//remove the non mobile elements
+			$('header, footer').find('nav, aside').filter(':not(.mobile, #time_frame)').remove();
+
+			var $modal = $('#modalOverlay'),
+				$block = $modal.find('.block');
+		} else {
+			//remove the mobile elements
+			$('.mobile, #modalHide, .box').remove();
+		}
 
 		if( currentDate.getDate() > 24 ){
 			currentDate.setMonth(currentDate.getMonth() + 1 );
@@ -1055,6 +1071,70 @@ $(document).ready(function(){
 		});
 
 	//time frame chekboxes
+		if( isMobile ){
+
+			$timeframe[0].addEventListener('touchend', function(event){
+				event.preventDeault();
+				event.stopPropagation();
+
+				$timeframe.trigger('click');
+			}, true);
+
+			$timeframe.click(function(event){
+				event.preventDeault();
+				event.stopPropagation();
+
+				$modal.find('.block').addClass('time_frame').html( $timeframe.find('ul:first-child') );
+
+				$block.delegate('input', 'change', function(e){
+					var $this = $(this);
+
+					//toggle the months checkboxes if the event target is a year checkbox
+					if( $this.hasClass('year') ){
+						$this.siblings('ul').find('input').prop('checked', $this.prop('checked'));
+
+					//update the year checkbox checked state
+					} else {
+						$this.closest('li').toggleClass('checked', $this.prop('checked'));
+						var $ul = $this.closest('ul');
+						$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
+					}
+				});
+
+				$('#modalShow').prop('checked', true);
+			});
+
+
+			$modal[0].addEventListener('touchend', function(){
+				event.preventDeault();
+				event.stopPropagation();
+
+				$modal.trigger('click');
+			}, true);
+
+			$modal.click(function(event){
+				event.preventDeault();
+				event.stopPropagation();
+
+				$timeframe
+					.html( $block.removeClass('time_frame').html() ) //put back the months list
+					.find('input').filter(':not(.year)').eq(0).trigger('change'); //launch the data update
+
+				$('#modalHide').prop('checked', true);
+
+				$block.undelegate('input', 'change');
+			});
+
+		} else {
+			$timeframe
+				.delegate('.switch', 'click', function(e){
+					$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
+				})
+				.find('li li input').each2(function(i, $input){
+					$input.closest('li').toggleClass('checked', $input.prop('checked'));
+				});
+		}
+
 		$timeframe
 			.delegate('input', 'change', function(e){
 				clearTimeout(buffer);
@@ -1076,12 +1156,6 @@ $(document).ready(function(){
 					//wait 500ms before reloading data, help when user check several checkboxes quickly
 					buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
 				}
-			})
-			.delegate('.switch', 'click', function(e){
-				$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
-			})
-			.find('li li input').each2(function(i, $input){
-				$input.closest('li').toggleClass('checked', $input.prop('checked'));
 			});
 
 	//sums cells hover
@@ -1126,39 +1200,69 @@ $(document).ready(function(){
 		});
 
 	//switch between chart and isotope view
-		$('.switch_view').find('a').data('view', 'isotope').click(function(e){
-			var $this = $(this),
+		var $switchView = $('.switch_view'),
+			$chart = $('#chart');
+		if( isMobile ){
+			$switchView.filter('a').each(function(){
+				this.addEventListener('touchend', function(){
+					event.stopPropagation();
+					$('header').toggle();
+					$('footer').find('nav').toggle();
+
+					if( $('.chart_view').is(':visible') ){
+						//$chart.height( $body.height() - 200); //force the chart to use all the available viewport height
+						reloadChart( null );
+					} else {
+						chart.destroy();
+						chart = null;
+					}
+				}, false);
+			});
+		} else {
+			$switchView.find('a').data('view', 'isotope').click(function(e){
+				var $this = $(this),
 				paymentSections = ['#container', '#time_frame', '.next_month', '.form_switch', '#calculs'],
 				chartSections = ['#chart', '.chart_type'],
 				currentView, i;
 
-			$this.data('view', $(this).data('view') == 'isotope' ? 'chart' : 'isotope' )
-				 .toggleClass('isotope chart');
-			currentView = $this.data('view');
+				$this.data('view', $(this).data('view') == 'isotope' ? 'chart' : 'isotope' )
+					.toggleClass('isotope chart');
+				currentView = $this.data('view');
 
-			for( i = 0; i < paymentSections.length; i++ ){
-				currentView == 'isotope' ? $(paymentSections[i]).css('display', '') : $(paymentSections[i]).css('display', 'none');
-			}
+				for( i = 0; i < paymentSections.length; i++ ){
+					currentView == 'isotope' ? $(paymentSections[i]).css('display', '') : $(paymentSections[i]).css('display', 'none');
+				}
 
-			for( i = 0; i < chartSections.length; i++ ){
-				currentView == 'chart' ? $(chartSections[i]).css('display', 'block') : $(chartSections[i]).css('display', 'none');
-			}
+				for( i = 0; i < chartSections.length; i++ ){
+					currentView == 'chart' ? $(chartSections[i]).css('display', 'block') : $(chartSections[i]).css('display', 'none');
+				}
 
-			if( currentView == 'chart' ){
-				$('#chart').height( $body.height() - 200); //force the chart to use all the available viewport height
-				reloadChart( null );
+				if( currentView == 'chart' ){
+					$chart.height( $body.height() - 200); //force the chart to use all the available viewport height
+					reloadChart( null );
 
-			} else if( chart ){ //destroy the chart if present, clean memory and timers
-				chart.destroy();
-				chart = null;
-			}
-		});
+				} else if( chart ){ //destroy the chart if present, clean memory and timers
+					chart.destroy();
+					chart = null;
+				}
+			});
+		}
 
 	//chart type
-		$('.chart_type').delegate('a', 'click', function(e){
-			e.preventDefault();
-			reloadChart( this.rel );
-		});
+		var $chartType = $('.chart_type');
+		if( isMobile ){
+			$chartType.each(function(){
+				this.addEventListener('touchend', function(event){
+					event.stopPropagation();
+					reloadChart( this.rel );
+				}, false);
+			});
+		} else {
+			$chartType.delegate('a', 'click', function(e){
+				e.preventDefault();
+				reloadChart( this.rel );
+			});
+		}
 
 	/**
 	 * refresh the payments, forecast and sum parts with ajax return

@@ -8,36 +8,19 @@
 				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill {if $id == $owner}primary{/if}">{$name}</a>
 			{/foreach}
 		</nav>
-		<nav class="owners icons button-group">
-			{foreach $owners as $id => $name}
-				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill icon icon-only user {if $id == 3}couple{/if} {if $id == $owner}primary{/if}">{$name}</a>
-			{/foreach}
-		</nav>
-
-		<aside class="next_month icon">
-			<a href="#" class="button pill danger icon icon-only calendar" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
-		</aside>
 
 		<aside class="form_switch">
 			<a href="#" title="afficher le formulaire" class="button pill">Ajouter</a>
 		</aside>
 
-		<aside class="switch_view icon">
-			<a href="#" class="button pill icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
-		</aside>
-
-		<aside class="form_switch icon">
-			<a href="#" title="afficher le formulaire" class="button pill icon icon-only add">Ajouter</a>
-		</aside>
-
-		<aside id="time_frame">
-			<ul class="filter" data-group="year">
+		<nav id="time_frame">
+			<ul data-group="year">
 				{foreach $yearsAndMonths as $y => $months}
 					<li>
 						<input type="checkbox" class="year" id="year_{$y}" value="{$y}" {if array_key_exists($y, $selectedTimeFrame)}checked="checked"{/if} autocomplete="off">
 						<label for="year_{$y}">{$y}</label>
 						<span class="switch"></span>
-						<ul class="filter" data-group="month_{$y}">
+						<ul data-group="month_{$y}">
 							{foreach $months as $m}
 								<li>
 									<input type="checkbox" id="year_{$y}_month_{$m}" value="{$y}-{$m}" {if isset($selectedTimeFrame[$y]) && in_array($m, $selectedTimeFrame[$y])}checked="checked"{/if} autocomplete="off">
@@ -50,17 +33,26 @@
 					</li>
 				{/foreach}
 			</ul>
-		</aside>
-		<aside class="chart_type">
-			<h2>Type : </h2>
-			<div class="button-group">
-				<a href="#" rel="expense" class="primary button pill">Dépenses</a>
-				<a href="#" rel="evolution" class="button pill">Total</a>
-				<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>
-			</div>
-		</aside>
+		</nav>
 	</header>
 	<footer>
+		<nav class="mobile button-group left">
+			{foreach $owners as $id => $name}
+				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill icon icon-only user {if $id == 3}couple{/if} {if $id == $owner}primary{/if}">{$name}</a>
+			{/foreach}
+		</nav>
+		<nav class="mobile button-group right">
+			<a href="#" class="form_switch button big icon icon-only add" title="afficher le formulaire">Ajouter</a>
+			<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+			<a href="#" class="next_month button big danger icon icon-only calendar" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
+		</nav>
+		<nav class="mobile button-group left chart_view">
+			<a href="#" rel="expense" class="chart_type primary button big">Dépenses</a>
+			<a href="#" rel="evolution" class="chart_type button big">Total</a>
+			<a href="#" rel="recipient" class="chart_type button big">Bénéficiaire</a>
+			<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+		</nav>
+
 		<aside class="next_month">
 			<a href="#" class="button pill danger" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
 		</aside>
@@ -104,6 +96,17 @@
 	{include "payment.tpl"}
 
 	<section id="chart"></section>
+
+	<div class="box">
+		<input type="radio" id="modalShow" name="modalToggle" class="boxToggleInput" autocomplete="off" />
+		<div id="modalOverlay" class="overlay">
+			<div class="wrapper">
+				<div class="block">
+				</div>
+			</div>
+		</div>
+	</div>
+	<input type="radio" id="modalHide" name="modalToggle" class="boxToggleInput" autocomplete="off" />
 
 	{include "html_footer.tpl"}
 {/strip}
