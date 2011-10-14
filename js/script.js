@@ -1087,15 +1087,19 @@ $(document).ready(function(){
 				$modal.find('.block').addClass('time_frame').html( $timeframe.find('ul:first-child') );
 
 				$block.delegate('input', 'change', function(e){
-					var $this = $(this);
+					var $this = $(this),
+						isChecked = $this.prop('checked');
 
-					//toggle the months checkboxes if the event target is a year checkbox
 					if( $this.hasClass('year') ){
-						$this.siblings('ul').find('input').prop('checked', $this.prop('checked'));
+						//toggle the months checkboxes if the event target is a year checkbox
+						$this.siblings('ul').find('input').each2(function(i, $cb){
+							$cb.prop('checked', isChecked).parent().toggleClass('checked', isChecked);
+						});
 
-					//update the year checkbox checked state
 					} else {
-						$this.closest('li').toggleClass('checked', $this.prop('checked'));
+						$this.parent().toggleClass('checked', isChecked);
+
+						//update the year checkbox checked state
 						var $ul = $this.closest('ul');
 						$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
 					}
@@ -1140,15 +1144,19 @@ $(document).ready(function(){
 		$timeframe
 			.delegate('input', 'change', function(e){
 				clearTimeout(buffer);
-				var $this = $(this);
+				var $this = $(this),
+					isChecked = $this.prop('checked');
 
-				//toggle the months checkboxes if the event target is a year checkbox
 				if( $this.hasClass('year') ){
-					$this.siblings('ul').find('input').prop('checked', $this.prop('checked'));
+					//toggle the months checkboxes if the event target is a year checkbox
+					$this.siblings('ul').find('input').each2(function(i, $cb){
+						$cb.prop('checked', isChecked).parent().toggleClass('checked', isChecked);
+					});
 
-				//update the year checkbox checked state
 				} else {
-					$this.closest('li').toggleClass('checked', $this.prop('checked'));
+					$this.parent().toggleClass('checked', isChecked);
+
+					//update the year checkbox checked state
 					var $ul = $this.closest('ul');
 					$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
 				}
