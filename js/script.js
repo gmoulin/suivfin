@@ -217,13 +217,13 @@ $(document).ready(function(){
 		isTouch        = false,
 		currentDate	   = new Date();
 
-		if( Modernizr.mq('only screen and (max-width: 480px)') ){
-			if( Modernizr.touch() ) isTouch = true;
+		if( Modernizr.mq('only screen and (min-width: 320px)') ){
+			if( Modernizr.touch ) isTouch = true;
 
 			isMobile = true;
 
 			//remove the non mobile elements
-			$('header, footer').find('nav, aside').filter(':not(.mobile, #time_frame)').remove();
+			$('header, footer').find('nav, aside').filter(':not(.mobile):not(#time_frame)').remove();
 
 			var $modal = $('#modalOverlay'),
 				$block = $modal.find('.block');
@@ -1074,14 +1074,14 @@ $(document).ready(function(){
 		if( isMobile ){
 
 			$timeframe[0].addEventListener('touchend', function(event){
-				event.preventDeault();
+				event.preventDefault();
 				event.stopPropagation();
 
 				$timeframe.trigger('click');
 			}, true);
 
 			$timeframe.click(function(event){
-				event.preventDeault();
+				event.preventDefault();
 				event.stopPropagation();
 
 				$modal.find('.block').addClass('time_frame').html( $timeframe.find('ul:first-child') );
@@ -1106,14 +1106,14 @@ $(document).ready(function(){
 
 
 			$modal[0].addEventListener('touchend', function(){
-				event.preventDeault();
+				event.preventDefault();
 				event.stopPropagation();
 
 				$modal.trigger('click');
 			}, true);
 
 			$modal.click(function(event){
-				event.preventDeault();
+				event.preventDefault();
 				event.stopPropagation();
 
 				$timeframe
@@ -1123,6 +1123,8 @@ $(document).ready(function(){
 				$('#modalHide').prop('checked', true);
 
 				$block.undelegate('input', 'change');
+			}).find('.block').click(function(event){
+				event.stopPropagation();
 			});
 
 		} else {

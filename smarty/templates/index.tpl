@@ -38,7 +38,7 @@
 	<footer>
 		<nav class="mobile button-group left">
 			{foreach $owners as $id => $name}
-				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill icon icon-only user {if $id == 3}couple{/if} {if $id == $owner}primary{/if}">{$name}</a>
+				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button big {if $id == $owner}primary{/if}">{$name|capitalize|substr:0:1}</a>
 			{/foreach}
 		</nav>
 		<nav class="mobile button-group right">

@@ -246,7 +246,7 @@
 				width: 12px;
 				height: 12px;
 				margin: 0 0.75em 0 -0.25em;
-				background: url(gh-icons.png) 0 99px no-repeat;
+				background: url(../img/gh-icons.png) 0 99px no-repeat;
 			}
 
 			.button.icon-only {
@@ -575,15 +575,16 @@
 			position: fixed;
 			height: 34px;
 			z-index: 4;
-			background-color: #F72;
 			width: 100%;
+			background-color: #F72;
 		}
 
 		.owners,
 		aside.form_switch,
 		aside.next_month,
 		aside.switch_view,
-		.chart_type {
+		.chart_type,
+		.mobile.button-group.chart_view {
 			display: none;
 		}
 
@@ -608,14 +609,22 @@
 				padding-right: 2em;
 			}
 
-			.mobile.left a:first-child,
+			.mobile.left > .button:first-child {
 				border-top-left-radius : 0;
 				border-bottom-left-radius : 0;
 			}
 
-			.mobile.right a:last-child {
+			.mobile.left > .button:last-child {
+				border-top-right-radius: 0;
+			}
+
+			.mobile.right > .button:last-child {
 				border-top-right-radius : 0;
 				border-bottom-right-radius : 0;
+			}
+
+			.mobile.right > .button:first-child {
+				border-top-left-radius: 0;
 			}
 
 		/* === TIMEFRAME === */
@@ -624,7 +633,7 @@
 				width: 12px;
 				height: 12px;
 				display: inline-block;
-				background-image: url('gh-icons.png');
+				background-image: url(../img/gh-icons.png);
 				background-repeat: no-repeat;
 				cursor: pointer;
 				position: relative;

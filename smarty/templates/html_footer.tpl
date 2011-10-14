@@ -1,7 +1,3 @@
-		<footer id="help">
-			{*include "help.tlp"*}
-		</footer>
-
 		<!-- JavaScript at the bottom for fast page loading -->
 
 		<!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
