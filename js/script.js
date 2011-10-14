@@ -1092,9 +1092,7 @@ $(document).ready(function(){
 
 					if( $this.hasClass('year') ){
 						//toggle the months checkboxes if the event target is a year checkbox
-						$this.siblings('ul').find('input').each2(function(i, $cb){
-							$cb.prop('checked', isChecked).parent().toggleClass('checked', isChecked);
-						});
+						$this.siblings('ul').find('input').prop('checked', isChecked).parent().toggleClass('checked', isChecked);
 
 					} else {
 						$this.parent().toggleClass('checked', isChecked);
