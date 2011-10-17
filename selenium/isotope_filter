@@ -90,6 +90,28 @@
 <!--dropdown deploy-->
 <tr>
 	<td>click</td>
+	<td>css=#filter section span.switch:eq(2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--check dropdown does not fold on limited dropdown search input click-->
+<tr>
+	<td>click</td>
+	<td>css=#filter .dropdown:visible input[type=search]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#filter .dropdown:visible').length == 1;</td>
+	<td>true</td>
+</tr>
+<!--dropdown deploy-->
+<tr>
+	<td>click</td>
 	<td>css=#filter section span.switch:first</td>
 	<td></td>
 </tr>

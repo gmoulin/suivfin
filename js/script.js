@@ -459,6 +459,7 @@ $(document).ready(function(){
 						$.ajax({
 							url: 'ajax/payment.php',
 							data: params
+								+ '&owner=' + $currentOwner.val()
 								+ '&tsOrigin=' + originParam
 								+ '&tsMethod=' + methodParam
 								+ '&tsRecipient=' + recipientParam
@@ -701,7 +702,7 @@ $(document).ready(function(){
 			//in online mode take the values directly from database
 			//in offline mode, get the values from DOM
 			/*if( $body.data('internet') == 'offline' ){
-				$('#id').val( $this[0].href );
+				$('#id').val( $this.attr('href') );
 
 				var $item = $this.closest('.item'),
 					classes = $item.attr('class');
@@ -742,7 +743,7 @@ $(document).ready(function(){
 				if( $this.hasClass('fork') ) $('#id').val('');
 
 			} else {*/
-				$.post('ajax/payment.php', 'action=get&id=' + $this[0].href, function(data){
+				$.post('ajax/payment.php', 'action=get&id=' + $this.attr('href'), function(data){
 					var decoder = $('<textarea>'),
 						$field = null,
 						$radio = null;
@@ -805,7 +806,7 @@ $(document).ready(function(){
 				//always, will be sent back by the server
 
 				//prepare the ajax call parameters
-				var params = 'action=delete&id=' + this.href;
+				var params = 'action=delete&id=' + $(this).attr('href');
 
 				/*if( $body.data('internet') == 'offline' ){
 					var deletions = localStorage.getObject('deletions') || [];
@@ -1009,7 +1010,7 @@ $(document).ready(function(){
 			//close any open dropdown for an outside click inside $filter
 			.click(function(e){
 				var $t = $(e.target);
-				if( !$t.closest('.dropdown').length && !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('ul').length ){
+				if( !$t.closest('.dropdown').length && !$t.is('h2') && !$t.hasClass('switch') && !$t.closest('.dropdown').length ){
 					$filters_dropdowns.filter('.deploy').removeClass('deploy');
 					$filters_switches.filter('.active').removeClass('active');
 				}
@@ -1140,15 +1141,17 @@ $(document).ready(function(){
 		$timeframe
 			.delegate('input', 'change', function(e){
 				clearTimeout(buffer);
-				var $this = $(this);
+				var $this = $(this),
+					isChecked = $this.prop('checked');
 
-				//toggle the months checkboxes if the event target is a year checkbox
 				if( $this.hasClass('year') ){
-					$this.siblings('ul').find('input').prop('checked', $this.prop('checked'));
+					//toggle the months checkboxes if the event target is a year checkbox
+					$this.siblings('ul').find('input').prop('checked', isChecked).parent().toggleClass('checked', isChecked);
 
-				//update the year checkbox checked state
 				} else {
-					$this.closest('li').toggleClass('checked', $this.prop('checked'));
+					$this.parent().toggleClass('checked', isChecked);
+
+					//update the year checkbox checked state
 					var $ul = $this.closest('ul');
 					$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
 				}
