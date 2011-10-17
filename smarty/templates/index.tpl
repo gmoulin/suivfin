@@ -1,8 +1,8 @@
 {strip}
 	{include "html_header.tpl"}
 
+	<input type="hidden" id="current_owner" value="{$owner}">
 	<header>
-		<input type="hidden" id="current_owner" value="{$owner}">
 		<nav class="owners button-group">
 			{foreach $owners as $id => $name}
 				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button pill {if $id == $owner}primary{/if}">{$name}</a>
@@ -36,21 +36,23 @@
 		</nav>
 	</header>
 	<footer>
-		<nav class="mobile button-group left">
-			{foreach $owners as $id => $name}
-				<a href="?owner={$id}" title="voir le suivi de {$name}" class="button big {if $id == $owner}primary{/if}">{$name|capitalize|substr:0:1}</a>
-			{/foreach}
+		<nav class="mobile button-group">
+			{strip}
+				{foreach $owners as $id => $name}
+					<a href="?owner={$id}" title="voir le suivi de {$name}" class="button big {if $id == $owner}primary{/if} owner">{$name|capitalize|substr:0:1}</a>
+				{/foreach}
+				<a href="#" class="form_switch button big icon icon-only add" title="afficher le formulaire">Ajouter</a>
+				<a href="#" class="next_month button big danger icon icon-only calendar" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
+				<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+			{/strip}
 		</nav>
-		<nav class="mobile button-group right">
-			<a href="#" class="form_switch button big icon icon-only add" title="afficher le formulaire">Ajouter</a>
-			<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
-			<a href="#" class="next_month button big danger icon icon-only calendar" title="la génération sera faite pour tous les comptes et personnes">Générer les paiements récurrents pour le mois prochain</a>
-		</nav>
-		<nav class="mobile button-group left chart_view">
-			<a href="#" rel="expense" class="chart_type primary button big">Dépenses</a>
-			<a href="#" rel="evolution" class="chart_type button big">Total</a>
-			<a href="#" rel="recipient" class="chart_type button big">Bénéficiaire</a>
-			<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+		<nav class="mobile button-group chart_view">
+			{strip}
+				<a href="#" rel="expense" class="chart_type primary button big">Dépenses</a>
+				<a href="#" rel="evolution" class="chart_type button big">Total</a>
+				<a href="#" rel="recipient" class="chart_type button big">Bénéficiaire</a>
+				<a href="#" class="switch_view button big icon icon-only clock" title="alterner entre la liste et le graphique">Alterner la présentation</a>
+			{/strip}
 		</nav>
 
 		<aside class="next_month">
@@ -98,15 +100,35 @@
 	<section id="chart"></section>
 
 	<div class="box">
-		<input type="radio" id="modalShow" name="modalToggle" class="boxToggleInput" autocomplete="off" />
-		<div id="modalOverlay" class="overlay">
+		<input type="radio" id="modalTimeframeShow" name="modalTimeframeToggle" class="boxToggleInput" autocomplete="off" />
+		<div id="modalTimeframeOverlay" class="overlay">
 			<div class="wrapper">
-				<div class="block">
+				<div class="block time_frame">
+					<ul id="modalTimeframe">
+						{foreach $yearsAndMonths as $y => $months}
+							<li>
+								<input type="checkbox" class="year" id="md_year_{$y}" value="{$y}">
+								<label for="md_year_{$y}">{$y}</label>
+								<ul>
+									{foreach $months as $m}
+										<li>
+											<input type="checkbox" id="md_year_{$y}_month_{$m}" value="{$y}-{$m}">
+											<label for="md_year_{$y}_month_{$m}">
+												{$monthsTranslation[$m]|substr:0:1}
+											</label>
+										</li>
+									{/foreach}
+								</ul>
+							</li>
+						{/foreach}
+					</ul>
 				</div>
 			</div>
 		</div>
+		<input type="radio" id="modalTimeframeHide" name="modalTimeframeToggle" class="boxToggleInput" autocomplete="off" />
 	</div>
-	<input type="radio" id="modalHide" name="modalToggle" class="boxToggleInput" autocomplete="off" />
+
+
 
 	{include "html_footer.tpl"}
 {/strip}
