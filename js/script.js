@@ -200,37 +200,22 @@ if( !Modernizr.localstorage ){
 (function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);
 
 $(document).ready(function(){
-	var $body		   = $('body'),
-		$container	   = $('#container'),
-		$sums		   = $('#sums'),
-		$forecast	   = $('#forecasts'),
-		$balance	   = $('#balances'),
-		$form		   = $('#payment_form'),
-		$filter		   = $('#filter'),
-		$timeframe	   = $('#time_frame'),
-		$currentOwner  = $('#current_owner'),
-		filters		   = {},
-		buffer		   = null,
-		chart		   = null,
-		legendCurrency = [],
-		isMobile       = false,
-		isTouch        = false,
-		currentDate	   = new Date();
-
-		if( Modernizr.mq('only screen and (min-width: 320px)') ){
-			if( Modernizr.touch ) isTouch = true;
-
-			isMobile = true;
-
-			//remove the non mobile elements
-			$('header, footer').find('nav, aside').filter(':not(.mobile):not(#time_frame)').remove();
-
-			var $modal = $('#modalOverlay'),
-				$block = $modal.find('.block');
-		} else {
-			//remove the mobile elements
-			$('.mobile, #modalHide, .box').remove();
-		}
+	var $body			= $('body'),
+		$container		= $('#container'),
+		$sums			= $('#sums'),
+		$forecast		= $('#forecasts'),
+		$balance		= $('#balances'),
+		$form			= $('#payment_form'),
+		$filter			= $('#filter'),
+		$timeframe		= $('#time_frame'),
+		$currentOwner	= $('#current_owner'),
+		filters			= {},
+		buffer			= null,
+		chart			= null,
+		legendCurrency	= [],
+		isMobile		= false,
+		isTouch			= false,
+		currentDate		= new Date();
 
 		if( currentDate.getDate() > 24 ){
 			currentDate.setMonth(currentDate.getMonth() + 1 );
@@ -241,6 +226,26 @@ $(document).ready(function(){
 
 		currentDate.setMonth(currentDate.getMonth() + 1 );
 		var nextMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
+
+	/* mobile detection */
+		if( Modernizr.mq('only screen and (min-width: 320px)') ){
+			if( Modernizr.touch ) isTouch = true;
+
+			isMobile = true;
+
+			//remove the non mobile elements
+			$('header, footer').find('nav, aside').filter(':not(.mobile):not(#time_frame)').remove();
+
+			var $modalTimeframeOverlay = $('#modalTimeframeOverlay'),
+				$modalTimeframe	= $('#modalTimeframe'),
+				$modalTimeframeShow = $('#modalTimeframeShow'),
+				$modalTimeframeHide = $('#modalTimeframeHide');
+			var $tfCBs = $timeframe.find('input'),
+				$mTfCBs = $modalTimeframe.find('input');
+		} else {
+			//remove the mobile elements
+			$('.mobile, .box').remove();
+		}
 
 	/* online - offline modes */
 		/* @todo to finish and test */
@@ -1072,84 +1077,37 @@ $(document).ready(function(){
 
 	//time frame chekboxes
 		if( isMobile ){
-
 			$timeframe[0].addEventListener('touchend', function(event){
-				event.preventDefault();
-				event.stopPropagation();
-
-				$timeframe.trigger('click');
-			}, true);
-
-			$timeframe.click(function(event){
-				event.preventDefault();
-				event.stopPropagation();
-
-				$modal.find('.block').addClass('time_frame').html( $timeframe.find('ul:first-child') );
-
-				$block.delegate('input', 'change', function(e){
-					var $this = $(this),
-						isChecked = $this.prop('checked');
-
-					if( $this.hasClass('year') ){
-						//toggle the months checkboxes if the event target is a year checkbox
-						$this.siblings('ul').find('input').prop('checked', isChecked).parent().toggleClass('checked', isChecked);
-
-					} else {
-						$this.parent().toggleClass('checked', isChecked);
-
-						//update the year checkbox checked state
-						var $ul = $this.closest('ul');
-						$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
-					}
-				});
-
-				$('#modalShow').prop('checked', true);
+				$timeframe.trigger('modalShow');
 			});
 
-
-			$modal[0].addEventListener('touchend', function(){
+			$timeframe.find('input').click(function(event){
 				event.preventDefault();
-				event.stopPropagation();
-
-				$modal.trigger('click');
-			}, true);
-
-			$modal.click(function(event){
-				event.preventDefault();
-				event.stopPropagation();
-
-				$timeframe
-					.html( $block.removeClass('time_frame').html() ) //put back the months list
-					.find('input').filter(':not(.year)').eq(0).trigger('change'); //launch the data update
-
-				$('#modalHide').prop('checked', true);
-
-				$block.undelegate('input', 'change');
-			}).find('.block').click(function(event){
-				event.stopPropagation();
 			});
 
-		} else {
 			$timeframe
-				.delegate('.switch', 'click', function(e){
-					$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
+				.bind('timeframeChange', function(event){
+					//when submitting an add or update the new data will be in the request response
+					if( !$form.hasClass('submitting') ){
+						reloadParts(false, false);
+					}
 				})
-				.find('li li input').each2(function(i, $input){
-					$input.closest('li').toggleClass('checked', $input.prop('checked'));
-				});
-		}
+				.bind('modalShow', function(){
+					for( var i = 0; i < $tfCBs.length; i++ ){
+						var isChecked = $tfCBs.eq(i).prop('checked');
+						$mTfCBs.eq(i).prop('checked', isChecked);
+					}
 
-		$timeframe
-			.delegate('input', 'change', function(e){
-				clearTimeout(buffer);
+					$modalTimeframeShow.prop('checked', true);
+				});
+
+			$modalTimeframe.delegate('input', 'change', function(e){
 				var $this = $(this),
 					isChecked = $this.prop('checked');
 
 				if( $this.hasClass('year') ){
 					//toggle the months checkboxes if the event target is a year checkbox
-					$this.siblings('ul').find('input').each2(function(i, $cb){
-						$cb.prop('checked', isChecked).parent().toggleClass('checked', isChecked);
-					});
+					$this.siblings('ul').find('input').prop('checked', isChecked).parent().toggleClass('checked', isChecked);
 
 				} else {
 					$this.parent().toggleClass('checked', isChecked);
@@ -1158,13 +1116,62 @@ $(document).ready(function(){
 					var $ul = $this.closest('ul');
 					$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
 				}
+			});
 
-				//when submitting an add or update the new data will be in the request response
-				if( !$form.hasClass('submitting') ){
-					//wait 500ms before reloading data, help when user check several checkboxes quickly
-					buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
+			$modalTimeframeOverlay[0].addEventListener('touchend', function(event){
+				if( !$(event.target).closest('.block').length ){
+					$modalTimeframeOverlay.trigger('modalHide');
 				}
 			});
+
+			$modalTimeframeOverlay.bind('modalHide', function(){
+				for( var i = 0; i < $tfCBs.length; i++ ){
+					var isChecked = $mTfCBs.eq(i).prop('checked');
+					$tfCBs.eq(i).prop('checked', isChecked).parent().toggleClass('checked', isChecked);
+				}
+
+				$timeframe.trigger('timeframeChange'); //launch the data update
+
+				$('#modalTimeframeHide').prop('checked', true);
+			});
+
+		} else {
+			$timeframe
+				.delegate('.switch', 'click', function(e){
+					$(this).toggleClass('active').siblings('ul').toggleClass('deploy');
+				})
+				.delegate('input', 'change', function(e){
+					clearTimeout(buffer);
+					var $this = $(this),
+						isChecked = $this.prop('checked');
+
+					if( $this.hasClass('year') ){
+						//toggle the months checkboxes if the event target is a year checkbox
+						$this.siblings('ul').find('input').each2(function(i, $cb){
+							$cb.prop('checked', isChecked).parent().toggleClass('checked', isChecked);
+						});
+
+					} else {
+						$this.parent().toggleClass('checked', isChecked);
+
+						//update the year checkbox checked state
+						var $ul = $this.closest('ul');
+						$ul.parent().find('.year').prop('checked', $ul.find('input').filter(':checked').length ? true : false);
+					}
+
+					//when submitting an add or update the new data will be in the request response
+					if( !$form.hasClass('submitting') ){
+						//wait 500ms before reloading data, help when user check several checkboxes quickly
+						buffer = setTimeout(function(){ reloadParts(false, false); }, 500);
+					}
+				});
+		}
+
+		//toggle class for default checked months
+		$timeframe.find('li li input').each2(function(i, $input){
+			$input.closest('li').toggleClass('checked', $input.prop('checked'));
+		});
+
 
 	//sums cells hover
 		$sums
@@ -2184,12 +2191,12 @@ $(document).ready(function(){
 					localStorage.removeItem($currentOwner.val() + '_timeframe');
 
 					//uncheck all checkboxes, by default at least one is checked, for the current month
-					$timeframe.find('input').filter(':checked').prop('checked', false).closest('li').removeClass('checked');
+					$timeframe.find('input').filter(':checked').prop('checked', false).parent().removeClass('checked');
 
 					//update the timeframe checkboxes
 					for( var i = 0; i < persistentTimeframe.length; i++ ){
 						$timeframe.find('input').filter('[value='+ persistentTimeframe[i] +']').prop('checked', true)
-							.closest('li').addClass('checked')
+							.parent().addClass('checked')
 							.closest('ul').siblings('input[type=checkbox]').prop('checked', true); //check the month and update the year
 					}
 				}

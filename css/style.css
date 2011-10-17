@@ -557,75 +557,23 @@
 				}
 
 /* ==|== primary styles ========================================================
-   Author:
+   Author: Guillaume Moulin <gmoulin.dev@gmail.com>
    ========================================================================== */
-	/* === FOLLOWING STYLES ARE FOR MOBILE === SEE MEDIA QUERIES SECTION FOR PAD AND DESKTOP ONES === */
+	/* === FOLLOWING STYLES ARE GENERIC === */
+	/* === SEE MEDIA QUERIES SECTION FOR SPECIFIC VIEWPORT STYLES === */
+
+	body, input, select, textarea {
+		font-family: Verdana, sans serif;
+	}
 
 	/* === NAV === */
-		header {
-			top: 34px;
-		}
-
-		footer {
-			top: 0;
-		}
-
 		header,
 		footer {
 			position: fixed;
-			height: 34px;
 			z-index: 4;
 			width: 100%;
 			background-color: #F72;
 		}
-
-		.owners,
-		aside.form_switch,
-		aside.next_month,
-		aside.switch_view,
-		.chart_type,
-		.mobile.button-group.chart_view {
-			display: none;
-		}
-
-		#container {
-			margin-top: 80px;
-		}
-
-		/* === MOBILE NAV SPECIFIC === */
-			.mobile.button-group {
-				display: block;
-			}
-
-			.mobile.left {
-				float: left;
-			}
-			.mobile.right {
-				float: right;
-			}
-
-			.mobile .button.big {
-				padding-left: 2em;
-				padding-right: 2em;
-			}
-
-			.mobile.left > .button:first-child {
-				border-top-left-radius : 0;
-				border-bottom-left-radius : 0;
-			}
-
-			.mobile.left > .button:last-child {
-				border-top-right-radius: 0;
-			}
-
-			.mobile.right > .button:last-child {
-				border-top-right-radius : 0;
-				border-bottom-right-radius : 0;
-			}
-
-			.mobile.right > .button:first-child {
-				border-top-left-radius: 0;
-			}
 
 		/* === TIMEFRAME === */
 			.switch {
@@ -640,14 +588,13 @@
 				top: 0;
 			}
 
-			#time_frame input[type="checkbox"] {
+			#time_frame input {
 				display: none;
 			}
 
 			#time_frame .switch {
 				background-position: -14px -384px;
 				margin-left: 2px;
-				display: none;
 			}
 
 			#time_frame .switch.active {
@@ -704,6 +651,106 @@
 				color: #fff;
 			}
 
+/* ==|== media queries ======================================================
+   PLACEHOLDER Media Queries for Responsive Design.
+   These override the primary ('mobile first') styles
+   Modify as content requires.
+   ========================================================================== */
+	/* Smartphones (portrait and landscape) */
+	@media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
+		header, footer {
+			height: 34px;
+		}
+
+		header {
+			top: 34px;
+		}
+
+		footer {
+			top: 0;
+		}
+
+		.owners,
+		aside.form_switch,
+		aside.next_month,
+		aside.switch_view,
+		.chart_type,
+		.mobile.button-group.chart_view {
+			display: none;
+		}
+
+		#container {
+			margin-top: 80px;
+		}
+
+		/* === TIMEFRAME === */
+			#time_frame {
+				text-align: center;
+			}
+
+			#time_frame > ul {
+				margin: 0 auto;
+			}
+
+			#time_frame .switch {
+				display: none;
+			}
+
+			/* inside modal */
+				.block.time_frame .switch {
+					display: none;
+				}
+
+				.block.time_frame ul {
+					list-style: none;
+					margin: 0;
+					padding: 0;
+				}
+
+				.block.time_frame input:checked + label {
+					font-weight: bold;
+				}
+
+		/* === MOBILE NAV SPECIFIC === */
+			.mobile.button-group {
+				display: block;
+				width: 100%;
+				text-align: center;
+			}
+
+			.mobile .button.big {
+				padding-left: 0;
+				padding-right: 0;
+				float: none;
+				width: 16%;
+				text-align: center;
+				margin-top: -1px;
+				border-width: 0;
+			}
+
+			.mobile .button.add {
+				width: 18%;
+			}
+
+			.mobile .button.owner:nth-child(3),
+			.mobile .button.switch_view,
+			.mobile .button.next_month {
+				width: 14%;
+			}
+
+			.mobile.button-group > .button:first-child {
+				border-top-left-radius : 0;
+				margin-left: auto;
+			}
+
+			.mobile.button-group > .button:last-child {
+				border-top-right-radius : 0;
+				margin-right: auto;
+			}
+
+			.mobile .button.icon-only:before {
+				left: 50%;
+			}
 
 		/* === MODAL BOXES = USED FOR MOBILES === */
 			/* overlay */
@@ -737,6 +784,7 @@
 				.box .block {
 					width: auto;
 					margin: 0 auto;
+					text-align: left;
 					padding: 15px;
 					border-radius: 10px;
 					background: #ccc;
@@ -745,22 +793,59 @@
 					cursor: default;
 					position: relative;
 				}
+	}
 
+	/* Smartphones (landscape) */
+	@media only screen and (min-width: 321px) {
+	}
 
+	/* Smartphones (portrait) */
+	@media only screen and (max-width: 320px) {
+		/* === TIMEFRAME (inside modal) === */
+			.block.time_frame label {
+				font-size: 20px;
+				font-family: Monaco;
+			}
 
-/* ==|== media queries ======================================================
-   PLACEHOLDER Media Queries for Responsive Design.
-   These override the primary ('mobile first') styles
-   Modify as content requires.
-   ========================================================================== */
-	@media only screen and (min-width: 480px) {
-	  /* Style adjustments for viewports 480px and over go here */
+			.block.time_frame > ul > li {
+				display: block;
+				text-align: center;
+				clear: both;
+			}
+
+			.block.time_frame > ul > li:not(:first-child) {
+				padding-top: 10px;
+			}
+
+			.block.time_frame ul ul {
+				display: block;
+				width: 240px;
+			}
+
+			.block.time_frame ul ul li {
+				width: 30px;
+				float: left;
+				display: inline-block;
+				text-align: left;
+				padding: 3px 5px
+			}
+
+			.block.time_frame ul ul li:nth-child(6n + 1) {
+				clear: left;
+			}
+
+			.block.time_frame input + label {
+				padding: 3px;
+			}
 
 	}
 
-	@media only screen and (min-width: 768px) {
-	  /* Style adjustments for viewports 768px and over go here */
+	/* Desktops and laptops */
+	@media only screen and (min-width: 1224px) {
+	}
 
+	/* Large screens */
+	@media only screen and (min-width : 1824px) {
 	}
 
 /* ==|== non-semantic helper classes ========================================
