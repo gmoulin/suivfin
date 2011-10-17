@@ -657,7 +657,12 @@
    Modify as content requires.
    ========================================================================== */
 	/* Smartphones (portrait and landscape) */
-	@media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
+	/* using -device- rule out desktop browsers */
+	/* Samsung Galaxy S2 in landscape has a device with of 800px, instead of the "classic" 480px */
+	@media only screen and (min-device-width: 320px) and (max-device-width: 800px) {
+		body {
+			background-color: red;
+		}
 		header, footer {
 			height: 34px;
 		}
@@ -674,7 +679,7 @@
 		aside.form_switch,
 		aside.next_month,
 		aside.switch_view,
-		.chart_type,
+		aside.chart_type,
 		.mobile.button-group.chart_view {
 			display: none;
 		}
@@ -705,6 +710,12 @@
 					list-style: none;
 					margin: 0;
 					padding: 0;
+				}
+
+				.block.time_frame label {
+					font-size: 20px;
+					line-height: 20px;
+					font-family: Verdana;
 				}
 
 				.block.time_frame input:checked + label {
@@ -795,18 +806,9 @@
 				}
 	}
 
-	/* Smartphones (landscape) */
-	@media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (orientation: landscape) {
-	}
-
 	/* Smartphones (portrait) */
-	@media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (orientation: portrait) {
+	@media only screen and (orientation: portrait) and (max-device-width: 480px) {
 		/* === TIMEFRAME (inside modal) === */
-			.block.time_frame label {
-				font-size: 20px;
-				font-family: Monaco;
-			}
-
 			.block.time_frame > ul > li {
 				display: block;
 				text-align: center;
@@ -837,15 +839,58 @@
 			.block.time_frame input + label {
 				padding: 3px;
 			}
-
 	}
 
-	/* Desktops and laptops */
-	@media only screen and (min-width: 1224px) {
-	}
+	/* Smartphones (landscape) */
+	@media only screen and (orientation: landscape) and (max-device-width: 800px) {
+		/* === TIMEFRAME (inside modal) === */
+			.block.time_frame > ul > li {
+				display: block;
+				text-align: center;
+				float: left;
+				min-height: 60px;
+			}
 
-	/* Large screens */
-	@media only screen and (min-width : 1824px) {
+			.block.time_frame > ul > li {
+
+			}
+
+			.block.time_frame > ul > li:nth-child(n+3) {
+				padding-top: 10px;
+			}
+
+			.block.time_frame > ul > li:nth-child(2n+1) {
+				margin-right: 5px;
+			}
+
+			.block.time_frame > ul > li:nth-child(2n+2) {
+				margin-left: 5px;
+			}
+
+			.block.time_fream > ul > li:nth-child(2n+3) {
+				clear: left;
+			}
+
+			.block.time_frame ul ul {
+				display: block;
+				width: 160px;
+			}
+
+			.block.time_frame ul ul li {
+				width: 30px;
+				float: left;
+				display: inline-block;
+				text-align: left;
+				padding: 3px 5px
+			}
+
+			.block.time_frame ul ul li:nth-child(4n + 1) {
+				clear: left;
+			}
+
+			.block.time_frame input + label {
+				padding: 3px;
+			}
 	}
 
 /* ==|== non-semantic helper classes ========================================

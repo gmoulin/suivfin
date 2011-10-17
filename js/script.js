@@ -1,6 +1,9 @@
 /**
  * Author: Guillaume Moulin <gmoulin.dev@gmail.com>
  */
+
+
+
 var delayAjax = false,
 	delayTimeout;
 
@@ -228,7 +231,7 @@ $(document).ready(function(){
 		var nextMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 
 	/* mobile detection */
-		if( Modernizr.mq('only screen and (min-width: 320px)') ){
+		if( Modernizr.mq('only screen and (min-device-width: 320px) and (max-device-width: 800px)') ){
 			if( Modernizr.touch ) isTouch = true;
 
 			isMobile = true;
@@ -239,7 +242,7 @@ $(document).ready(function(){
 			var $modalTimeframeOverlay = $('#modalTimeframeOverlay'),
 				$modalTimeframe	= $('#modalTimeframe'),
 				$modalTimeframeShow = $('#modalTimeframeShow'),
-				$modalTimeframeHide = $('#modalTimeframeHide');
+				$modalTimeframeHide = $('#modalTimeframeHide').prop('checked', true); //force modal hide
 			var $tfCBs = $timeframe.find('input'),
 				$mTfCBs = $modalTimeframe.find('input');
 		} else {

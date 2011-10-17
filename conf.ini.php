@@ -10,7 +10,11 @@ session_start();
 define('SF_PATH', dirname(__FILE__));
 
 if( !isset($_SERVER['LOCATION']) || empty($_SERVER['LOCATION']) ){
-	define('ENV', 'WEB');
+	if( $_SERVER['SERVER_NAME'] == 'suivfin.kapok.fr' ){
+		define('ENV', 'WEB');
+	} else {
+		define('ENV', 'MWEB');
+	}
 
 } elseif( strpos('_DEV', $_SERVER['LOCATION']) !== false ){
 	define('ENV', 'LOCAL_DEV');
