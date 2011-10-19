@@ -633,27 +633,16 @@ class payment extends common {
 	 */
 	public function getYearsAndMonths(){
 		try {
-			//stash cache init
-			$stashFileSystem = new StashFileSystem(array('path' => STASH_PATH));
-			StashBox::setHandler($stashFileSystem);
+			$q = $this->_db->prepare("
+				SELECT LEFT(paymentMonth, 4) AS `year`, RIGHT(paymentMonth, 2) AS `month`
+				FROM ".$this->_table."
+				WHERE ownerFK = :owner
+				GROUP BY `year`, `month`
+				ORDER BY `year`, `month`
+			");
+			$q->execute( array(':owner' => $this->getOwner()) );
 
-			StashManager::setHandler(get_class( $this ), $stashFileSystem);
-			$stash = StashBox::getCache(get_class( $this ), __FUNCTION__, $this->getOwner());
-			$range = $stash->get();
-			if( $stash->isMiss() ){ //cache not found, retrieve values from database and stash them
-				$q = $this->_db->prepare("
-					SELECT LEFT(paymentMonth, 4) AS `year`, RIGHT(paymentMonth, 2) AS `month`
-					FROM ".$this->_table."
-					WHERE ownerFK = :owner
-					GROUP BY `year`, `month`
-					ORDER BY `year`, `month`
-				");
-				$q->execute( array(':owner' => $this->getOwner()) );
-
-				$range = $q->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
-
-				if( !empty($range) ) $stash->store($range, STASH_EXPIRE);
-			}
+			$range = $q->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
 
 			return $range;
 
@@ -836,8 +825,10 @@ class payment extends common {
 					WHERE ownerFK = :owner
 					AND typeFK != 1
 					AND statusFK IN (2,4)
-					AND (paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
-					OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
+					AND (
+							paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
+						 OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
+						)
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
 				");

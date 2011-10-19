@@ -92,7 +92,6 @@ try {
 
 	$oPayment = new payment();
 	$yearsAndMonths = $oPayment->getYearsAndMonths();
-
 	$smarty->assign('yearsAndMonths', $yearsAndMonths);
 
 	$smarty->display('index.tpl');

@@ -200,7 +200,6 @@ if( !Modernizr.localstorage ){
 (function(a){var b=a([1]);a.fn.each2=function(d){var c=-1;while((b.context=b[0]=this[++c])&&d.call(b[0],c,b)!==false){}return this}})(jQuery);
 
 $(document).ready(function(){
-
 	var $body		   = $('body'),
 		$container	   = $('#container'),
 		$sums		   = $('#sums'),
@@ -1276,10 +1275,6 @@ $(document).ready(function(){
 
 					filters = cachedFilters; //update the filters list for applyFilters()
 
-					$filter.find('.dropdown').each2(function(i, $dropdown){
-						$dropdown.find('input').eq(0).updateFiltersOutputs();
-					});
-
 					if( !cachedDates ) applyFilters();
 				}
 
@@ -1290,6 +1285,10 @@ $(document).ready(function(){
 					$('#date_to').val( cachedDates[1] )
 						.trigger('keyup'); //will call applyFilters()
 				}
+
+				$filter.find('.dropdown').each2(function(i, $dropdown){
+					$dropdown.find('input').eq(0).updateFiltersOutputs();
+				});
 
 				//append the new items to isotope
 				$container.isotope('insert', $items);
