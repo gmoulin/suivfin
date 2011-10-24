@@ -761,7 +761,12 @@ $(document).ready(function(){
 						}
 					}
 
-					if( $this.hasClass('fork') ) $('#id').val('');
+					if( $this.hasClass('fork') ){
+						$('#id').val('');
+					} else {
+						//most of the time the update consist in a date modification
+						$('#paymentDate').focus();
+					}
 				});
 			//}
 		})
