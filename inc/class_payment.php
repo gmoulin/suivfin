@@ -825,15 +825,10 @@ class payment extends common {
 					WHERE ownerFK = :owner
 					AND typeFK != 1
 					AND statusFK IN (2,4)
-<<<<<<< .merge_file_vgaisE
-					AND (paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
-					OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
-=======
 					AND (
 							paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
 						 OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
 						)
->>>>>>> .merge_file_gD2mDE
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
 				");
