@@ -163,6 +163,11 @@
 </tr>
 <!--check reset-->
 <tr>
+	<td>getEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first').siblings('.switch').trigger('click')</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>css=#filter .dropdown.checkbox[id]:first &gt; input + .reset</td>
 	<td></td>
@@ -176,6 +181,11 @@
 	<td>assertEval</td>
 	<td>window.$('#filter .dropdown.checkbox[id]:first ul.limited :input:visible').length == storedVars['nbLimited']</td>
 	<td>true</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.$('#filter .dropdown.checkbox[id]:first').siblings('.switch').trigger('click')</td>
+	<td></td>
 </tr>
 </tbody></table>
 </body>

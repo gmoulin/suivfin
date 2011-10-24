@@ -101,7 +101,7 @@
 <!--check dropdown does not fold on limited dropdown search input click-->
 <tr>
 	<td>click</td>
-	<td>css=#filter .dropdown:visible input[type=search]</td>
+	<td>css=#filter .dropdown.deploy input[type=search]</td>
 	<td></td>
 </tr>
 <tr>

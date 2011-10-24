@@ -1,9 +1,6 @@
 /**
  * Author: Guillaume Moulin <gmoulin.dev@gmail.com>
  */
-
-
-
 var delayAjax = false,
 	delayTimeout;
 
@@ -786,7 +783,12 @@ $(document).ready(function(){
 						}
 					}
 
-					if( $this.hasClass('fork') ) $('#id').val('');
+					if( $this.hasClass('fork') ){
+						$('#id').val('');
+					} else {
+						//most of the time the update consist in a date modification
+						$('#paymentDate').focus();
+					}
 				});
 			//}
 		})
@@ -1396,10 +1398,6 @@ $(document).ready(function(){
 
 					filters = cachedFilters; //update the filters list for applyFilters()
 
-					$filter.find('.dropdown').each2(function(i, $dropdown){
-						$dropdown.find('input').eq(0).updateFiltersOutputs();
-					});
-
 					if( !cachedDates ) applyFilters();
 				}
 
@@ -1410,6 +1408,10 @@ $(document).ready(function(){
 					$('#date_to').val( cachedDates[1] )
 						.trigger('keyup'); //will call applyFilters()
 				}
+
+				$filter.find('.dropdown').each2(function(i, $dropdown){
+					$dropdown.find('input').eq(0).updateFiltersOutputs();
+				});
 
 				//append the new items to isotope
 				$container.isotope('insert', $items);

@@ -55,12 +55,12 @@
 	<td>1000</td>
 	<td></td>
 </tr>
+<!--confirm-->
 <tr>
 	<td>chooseOkOnNextConfirmation</td>
 	<td></td>
 	<td></td>
 </tr>
-<!--confirm-->
 <tr>
 	<td>click</td>
 	<td>css=.next_month:first a</td>
