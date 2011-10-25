@@ -1050,6 +1050,9 @@ $(document).ready(function(){
 						}
 
 					} else if( data.payments ){
+						//remove payments of next month
+						$container.isotope('remove', $container.find('.item').filter('[data-month='+ newMonth +']') );
+
 						refreshParts( data );
 
 					} else {
