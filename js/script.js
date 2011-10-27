@@ -345,12 +345,12 @@ $(document).ready(function(){
 					 * delta (&d=1)
 					 *		payments list -> delta only
 					 *		balance -> only if current month
-					 *		sums -> payment month data
+					 *		sums -> payment month data and any timeframe checked future month
 					 *		forecasts -> only if status 2 or 4 and current month or next
 					 * timeframe change (&timeframe=)
 					 *		payments list -> payment month data, delete payment in list if update
 					 *		balance -> only if payment date (new or old one) <= today
-					 *		sums -> payment month data (new and old one)
+					 *		sums -> payment month data (new and old one) and any timeframe checked future month
 					 *		forecasts -> only if current month or next
 					 * reload
 					 *		payments list -> not needed
@@ -393,6 +393,8 @@ $(document).ready(function(){
 					} else if( actionCase == 'delta' ){
 						params += '&d=1';
 					}
+
+					params += '&sums=' + $sums.find('div').map(function(){ return $(this).attr('data-month'); }).get().join(',');
 
 					try{
 						var originParam = 0;
@@ -482,18 +484,6 @@ $(document).ready(function(){
 
 									if( isUpdate ){
 										$container.isotope('remove', $item); //relayout will be done by refreshParts()
-									} else {
-										//add missing sums for refreshParts
-										for( var i = 0; i < timeframeSnapshot.length; i++ ){
-											try {
-												var month = timeframeSnapshot[i];
-												if( !data.sums[month] ){
-													data.sums[month] = localStorage.getObject( $currentOwner.val() + '_sums_' + month );
-												}
-											} catch( e ){
-												alert(e);
-											}
-										}
 									}
 
 									refreshParts( data );
@@ -794,7 +784,7 @@ $(document).ready(function(){
 				//always, will be sent back by the server
 
 				//prepare the ajax call parameters
-				var params = 'action=delete&id=' + $(this).attr('href');
+				var params = 'action=delete&id=' + $(this).attr('href') + '&sums=' + $sums.find('div').map(function(){ return $(this).attr('data-month'); }).get().join(',');
 
 				/*if( $body.data('internet') == 'offline' ){
 					var deletions = localStorage.getObject('deletions') || [];
@@ -817,7 +807,7 @@ $(document).ready(function(){
 							if( data.sums ){
 								for( var month in data.sums ){
 									if( data.sums.hasOwnProperty(month) ){
-										$sums.find('div').filter('[data-month='+ month +']').replaceWith(data.sums[month].html);
+										$sums.find('div').filter('[data-month='+ month +']').replaceWith( data.sums[month].html );
 									}
 								}
 
@@ -1031,9 +1021,10 @@ $(document).ready(function(){
 					needReload = true;
 				}
 
-				var tf = $timeframe.find('input').filter(':not(.year):checked').map(function(){ return this.value; }).get().join(',');
+				var params = '&tf=' + $timeframe.find('input').filter(':not(.year):checked').map(function(){ return this.value; }).get().join(',')
+						   + '&sums=' + $sums.find('div').map(function(){ return $(this).attr('data-month'); }).get().join(',');
 
-				$.post('ajax/payment.php', 'action=initNextMonth' + ( !needReload ? '&timeframe=' + tf : '' ), function(data){
+				$.post('ajax/payment.php', 'action=initNextMonth' + ( !needReload ? params : '' ), function(data){
 					if( data == 'ok' ){
 						if( needReload ){
 							//save the new timeframe for use after the reload
@@ -1047,6 +1038,8 @@ $(document).ready(function(){
 							}
 
 							window.location.reload();
+						} else {
+							alert('need Reload error !');
 						}
 
 					} else if( data.payments ){
@@ -1180,14 +1173,24 @@ $(document).ready(function(){
 			var months = [];
 			for( var month in data.sums ){
 				if( data.sums.hasOwnProperty(month) ){
-					months.push(month);
+					if( $sums.find('div').filter('[data-month='+ month +']').length ){
+						$sums.find('div').filter('[data-month='+ month +']').replaceWith( data.sums[month].html );
+					} else {
+						//need to find the right place
+						var inserted = false,
+							m = parseInt(month.replace(/-/, ''), 10);
+						$sums.find('div').each2(function(i, $sum){
+							if( parseInt($sum.attr('data-month').replace(/-/,''), 10) > m ){
+								inserted = true;
+								$( data.sums[month].html ).insertBefore( $sum );
+								return false;
+							}
+						});
+						if( !inserted ){
+							$sums.append( data.sums[month].html );
+						}
+					}
 				}
-			}
-			months.sort();
-
-			$sums.find('div').remove();
-			for( var i = 0; i < months.length; i++ ){
-				$sums.append( data.sums[ months[i] ].html );
 			}
 		}
 

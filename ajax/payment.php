@@ -313,18 +313,18 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 	 * 		delta (&d=1)
 	 * 			payments list -> delta only
 	 * 			balance -> only if payment date (new or old one) <= today
-	 * 			sums -> payment month data
+	 * 			sums -> payment month data and any future month from uri "sums" parameter
 	 * 			forecasts -> only if current month or next and status 2 or 4
 	 * 		timeframe change (&timeframe=)
 	 * 			payments list -> payment month data
-	 * 			balance -> only if payment date (new or old one) <= today
+	 * 			balance -> only if payment date (new or old one) <= today and any future month from uri "sums" parameter
 	 * 			sums -> payment month data (new and old one)
 	 * 			forecasts -> only if current month or next and status 2 or 4
 	 * delete
 	 * 		payments list -> not needed
 	 * 		balance -> only if payment date (new or old one) <= today
 	 * 		forecast -> only if current month or next and status 2 or 4
-	 * 		sums -> month data
+	 * 		sums -> month data and any future month from uri "sums" parameter
 	 */
 
 	$currentMonth = ( date('d') > 24 ? date('Y-m', strtotime("+1 month")) : date('Y-m') );
@@ -409,6 +409,16 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		}
 	}
 
+	if( $action == 'delete' || $action == 'add' || $action == 'update' || $action == 'initNextMonth' ){
+		$sumsFrame = filter_has_var(INPUT_POST, 'sums');
+		if( !is_null($sumsFrame) && $sumsFrame !== false ){
+			$sumsFrame = filter_var($_POST['sums'], FILTER_SANITIZE_STRING);
+			if( $sumsFrame !== false ){
+				$sumsFrame = explode(',', $sumsFrame);
+			}
+		}
+	}
+
 	if( $action == 'delete' ){
 		if( ( $currentMonth == $paymentBefore->paymentMonth || $nextMonth == $paymentBefore->paymentMonth )
 			&& ( $paymentBefore->statusFK == 2 || $paymentBefore->statusFK == 4 )
@@ -422,31 +432,46 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 
 		//for sums
 		$frame = array( $paymentBefore->paymentMonth => 0 );
+		if( !empty($sumsFrame) ){
+			$m = intVal( str_replace('-', '', $paymentBefore->paymentMonth) );
+			foreach( $sumsFrame as $sm ){
+				if( intVal( str_replace('-', '', $sm) ) > $m ){
+					$frame[$sm] = 0;
+				}
+			}
+		}
 		$sums = $oPayment->getSums( $frame );
 
 	} elseif( $action == 'add' || $action == 'update' ){
 		if( !empty($deltaIds) ){ //delta
 			$delta = $oPayment->loadByIds( $deltaIds );
-
-			$frame = array( $paymentAfter->paymentMonth => 0 );
-			if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
-				$frame[ $paymentBefore->paymentMonth ] = 0;
-			}
-
-			$sums = $oPayment->getSums( $frame );
-
 		} elseif( !empty($frame) ){ //timeframe change
 			$payments = $oPayment->loadForTimeFrame( $frame );
-
-			$frame = array( $paymentAfter->paymentMonth => 0 );
-			if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
-				$frame[ $paymentBefore->paymentMonth ] = 0;
-			}
-
-			$sums = $oPayment->getSums( $frame );
 		}
 
-		if( date('Ymd') >= str_replace('-', '', $paymentAfter->paymentDate) ){
+		$frame = array( $paymentAfter->paymentMonth => 0 );
+		if( !is_null($paymentBefore) && $paymentAfter->paymentMonth != $paymentBefore->paymentMonth ){
+			$frame[ $paymentBefore->paymentMonth ] = 0;
+		}
+
+		if( !empty($sumsFrame) ){
+			if( !is_null($paymentBefore) ){
+				$mb = intVal( str_replace('-', '', $paymentBefore->paymentMonth) );
+			}
+			$ma = intVal( str_replace('-', '', $paymentAfter->paymentMonth) );
+			foreach( $sumsFrame as $sm ){
+				$tmp = intVal( str_replace('-', '', $sm) );
+				if( $tmp > $ma ){
+					$frame[$sm] = 0;
+				}
+				if( !is_null($paymentBefore) && $tmp > $mb ){
+					$frame[$sm] = 0;
+				}
+			}
+		}
+		$sums = $oPayment->getSums( $frame );
+
+		if( date('Ymd') >= str_replace('-', '', $paymentAfter->paymentMonth) ){
 			$tsBalance = 0;
 		} elseif( !is_null($paymentBefore) && date('Ymd') >= str_replace('-', '', $paymentBefore->paymentDate) ){
 			$tsBalance = 0;
@@ -465,13 +490,21 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		} else $tsForecast = -1;
 
 	} else if( $action == 'initNextMonth' ){
-		$payments = $oPayment->loadForTimeFrame( $frame );
+		$payments = $oPayment->loadForTimeFrame( array($next_month => 0) );
+
+		$frame = array($next_month => 0);
+		if( !empty($sumsFrame) ){
+			$m = intVal( str_replace('-', '', $next_month) );
+			foreach( $sumsFrame as $sm ){
+				if( intVal( str_replace('-', '', $sm) ) > $m ){
+					$frame[$sm] = 0;
+				}
+			}
+		}
 		$sums = $oPayment->getSums( $frame );
 
-		if( array_key_exists($currentMonth, $frame) || array_key_exists($nextMonth, $frame) ){
-			$tsForecast = 0;
-			$tsBalance = 0;
-		}
+		$tsBalance = 0;
+		$tsForecast = 0;
 
 	} else { //classic case (refresh)
 		$payments = $oPayment->loadForTimeFrame( $frame );
