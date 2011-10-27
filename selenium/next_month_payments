@@ -67,8 +67,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>assertConfirmation</td>
+	<td>Êtes-vous sûr ?<br />Aucune vérification ne sera réalisée !</td>
+	<td>true</td>
+</tr>
+<tr>
 	<td>pause</td>
-	<td>1000</td>
+	<td>2000</td>
 	<td></td>
 </tr>
 <tr>

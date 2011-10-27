@@ -613,10 +613,10 @@ class payment extends common {
 			$q = $this->_db->prepare("
 				INSERT INTO ".$this->_table."
 				(`label`, `paymentDate`, `paymentMonth`, `amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, `statusFK`, `ownerFK`, `locationFK`, `creationDate`, `modificationDate`)
-				SELECT `label`, DATE_ADD(`paymentDate`, INTERVAL 1 MONTH) AS paymentDate, DATE_ADD(CONCAT(`paymentMonth`, '-01'), INTERVAL 1 MONTH) AS paymentMonth ,`amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, 2, `ownerFK`, `locationFK`, NOW(), NOW()
+				SELECT `label`, DATE_ADD(`paymentDate`, INTERVAL 1 MONTH) AS paymentDate, DATE_FORMAT(DATE_ADD(CONCAT(`paymentMonth`, '-01'), INTERVAL 1 MONTH), '%Y-%m') AS paymentMonth ,`amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, 2, `ownerFK`, `locationFK`, NOW(), NOW()
 				FROM ".$this->_table."
 				WHERE recurrent = 1
-				AND paymentMonth = DATE_FORMAT(CURDATE(), '%Y-%m')
+				AND paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
 			");
 
 			$q->execute();

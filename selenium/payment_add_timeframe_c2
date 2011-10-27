@@ -145,14 +145,14 @@
 	<td></td>
 </tr>
 <tr>
-	<td>assertEval</td>
-	<td>window.$('#time_frame input[value='+ storedVars['futureMonth'] +']').length == 1;</td>
-	<td>true</td>
-</tr>
-<tr>
 	<td>pause</td>
 	<td>1000</td>
 	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>window.$('#time_frame input[value='+ storedVars['futureMonth'] +']').length == 1;</td>
+	<td>true</td>
 </tr>
 <tr>
 	<td>assertEval</td>

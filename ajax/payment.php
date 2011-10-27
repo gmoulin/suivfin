@@ -471,7 +471,7 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		}
 		$sums = $oPayment->getSums( $frame );
 
-		if( date('Ymd') >= str_replace('-', '', $paymentAfter->paymentMonth) ){
+		if( date('Ymd') >= str_replace('-', '', $paymentAfter->paymentDate) ){
 			$tsBalance = 0;
 		} elseif( !is_null($paymentBefore) && date('Ymd') >= str_replace('-', '', $paymentBefore->paymentDate) ){
 			$tsBalance = 0;
@@ -490,11 +490,11 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		} else $tsForecast = -1;
 
 	} else if( $action == 'initNextMonth' ){
-		$payments = $oPayment->loadForTimeFrame( array($next_month => 0) );
+		$payments = $oPayment->loadForTimeFrame( array($nextMonth => 0) );
 
-		$frame = array($next_month => 0);
+		$frame = array($nextMonth => 0);
 		if( !empty($sumsFrame) ){
-			$m = intVal( str_replace('-', '', $next_month) );
+			$m = intVal( str_replace('-', '', $nextMonth) );
 			foreach( $sumsFrame as $sm ){
 				if( intVal( str_replace('-', '', $sm) ) > $m ){
 					$frame[$sm] = 0;
@@ -503,7 +503,7 @@ function getFreshData( &$smarty, $frame, $action, $deltaIds = null, $paymentBefo
 		}
 		$sums = $oPayment->getSums( $frame );
 
-		$tsBalance = 0;
+		$tsBalance = -1;
 		$tsForecast = 0;
 
 	} else { //classic case (refresh)

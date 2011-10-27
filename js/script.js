@@ -366,9 +366,9 @@ $(document).ready(function(){
 					if( $gotMonth.length ){
 						//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
 						if( !$gotMonth.is(':checked') ){
+							timeframeSnapshot.push(newMonth);
 							$timeframe.find('input').filter('[value=' + newMonth + ']').prop({ checked: true }).trigger('change');
 
-							timeframeSnapshot.push(newMonth);
 							actionCase = 'timeframe-change';
 						} else {
 							actionCase = 'delta';
@@ -1009,14 +1009,11 @@ $(document).ready(function(){
 			if( confirm("Êtes-vous sûr ?\nAucune vérification ne sera réalisée !") ){
 
 				//is next month present in time frame
-				var now = new Date(),
-					next = new Date(now.getFullYear(), now.getMonth()+1, 1),
-					newMonth = next.getFullYear() + '-' + (next.getMonth() + 1);
-
 				var needReload = false;
-				if( $timeframe.find('input').filter('[value=' + newMonth + ']').length ){
+				if( $timeframe.find('input').filter('[value=' + nextMonth + ']').length ){
 					//make sure the checkbox is checked and trigger the change event to check the corresponding year checkbox if needed
-					$timeframe.find('input').filter('[value=' + newMonth + ']').prop({ checked: true }).change();
+					timeframeSnapshot.push( nextMonth ); //add nextMonth to snapshot to avoid a refresh trigger
+					$timeframe.find('input').filter('[value=' + nextMonth + ']').prop({ checked: true }).trigger('change');
 				} else {
 					needReload = true;
 				}
@@ -1029,7 +1026,7 @@ $(document).ready(function(){
 						if( needReload ){
 							//save the new timeframe for use after the reload
 							try {
-								timeframeSnapshot.push( newMonth );
+								timeframeSnapshot.push( nextMonth );
 								localStorage.setObject( $currentOwner.val() + '_timeframe', timeframeSnapshot );
 								localStorage.setObject('filters', filters);
 								localStorage.setObject('period_dates', [$('#date_from').val(), $('#date_to').val()]);
@@ -1044,7 +1041,7 @@ $(document).ready(function(){
 
 					} else if( data.payments ){
 						//remove payments of next month
-						$container.isotope('remove', $container.find('.item').filter('[data-month='+ newMonth +']') );
+						$container.isotope('remove', $container.find('.item').filter('[data-month='+ nextMonth +']') );
 
 						refreshParts( data );
 
