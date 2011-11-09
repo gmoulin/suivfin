@@ -216,11 +216,9 @@ $(document).ready(function(){
 		currentDate	   = new Date();
 
 		if( currentDate.getDate() > 24 ){
-			currentDate.setMonth(currentDate.getMonth() + 1 );
-			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
-		} else {
-			var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
+			currentDate.setDate(currentDate.getDate() + 10 );
 		}
+		var currentMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
 
 		currentDate.setMonth(currentDate.getMonth() + 1 );
 		var nextMonth = currentDate.getFullYear() + '-' + (currentDate.getMonth()+1);
@@ -2300,13 +2298,6 @@ String.prototype.timestamp = function(){
 	var d = this.substr(0, 10).split('-'),
 		tmp = new Date(d[0], (parseInt(d[1], 10) - 1), d[2]);
 	return tmp.getTime() / 1000; //only need the timestamp in seconds
-}
-
-String.prototype.getMonth = function(){
-	var d = this.substr(0, 10).split('-');
-	if( d[2] >= 25 ) tmp = new Date(d[0], d[1], d[2])
-	else tmp = new Date(d[0], d[1]+1, d[2]);
-	return tmp.getFullYear() + '-' + (tmp.getMonth() + 1);
 }
 
 String.prototype.capitalize = function(){

@@ -123,7 +123,7 @@ class payment extends common {
 
 								if( date( 'd', $d ) > 24 ){
 									$d = new DateTime($date);
-									$d->add(new DateInterval('P1M'));
+									$d->add(new DateInterval('P10D'));
 									$formData['paymentMonth'] = $d->format('Y-m');
 								} else {
 									$formData['paymentMonth'] = date('Y-m', $d);
@@ -616,7 +616,7 @@ class payment extends common {
 				SELECT `label`, DATE_ADD(`paymentDate`, INTERVAL 1 MONTH) AS paymentDate, DATE_FORMAT(DATE_ADD(CONCAT(`paymentMonth`, '-01'), INTERVAL 1 MONTH), '%Y-%m') AS paymentMonth ,`amount`, `comment`, `recurrent`, `recipientFK`, `typeFK`, `currencyFK`, `methodFK`, `originFK`, 2, `ownerFK`, `locationFK`, NOW(), NOW()
 				FROM ".$this->_table."
 				WHERE recurrent = 1
-				AND paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
+				AND paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 10 DAY), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
 			");
 
 			$q->execute();
@@ -826,8 +826,8 @@ class payment extends common {
 					AND typeFK != 1
 					AND statusFK IN (2,4)
 					AND (
-							paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
-						 OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
+							paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 10 DAY), '%Y-%m'), DATE_FORMAT(CURDATE(), '%Y-%m') )
+						 OR paymentMonth = IF( DAYOFMONTH(CURDATE()) > 24, DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 40 DAY), '%Y-%m'), DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') )
 						)
 					GROUP BY `month`, statusFK, currencyFK
 					ORDER BY `month`, statusFK, currencyFK
