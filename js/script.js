@@ -487,6 +487,7 @@ $(document).ready(function(){
 									}
 
 									refreshParts( data );
+									setTimeout(function(){ applyFilters(); }, 1000);
 
 									//focus the payment add button
 									$('.form_switch:visible').find('a').focus();
@@ -501,6 +502,7 @@ $(document).ready(function(){
 
 									refreshParts( data );
 									refreshWithDelta( data );
+									setTimeout(function(){ applyFilters(); }, 1000);
 								} else {
 									//form errors display
 									formErrors(data);
