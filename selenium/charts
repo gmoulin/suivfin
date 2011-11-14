@@ -102,42 +102,6 @@
 	<td>storedVars['r'].sums != null</td>
 	<td>true</td>
 </tr>
-<!--recipients chart-->
-<tr>
-	<td>getEval</td>
-	<td>window.$('.chart_type:visible .button[rel=recipient]').trigger('click')</td>
-	<td></td>
-</tr>
-<tr>
-	<td>pause</td>
-	<td>2000</td>
-	<td></td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>window.$('header').data('xhr').status == 200</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>JSON.parse(window.$('header').data('xhr').responseText);</td>
-	<td>r</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].currencies != null</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].months != null</td>
-	<td>true</td>
-</tr>
-<tr>
-	<td>assertEval</td>
-	<td>storedVars['r'].sums != null</td>
-	<td>true</td>
-</tr>
 <!--remove ajaxComplete event listener-->
 <tr>
 	<td>getEval</td>

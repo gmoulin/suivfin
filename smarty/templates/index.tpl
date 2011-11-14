@@ -56,7 +56,7 @@
 			<div class="button-group">
 				<a href="#" rel="expense" class="primary button pill">Dépenses</a>
 				<a href="#" rel="evolution" class="button pill">Total</a>
-				<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>
+				{*<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>*}
 			</div>
 		</aside>
 	</header>
@@ -74,7 +74,7 @@
 			<div class="button-group">
 				<a href="#" rel="expense" class="primary button pill">Dépenses</a>
 				<a href="#" rel="evolution" class="button pill">Total</a>
-				<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>
+				{*<a href="#" rel="recipient" class="button pill">Bénéficiaire</a>*}
 			</div>
 		</aside>
 	</footer>

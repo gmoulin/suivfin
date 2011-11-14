@@ -243,42 +243,42 @@ try {
 					default:
 							$oPayment = new payment();
 
-							if( $browserHasCache && $modifiedSince != 0 ){
+							/*if( $browserHasCache && $modifiedSince != 0 ){
 								$ts = $oPayment->getExpenseData(null, true);
 								//browser has list in cache and list was not modified
 								if( $modifiedSince == $ts ){
 									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
 									die;
 								}
-							}
+							}*/
 
 							list($lastModified, $response) = $oPayment->getExpenseData(true);
 						break;
 					case 'evolution':
 							$oEvolution = new evolution();
 
-							if( $browserHasCache && $modifiedSince != 0 ){
+							/*if( $browserHasCache && $modifiedSince != 0 ){
 								$ts = $oEvolution->getEvolutionData(null, true);
 								//browser has list in cache and list was not modified
 								if( $modifiedSince == $ts ){
 									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
 									die;
 								}
-							}
+							}*/
 
 							list($lastModified, $response) = $oEvolution->getEvolutionData(true);
 						break;
 					case 'recipient':
 							$oPayment = new payment();
 
-							if( $browserHasCache && $modifiedSince != 0 ){
+							/*if( $browserHasCache && $modifiedSince != 0 ){
 								$ts = $oPayment->getRecipientData(null, true);
 								//browser has list in cache and list was not modified
 								if( $modifiedSince == $ts ){
 									header($_SERVER["SERVER_PROTOCOL"]." 304 Not Modified");
 									die;
 								}
-							}
+							}*/
 
 							list($lastModified, $response) = $oPayment->getRecipientData(true);
 						break;

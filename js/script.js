@@ -959,7 +959,7 @@ $(document).ready(function(){
 				}
 
 				if( dto.checkValidity() && dto.value != '' ){
-					date_to = dfrom.value.split('/');
+					date_to = dto.value.split('/');
 					date_to = new Date(date_to[2], parseInt(date_to[1], 10) - 1, date_to[0]);
 					date_to = date_to.getTime() / 1000;
 				}
@@ -967,9 +967,15 @@ $(document).ready(function(){
 				if( date_from != null || date_to != null ){
 					var ids = [];
 					$container.find('.item').each2(function(i, $item){
-						if( ( date_from != null ? $item.data('date') >= date_from : true )
-							&& ( date_to != null ? $item.data('date') <= date_to : true )
-						){
+						if( date_from != null && date_to != null ){
+							if( date_from == date_to && $item.data('date') == date_from ){
+								ids.push( '#' + $item[0].id );
+							} else if( $item.data('date') >= date_from && $item.data('date') <= date_to ){
+								ids.push( '#' + $item[0].id );
+							}
+						} else if( date_from != null && $item.data('date') >= date_from ){
+							ids.push( '#' + $item[0].id );
+						} else if( date_to != null && $item.data('date') <= date_to ){
 							ids.push( '#' + $item[0].id );
 						}
 					});
